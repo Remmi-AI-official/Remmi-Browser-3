@@ -31,6 +31,12 @@ android {
   }
 
   signingConfigs {
+    create("debugConfig") {
+      storeFile = file("${rootDir}/debug.keystore")
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
+    }
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH")
       val storePassword = System.getenv("STORE_PASSWORD")
@@ -55,6 +61,7 @@ android {
 
   buildTypes {
     debug {
+      signingConfig = signingConfigs.getByName("debugConfig")
     }
     release {
       isCrunchPngs = false

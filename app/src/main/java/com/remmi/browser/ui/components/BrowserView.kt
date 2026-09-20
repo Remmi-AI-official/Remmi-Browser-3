@@ -245,7 +245,7 @@ fun BrowserView(
       }
       com.remmi.browser.util.DebugLogManager.log(unmountMsg)
       geckoViewRef?.let { gv ->
-        geckoEngine.detachView(tab.id, gv)
+        geckoEngine.detachViewSync(tab.id, gv)
       }
       geckoViewRef = null
     }

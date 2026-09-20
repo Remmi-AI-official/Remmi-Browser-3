@@ -41,7 +41,11 @@ object TorServiceLauncher {
   fun start(context: Context): Boolean {
     return try {
       prepareNotificationChannel(context)
-      TorService.setBroadcastPackageName(context.packageName)
+      try {
+        TorService::class.java.getMethod("setBroadcastPackageName", String::class.java).invoke(null, context.packageName)
+      } catch (_: Throwable) {
+        // Ignored if method not present in this tor-android version
+      }
 
       val intent = Intent(context, RemmiTorService::class.java).apply {
         action = ACTION_TOR_START
