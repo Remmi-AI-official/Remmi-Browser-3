@@ -9,7 +9,7 @@
 - **Compile SDK**: `36`
 - **Target SDK**: `36`
 - **Min SDK**: `26`
-- **GeckoView Runtime**: `154.0.20260824154132`
+- **GeckoView Runtime**: `156.0.20260909172920` (`geckoview-omni`)
 - **Release Verification Status**: **PASSED (JVM & Source Invariants)**
 
 ---

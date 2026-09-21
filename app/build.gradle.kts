@@ -175,7 +175,7 @@ dependencies {
   implementation(libs.androidx.fragment.ktx)
   // implementation(libs.accompanist.permissions)
   // GeckoView & Tor dependencies (Pinned deterministic versions)
-  implementation("org.mozilla.geckoview:geckoview:156.0.20260909172920")
+  implementation("org.mozilla.geckoview:geckoview-omni:156.0.20260909172920")
   implementation("info.guardianproject:tor-android:0.4.9.12")
   implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
   implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")

@@ -285,9 +285,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
-          if [ -z "$APKSIGNER" ]; then
-            echo "::error::apksigner tool not found in $ANDROID_HOME/build-tools"
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          APKSIGNER="$(command -v apksigner 2>/dev/null || find "${SDK_ROOT}/build-tools" -name apksigner 2>/dev/null | sort -V | tail -n1 || true)"
+          if [ -z "$APKSIGNER" ] || [ ! -x "$APKSIGNER" ]; then
+            echo "::error::apksigner tool not found in $SDK_ROOT/build-tools or PATH"
             exit 1
           fi
           for apk in release-output/*.apk; do
@@ -302,9 +303,10 @@ jobs:
           EXPECTED_V_CODE: ${{ steps.resolve_version.outputs.version_code }}
         run: |
           set -euo pipefail
-          APKANALYZER="$(find "${ANDROID_HOME}/build-tools" -type f -name apkanalyzer | sort -V | tail -n1)"
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          APKANALYZER="$(command -v apkanalyzer 2>/dev/null || find "${SDK_ROOT}/cmdline-tools" "${SDK_ROOT}" -name apkanalyzer 2>/dev/null | sort -V | tail -n1 || true)"
           if [ -z "$APKANALYZER" ] || [ ! -x "$APKANALYZER" ]; then
-            echo "::error::apkanalyzer not found or not executable"
+            echo "::error::apkanalyzer not found or not executable in $SDK_ROOT or PATH"
             exit 1
           fi
           APK="$(find release-output -type f -name '*.apk' | head -n1)"

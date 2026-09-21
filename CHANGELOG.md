@@ -4,7 +4,7 @@
 
 Production release hardening, deterministic versioning, and GeckoView upgrade:
 
-- Upgraded GeckoView runtime dependency to `154.0.20260824154132`.
+- Upgraded GeckoView runtime dependency to `156.0.20260909172920` (`geckoview-omni`).
 - Standardized Reader mode extraction onto `NetworkRouteAuthority.createHttpClient(...)` with 2MB bounded body reading and fail-closed handling for Ghost/Onion requests.
 - Added `release-version.properties` as the project-wide single source of truth for version code and name.
 - Hardened release CI workflow (`release.yml`) with automated manifest verification via `apkanalyzer`, SHA-256 generation, `apksigner` validation, and project secret naming (`REMMI_RELEASE_KEYSTORE_B64`).
