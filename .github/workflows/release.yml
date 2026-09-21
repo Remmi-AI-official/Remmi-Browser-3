@@ -45,11 +45,6 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '9.3.1'
-
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
@@ -65,15 +60,23 @@ jobs:
             exit 1
           fi
 
-          echo "Verifying Gradle version with retry resilience..."
-          for i in 1 2 3 4 5; do
+          echo "Verifying Gradle toolchain..."
+          for i in 1 2 3; do
             if ./gradlew --version > /tmp/gradle_ver_out.txt 2>&1; then
               cat /tmp/gradle_ver_out.txt
               break
             fi
-            echo "Gradle download/verification attempt $i failed. Retrying in 5 seconds..."
-            cat /tmp/gradle_ver_out.txt || true
-            sleep 5
+            echo "Attempt $i failed. Attempting resilient download from GitHub releases mirror..."
+            
+            # Find or trigger wrapper dist directory creation
+            ./gradlew --version >/dev/null 2>&1 || true
+            DIST_HASH_DIR=$(find "$HOME/.gradle/wrapper/dists/gradle-9.3.1-bin" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | head -n1 || true)
+            if [ -n "$DIST_HASH_DIR" ]; then
+              echo "Downloading directly into $DIST_HASH_DIR..."
+              curl -fSL --retry 5 --retry-delay 3 --connect-timeout 20 -o "$DIST_HASH_DIR/gradle-9.3.1-bin.zip" \
+                "https://github.com/gradle/gradle-distributions/releases/download/v9.3.1/gradle-9.3.1-bin.zip" || true
+            fi
+            sleep 3
           done
           
           GRADLE_VER=$(cat /tmp/gradle_ver_out.txt | awk '/^Gradle / {print $2}')
