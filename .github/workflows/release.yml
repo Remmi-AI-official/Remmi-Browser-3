@@ -33,7 +33,6 @@ permissions:
 jobs:
   build-release:
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout Code
@@ -143,21 +142,21 @@ jobs:
       - name: Verify Production Signing Secrets
         shell: bash
         env:
-          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 }}
-          STORE_PASSWORD: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.REMMI_RELEASE_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 || secrets.KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD || secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.REMMI_RELEASE_KEY_ALIAS || secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD || secrets.KEY_PASSWORD }}
         run: |
           set -euo pipefail
           if [ -z "${KEYSTORE_BASE64:-}" ] || \
              [ -z "${STORE_PASSWORD:-}" ] || \
              [ -z "${KEY_ALIAS:-}" ] || \
              [ -z "${KEY_PASSWORD:-}" ]; then
-            echo "::error::Production signing secrets are missing! Required secrets:"
-            echo "REMMI_RELEASE_KEYSTORE_B64"
-            echo "REMMI_RELEASE_STORE_PASSWORD"
-            echo "REMMI_RELEASE_KEY_ALIAS"
-            echo "REMMI_RELEASE_KEY_PASSWORD"
+            echo "::error::Production signing secrets are missing! Please set in GitHub Repository Secrets:"
+            echo "- REMMI_RELEASE_KEYSTORE_B64 (or KEYSTORE_BASE64)"
+            echo "- REMMI_RELEASE_STORE_PASSWORD (or STORE_PASSWORD)"
+            echo "- REMMI_RELEASE_KEY_ALIAS (or KEY_ALIAS)"
+            echo "- REMMI_RELEASE_KEY_PASSWORD (or KEY_PASSWORD)"
             echo "Automatic signing-key generation is disabled."
             exit 1
           fi
@@ -165,10 +164,10 @@ jobs:
       - name: Setup Keystore
         shell: bash
         env:
-          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 }}
-          STORE_PASSWORD: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.REMMI_RELEASE_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 || secrets.KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD || secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.REMMI_RELEASE_KEY_ALIAS || secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD || secrets.KEY_PASSWORD }}
           WORKSPACE_PATH: ${{ github.workspace }}
         run: |
           set -euo pipefail
