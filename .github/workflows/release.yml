@@ -198,8 +198,26 @@ jobs:
           clean_key_pass=$(printf '%s' "$KEY_PASSWORD" | tr -d '\r\n"'\''')
 
           rm -f "${WORKSPACE_PATH}/release.keystore"
-          python3 -c "import base64, sys; open(sys.argv[2], 'wb').write(base64.b64decode(sys.argv[1]))" "$clean_b64" "${WORKSPACE_PATH}/release.keystore" 2>/dev/null || \
-            printf '%s' "$clean_b64" | base64 --decode --ignore-garbage > "${WORKSPACE_PATH}/release.keystore" 2>/dev/null || true
+          python3 - <<'EOF'
+import os, base64, sys
+
+b64 = os.environ.get("KEYSTORE_BASE64", "")
+# Strip unwanted whitespace, quotes or newlines
+clean_b64 = "".join(c for c in b64 if c not in ("\r", "\n", " ", '"', "'"))
+out_dir = os.environ.get("WORKSPACE_PATH", ".")
+out_file = os.path.join(out_dir, "release.keystore")
+
+if not clean_b64:
+    sys.exit(1)
+
+try:
+    raw = base64.b64decode(clean_b64)
+    with open(out_file, "wb") as f:
+        f.write(raw)
+except Exception as e:
+    print(f"Decode error: {e}", file=sys.stderr)
+    sys.exit(1)
+EOF
           
           chmod 600 "${WORKSPACE_PATH}/release.keystore"
 
