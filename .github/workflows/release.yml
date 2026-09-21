@@ -158,7 +158,14 @@ jobs:
           set -euo pipefail
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release.keystore
           chmod 600 release.keystore
+          echo "Verifying keystore access with store password..."
           keytool -list -v -keystore release.keystore -storepass "$STORE_PASSWORD"
+          echo "Verifying key recovery for alias '$KEY_ALIAS' with key password..."
+          if ! keytool -certreq -keystore release.keystore -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" -keypass "$KEY_PASSWORD" -file /dev/null >/dev/null 2>&1; then
+            echo "::error::Failed to decrypt key alias '$KEY_ALIAS' with KEY_PASSWORD. Verify that KEY_PASSWORD matches the password used when creating key alias '$KEY_ALIAS' in the keystore."
+            exit 1
+          fi
+          echo "Keystore and key alias verification passed."
           echo "KEYSTORE_PATH=${WORKSPACE_PATH}/release.keystore" >> "$GITHUB_ENV"
           echo "STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
           echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
