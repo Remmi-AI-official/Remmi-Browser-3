@@ -198,7 +198,8 @@ fun UrlSecuritySheet(
           iconTint = if (isGhost) ThemeCyber.colors.torPurple else ThemeCyber.colors.textMuted,
           title = if (isGhost) "Tor Onion Routing Active" else "Clearnet Shield Active",
           subtitle = if (isGhost) {
-            "SOCKS5 Port ${CurrentTorRoute.currentSocksPort ?: 9050} • Isolated ${containerType.displayName} Container"
+            val portText = CurrentTorRoute.currentSocksPort?.let { "Port $it" } ?: "Active"
+            "SOCKS5 $portText • Isolated ${containerType.displayName} Container"
           } else {
             "Direct connection • Isolated ${containerType.displayName} Container"
           }

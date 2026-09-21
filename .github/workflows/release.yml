@@ -100,9 +100,17 @@ jobs:
               exit 1
             fi
 
+            test -f release-version.properties
+
+            VERSION_NAME="$(grep '^versionName=' release-version.properties | cut -d'=' -f2-)"
+            VERSION_CODE="$(grep '^versionCode=' release-version.properties | cut -d'=' -f2-)"
+
+            if ! [[ "$VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::Invalid versionCode '$VERSION_CODE' in release-version.properties"
+              exit 1
+            fi
+
             RELEASE_TAG="$REF_NAME"
-            VERSION_NAME="${REF_NAME#v}"
-            VERSION_CODE="3"
             RELEASE_TITLE="Remmi Browser ${RELEASE_TAG}"
           fi
 
@@ -135,24 +143,32 @@ jobs:
       - name: Verify Production Signing Secrets
         shell: bash
         env:
-          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 || secrets.KEYSTORE_BASE64 }}
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.REMMI_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -z "${KEYSTORE_BASE64:-}" ] || [ -z "${STORE_PASSWORD:-}" ] || [ -z "${KEY_ALIAS:-}" ] || [ -z "${KEY_PASSWORD:-}" ]; then
-            echo "::error::Production signing secrets are missing! Required: REMMI_RELEASE_KEYSTORE_B64 (or KEYSTORE_BASE64), STORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD. Automatic fallback generation is strictly disabled."
+          if [ -z "${KEYSTORE_BASE64:-}" ] || \
+             [ -z "${STORE_PASSWORD:-}" ] || \
+             [ -z "${KEY_ALIAS:-}" ] || \
+             [ -z "${KEY_PASSWORD:-}" ]; then
+            echo "::error::Production signing secrets are missing! Required secrets:"
+            echo "REMMI_RELEASE_KEYSTORE_B64"
+            echo "REMMI_RELEASE_STORE_PASSWORD"
+            echo "REMMI_RELEASE_KEY_ALIAS"
+            echo "REMMI_RELEASE_KEY_PASSWORD"
+            echo "Automatic signing-key generation is disabled."
             exit 1
           fi
 
       - name: Setup Keystore
         shell: bash
         env:
-          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 || secrets.KEYSTORE_BASE64 }}
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.REMMI_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD }}
           WORKSPACE_PATH: ${{ github.workspace }}
         run: |
           set -euo pipefail
@@ -237,6 +253,47 @@ jobs:
             "$APKSIGNER" verify --verbose "$apk"
           done
 
+      - name: Verify APK Manifest Information
+        shell: bash
+        env:
+          EXPECTED_V_NAME: ${{ steps.resolve_version.outputs.version_name }}
+          EXPECTED_V_CODE: ${{ steps.resolve_version.outputs.version_code }}
+        run: |
+          set -euo pipefail
+          APKANALYZER="$(find "${ANDROID_HOME}/build-tools" -type f -name apkanalyzer | sort -V | tail -n1)"
+          if [ -z "$APKANALYZER" ] || [ ! -x "$APKANALYZER" ]; then
+            echo "::error::apkanalyzer not found or not executable"
+            exit 1
+          fi
+          APK="$(find release-output -type f -name '*.apk' | head -n1)"
+          if [ -z "$APK" ]; then
+            echo "::error::No APK found in release-output for manifest verification"
+            exit 1
+          fi
+          
+          APP_ID="$("$APKANALYZER" manifest application-id "$APK")"
+          V_CODE="$("$APKANALYZER" manifest version-code "$APK")"
+          V_NAME="$("$APKANALYZER" manifest version-name "$APK")"
+          TARGET_SDK="$("$APKANALYZER" manifest target-sdk "$APK")"
+
+          echo "Application ID: $APP_ID"
+          echo "Version Code: $V_CODE (expected $EXPECTED_V_CODE)"
+          echo "Version Name: $V_NAME (expected $EXPECTED_V_NAME)"
+          echo "Target SDK: $TARGET_SDK (expected 36)"
+
+          if [ "$APP_ID" != "com.remmi.browser" ]; then
+            echo "::error::Invalid application ID: $APP_ID (expected com.remmi.browser)"
+            exit 1
+          fi
+          if [ "$V_CODE" != "$EXPECTED_V_CODE" ]; then
+            echo "::error::Version code mismatch: $V_CODE (expected $EXPECTED_V_CODE)"
+            exit 1
+          fi
+          if [ "$V_NAME" != "$EXPECTED_V_NAME" ]; then
+            echo "::error::Version name mismatch: $V_NAME (expected $EXPECTED_V_NAME)"
+            exit 1
+          fi
+
       - name: Verify AAB Signature (jarsigner)
         shell: bash
         run: |
@@ -245,6 +302,35 @@ jobs:
             echo "Verifying AAB signature: $aab"
             jarsigner -verify -verbose -certs "$aab"
           done
+
+      - name: Final Automated Release Gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== REMMI FINAL RELEASE GATE ==="
+
+          APK_COUNT="$(find release-output -type f -name '*.apk' | wc -l)"
+          AAB_COUNT="$(find release-output -type f -name '*.aab' | wc -l)"
+
+          test "$APK_COUNT" -ge 1
+          test "$AAB_COUNT" -ge 1
+
+          if grep -Rni --exclude-dir=.gradle --exclude-dir=build 'currentSocksPort ?: 9050' app/src/main; then
+            echo "::error::Unsafe stale Tor port fallback detected in production source"
+            exit 1
+          fi
+
+          if grep -Rni --exclude-dir=.gradle --exclude-dir=build '127.0.0.1:9050' app/src/main; then
+            echo "::error::Hardcoded Tor SOCKS port detected in production source"
+            exit 1
+          fi
+
+          if grep -Rni --exclude-dir=.gradle --exclude-dir=build 'debug.keystore' app/build.gradle.kts; then
+            echo "::error::Production build still depends on debug.keystore"
+            exit 1
+          fi
+
+          echo "=== REMMI FINAL RELEASE GATE PASSED ==="
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4

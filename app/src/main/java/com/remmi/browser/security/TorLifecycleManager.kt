@@ -221,9 +221,11 @@ class TorLifecycleManager private constructor(private val context: Context) {
 
   private suspend fun startTorDaemonInternal(generation: Long = System.currentTimeMillis()): Result<Int> {
     if (_daemonState.value == TorDaemonState.ACTIVE && CurrentTorRoute.isReady) {
-      val activePort = CurrentTorRoute.currentSocksPort ?: 9050
-      Log.i(TAG, "Tor daemon is already ACTIVE on port $activePort")
-      return Result.success(activePort)
+      val activePort = CurrentTorRoute.currentSocksPort
+      if (activePort != null && activePort > 0) {
+        Log.i(TAG, "Tor daemon is already ACTIVE on port $activePort")
+        return Result.success(activePort)
+      }
     }
 
     _daemonState.value = TorDaemonState.STARTING

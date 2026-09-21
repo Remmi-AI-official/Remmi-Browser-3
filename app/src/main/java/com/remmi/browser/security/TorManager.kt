@@ -353,7 +353,7 @@ class TorManager(private val context: Context) {
         AutomapHostsOnResolve 1
         SafeLogging 1
         KeepalivePeriod 60
-        SOCKSPort 127.0.0.1:9050
+        SOCKSPort 127.0.0.1:$defaultSocksPort
         ControlPort 127.0.0.1:9051
         DNSPort 127.0.0.1:5400
         Log notice file ${logFile.absolutePath}

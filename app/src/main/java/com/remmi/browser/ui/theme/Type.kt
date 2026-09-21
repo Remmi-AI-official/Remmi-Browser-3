@@ -37,7 +37,7 @@ enum class BrowserFont(
     displayName = "Retro Terminal Code",
     subtitle = "Classic green-screen console monospace",
     fontFamily = FontFamily.Monospace,
-    previewSample = "root@node:~# socks5://127.0.0.1:9050",
+    previewSample = "root@node:~# socks5://onion-proxy [ACTIVE]",
     category = "CYBERPUNK & HACKER"
   ),
   EDITORIAL_SERIF(

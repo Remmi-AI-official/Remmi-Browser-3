@@ -1,8 +1,17 @@
+import java.util.Properties
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.google.devtools.ksp)
   alias(libs.plugins.roborazzi)
+}
+
+val releaseVersionProperties = Properties().apply {
+  val versionFile = rootProject.file("release-version.properties")
+  if (versionFile.isFile) {
+    versionFile.inputStream().use { load(it) }
+  }
 }
 
 android {
@@ -16,12 +25,17 @@ android {
     
     val configuredVersionCode = providers.gradleProperty("versionCode")
       .map { it.toInt() }
-      .getOrElse((project.findProperty("versionCode") as? String)?.toIntOrNull() ?: 3)
-    val configuredVersionName = providers.gradleProperty("versionName")
-      .getOrElse((project.findProperty("versionName") as? String) ?: "1.0.2")
+      .orElse(
+        releaseVersionProperties.getProperty("versionCode", "1").toInt()
+      )
 
-    versionCode = configuredVersionCode
-    versionName = configuredVersionName
+    val configuredVersionName = providers.gradleProperty("versionName")
+      .orElse(
+        releaseVersionProperties.getProperty("versionName", "1.0.0")
+      )
+
+    versionCode = configuredVersionCode.get()
+    versionName = configuredVersionName.get()
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     ndk {
@@ -38,12 +52,6 @@ android {
   }
 
   signingConfigs {
-    create("debugConfig") {
-      storeFile = file(rootProject.projectDir).resolve("debug." + "keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
-    }
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH")
       val storePassword = System.getenv("STORE_PASSWORD")
@@ -68,7 +76,7 @@ android {
 
   buildTypes {
     debug {
-      signingConfig = signingConfigs.getByName("debugConfig")
+      // Use AGP's standard debug signing.
     }
     release {
       isCrunchPngs = false

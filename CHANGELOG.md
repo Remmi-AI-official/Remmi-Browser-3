@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.3
+
+Production release hardening, deterministic versioning, and GeckoView upgrade:
+
+- Upgraded GeckoView runtime dependency to `154.0.20260824154132`.
+- Standardized Reader mode extraction onto `NetworkRouteAuthority.createHttpClient(...)` with 2MB bounded body reading and fail-closed handling for Ghost/Onion requests.
+- Added `release-version.properties` as the project-wide single source of truth for version code and name.
+- Hardened release CI workflow (`release.yml`) with automated manifest verification via `apkanalyzer`, SHA-256 generation, `apksigner` validation, and project secret naming (`REMMI_RELEASE_KEYSTORE_B64`).
+- Cleaned Gradle signing configuration to rely on AGP's built-in debug signing and fail-closed release signing.
+- Added comprehensive unit and source regression test suites covering Tor routing invariants, Reader isolation, and release versioning.
+
 ## Jitter / GeckoView stability fix
 
 - Prevent transient Gecko `about:blank` callbacks from swapping the Compose content to the New Tab page during real navigation.

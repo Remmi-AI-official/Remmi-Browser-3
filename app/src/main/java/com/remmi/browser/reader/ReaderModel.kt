@@ -2,7 +2,7 @@ package com.remmi.browser.reader
 
 import android.content.Context
 import android.util.Log
-import com.remmi.browser.security.CurrentTorRoute
+import com.remmi.browser.security.NetworkRouteAuthority
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -11,8 +11,9 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.mozilla.geckoview.GeckoWebExecutor
 import org.mozilla.geckoview.WebRequest
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.net.URI
-import java.util.Scanner
 
 data class ReaderParagraph(
   val index: Int,
@@ -122,6 +123,48 @@ object ReaderExtractor {
   private const val MAX_RESPONSE_BYTES = 2L * 1024L * 1024L // 2 MB cap
   private const val MAX_ARTICLE_PARAGRAPHS = 500
 
+  private fun readBodyBounded(
+    body: okhttp3.ResponseBody,
+    maxBytes: Long
+  ): String {
+    body.byteStream().use { input ->
+      val output = ByteArrayOutputStream(minOf(maxBytes, 64L * 1024L).toInt())
+      val buffer = ByteArray(8192)
+      var total = 0L
+      while (true) {
+        val read = input.read(buffer)
+        if (read <= 0) break
+        total += read
+        if (total > maxBytes) {
+          throw IllegalStateException("Reader response exceeds ${maxBytes} bytes")
+        }
+        output.write(buffer, 0, read)
+      }
+      return output.toByteArray().toString(Charsets.UTF_8)
+    }
+  }
+
+  private fun readInputStreamBounded(
+    input: InputStream,
+    maxBytes: Long
+  ): String {
+    input.use { stream ->
+      val output = ByteArrayOutputStream(minOf(maxBytes, 64L * 1024L).toInt())
+      val buffer = ByteArray(8192)
+      var total = 0L
+      while (true) {
+        val read = stream.read(buffer)
+        if (read <= 0) break
+        total += read
+        if (total > maxBytes) {
+          throw IllegalStateException("Reader response exceeds ${maxBytes} bytes")
+        }
+        output.write(buffer, 0, read)
+      }
+      return output.toByteArray().toString(Charsets.UTF_8)
+    }
+  }
+
   /**
    * Fetches the web page asynchronously and extracts full clean article content
    */
@@ -138,12 +181,12 @@ object ReaderExtractor {
       return@withContext null
     }
 
-    if (com.remmi.browser.security.NavigationSecurityAuthority.isPrivateOrLocalHost(domain, isGhost || com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(url))) {
+    if (com.remmi.browser.security.NavigationSecurityAuthority.isPrivateOrLocalHost(domain, isGhost || NetworkRouteAuthority.isOnionDestination(url))) {
       Log.w(TAG, "Reader extraction blocked: Local/Private address targets prohibited ($domain)")
       return@withContext null
     }
 
-    val isOnion = com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(url)
+    val isOnion = NetworkRouteAuthority.isOnionDestination(url)
     if ((isGhost || isOnion) && !com.remmi.browser.security.CurrentTorRoute.isReady) {
       Log.w(TAG, "Reader extraction blocked: Tor route is not verified")
       return@withContext null
@@ -151,43 +194,49 @@ object ReaderExtractor {
 
     // Attempt 1: Fast direct HTTP fetch via OkHttp
     try {
-      val okHttpClient = if (isGhost || isOnion) {
-        val port = com.remmi.browser.security.CurrentTorRoute.currentSocksPort ?: 9050
-        okhttp3.OkHttpClient.Builder()
-          .proxy(java.net.Proxy(java.net.Proxy.Type.SOCKS, java.net.InetSocketAddress("127.0.0.1", port)))
-          .connectTimeout(6, java.util.concurrent.TimeUnit.SECONDS)
-          .readTimeout(6, java.util.concurrent.TimeUnit.SECONDS)
-          .followRedirects(true)
-          .build()
-      } else {
-        okhttp3.OkHttpClient.Builder()
-          .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-          .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-          .followRedirects(true)
-          .build()
-      }
+      val okHttpClient = NetworkRouteAuthority.createHttpClient(
+        isGhost = isGhost || isOnion,
+        targetUrl = url,
+        connectTimeoutSeconds = if (isGhost || isOnion) 6L else 5L,
+        readTimeoutSeconds = if (isGhost || isOnion) 6L else 5L,
+        followRedirects = true
+      )
 
       val req = okhttp3.Request.Builder()
         .url(url)
-        .header("User-Agent", "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36")
-        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+        .header(
+          "User-Agent",
+          "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36"
+        )
+        .header(
+          "Accept",
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        )
         .build()
 
       val resp = okHttpClient.newCall(req).execute()
       if (resp.isSuccessful) {
-        val html = resp.body?.string().orEmpty()
-        if (html.isNotBlank()) {
-          val parsed = parseHtmlDocument(html, url, currentTitle, domain)
-          if (parsed != null && parsed.activeParagraphs.isNotEmpty()) {
-            return@withContext parsed
+        val body = resp.body
+        if (body != null) {
+          val html = readBodyBounded(body, MAX_RESPONSE_BYTES)
+          if (html.isNotBlank()) {
+            val parsed = parseHtmlDocument(html, url, currentTitle, domain)
+            if (parsed != null && parsed.activeParagraphs.isNotEmpty()) {
+              return@withContext parsed
+            }
           }
         }
       }
     } catch (e: Exception) {
-      Log.w(TAG, "OkHttp reader direct fetch attempt notice: ${e.message}")
+      Log.w(TAG, "Reader route-authorized fetch failed: ${e.message}")
     }
 
-    // Attempt 2: Fallback to GeckoWebExecutor
+    if (isGhost || isOnion) {
+      Log.w(TAG, "Reader extraction failed closed for Ghost/Onion; Gecko fallback disabled")
+      return@withContext null
+    }
+
+    // Attempt 2: Fallback to GeckoWebExecutor (clearnet only)
     val runtime = com.remmi.browser.engine.GeckoEngineManager.getInstance(context).runtime
     if (runtime == null) {
       Log.w(TAG, "Reader extraction failed: Gecko runtime not available")
@@ -216,8 +265,7 @@ object ReaderExtractor {
           Log.w(TAG, "Reader fetch returned empty stream for $url")
           return@withTimeout null
         }
-        val html = Scanner(bodyStream, "UTF-8").useDelimiter("\\A").next()
-        bodyStream.close()
+        val html = readInputStreamBounded(bodyStream, MAX_RESPONSE_BYTES)
         if (html.isBlank()) {
           Log.w(TAG, "Reader fetch body content is blank for $url")
           return@withTimeout null

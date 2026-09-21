@@ -86,4 +86,43 @@ class ReleaseSecurityRegressionTest {
       assertTrue("Missing public release document: $name", File("../$name").isFile)
     }
   }
+
+  @Test
+  fun ghostReaderMustUseCentralRouteAuthorityAndNeverFallbackTo9050() {
+    val source = File(javaRoot, "com/remmi/browser/reader/ReaderModel.kt").readText()
+
+    assertTrue("Reader must use NetworkRouteAuthority", source.contains("NetworkRouteAuthority.createHttpClient"))
+    assertFalse("Reader must not use a stale 9050 fallback", source.contains("currentSocksPort ?: 9050"))
+    assertFalse("Reader must not hardcode the Tor port", source.contains("127.0.0.1:9050"))
+    assertFalse("Reader must not create a raw SOCKS proxy", source.contains("Proxy.Type.SOCKS"))
+    assertFalse("Reader must not construct its own localhost SOCKS endpoint", source.contains("InetSocketAddress(\"127.0.0.1\""))
+  }
+
+  @Test
+  fun ghostReaderMustFailClosedBeforeGeckoFallback() {
+    val source = File(javaRoot, "com/remmi/browser/reader/ReaderModel.kt").readText()
+
+    assertTrue("Reader must have explicit Ghost/Onion fail-closed handling", source.contains("isGhost || isOnion"))
+    assertTrue(
+      "Reader must explicitly stop before uncontrolled Gecko fallback",
+      source.contains("Gecko fallback disabled") ||
+        source.contains("failing closed") ||
+        source.contains("fail closed")
+    )
+  }
+
+  @Test
+  fun releaseVersionPropertiesMustBeValid() {
+    val file = File("../release-version.properties")
+    assertTrue("release-version.properties missing", file.isFile)
+
+    val properties = java.util.Properties()
+    file.inputStream().use { properties.load(it) }
+
+    val versionName = properties.getProperty("versionName")
+    val versionCode = properties.getProperty("versionCode")
+
+    assertTrue("Invalid versionName: $versionName", Regex("""^\d+\.\d+\.\d+$""").matches(versionName))
+    assertTrue("Invalid versionCode: $versionCode", versionCode.toIntOrNull()?.let { it > 0 } == true)
+  }
 }
