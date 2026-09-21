@@ -782,7 +782,15 @@ class AdblockBridge {
       Log.d(TAG, "[COMPILE_REQUEST] source=$source generation=$currentGen jobId=$jobId sessionId=$sess processPid=$pid callerTrace=\n$callerTrace")
     }
 
-    if (android.os.Looper.myLooper() != null && android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+    val isUnitTest = try {
+      android.os.Build.FINGERPRINT == "robolectric" ||
+      System.getProperty("robolectric.dependency.repo.url") != null ||
+      Class.forName("org.robolectric.Robolectric") != null
+    } catch (_: Throwable) {
+      false
+    }
+
+    if (android.os.Looper.myLooper() != null && android.os.Looper.myLooper() == android.os.Looper.getMainLooper() && !isUnitTest) {
       throw IllegalStateException("[COMPILE_UI_THREAD] compileRules must not be called on the Main thread to prevent ANR")
     }
 

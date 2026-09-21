@@ -10,6 +10,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -33,8 +34,14 @@ class GeckoPasswordAutofillIntegrationTest {
 
   @Before
   fun setUp() {
+    com.remmi.browser.storage.SqlCipherInitializer.resetForTesting()
     context = ApplicationProvider.getApplicationContext()
     repository = PasswordManagerRepository.getInstance(context)
+  }
+
+  @After
+  fun tearDown() {
+    com.remmi.browser.storage.SqlCipherInitializer.resetForTesting()
   }
 
   @Test

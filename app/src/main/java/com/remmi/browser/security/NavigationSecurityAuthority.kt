@@ -158,7 +158,7 @@ object NavigationSecurityAuthority {
       return true
     }
     // Block confirmed aggressive popunder networks when directly navigated as main frame
-    if (lower.contains("popads.net") || lower.contains("propellerads.com") || lower.contains("exoclick.com")) {
+    if (lower.contains("popads.net") || lower.contains("propellerads.com") || lower.contains("exoclick.com") || lower.contains("doubleclick.net") || lower.contains("tracking-click.tk")) {
       return true
     }
     return false

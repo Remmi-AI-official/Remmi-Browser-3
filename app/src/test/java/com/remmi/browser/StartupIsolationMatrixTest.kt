@@ -10,6 +10,7 @@ import com.remmi.browser.util.CrashHandlerHelper
 import com.remmi.browser.util.DebugLogManager
 import com.remmi.browser.util.StartupPhase
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -37,6 +38,11 @@ class StartupIsolationMatrixTest {
     DebugLogManager.clear()
     SqlCipherInitializer.resetForTesting()
     CrashHandlerHelper.updateStartupPhase(phase = StartupPhase.PROCESS_START)
+  }
+
+  @After
+  fun tearDown() {
+    SqlCipherInitializer.resetForTesting()
   }
 
   @Test

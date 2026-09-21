@@ -21,12 +21,14 @@ class EngineSeparationTest {
         if (!bridge.isInitialized()) {
             bridge.initEngine()
         }
+        bridge.diagnosticBypassForTesting = false
         ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
     }
 
     @After
     fun tearDown() {
         val bridge = AdblockBridge.getInstance()
+        bridge.diagnosticBypassForTesting = false
         ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
     }
 

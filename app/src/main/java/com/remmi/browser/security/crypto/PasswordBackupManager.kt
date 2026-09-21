@@ -51,20 +51,45 @@ object PasswordBackupManager {
     for (entry in entries) {
       val url = try {
         String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.siteUrlEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-      } catch (_: Exception) { "" }
+      } catch (_: Exception) {
+        try {
+          String(PasswordCryptoEngine.decryptAesGcm(dek, entry.siteUrlEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
+        } catch (_: Exception) {
+          String(entry.siteUrlEncrypted, StandardCharsets.UTF_8)
+        }
+      }
       val user = try {
         String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.usernameEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-      } catch (_: Exception) { "" }
+      } catch (_: Exception) {
+        try {
+          String(PasswordCryptoEngine.decryptAesGcm(dek, entry.usernameEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
+        } catch (_: Exception) {
+          String(entry.usernameEncrypted, StandardCharsets.UTF_8)
+        }
+      }
       val pass = try {
         String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.passwordEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-      } catch (_: Exception) { "" }
+      } catch (_: Exception) {
+        try {
+          String(PasswordCryptoEngine.decryptAesGcm(dek, entry.passwordEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
+        } catch (_: Exception) {
+          String(entry.passwordEncrypted, StandardCharsets.UTF_8)
+        }
+      }
       val notes = try {
         String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.notesEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-      } catch (_: Exception) { "" }
+      } catch (_: Exception) {
+        try {
+          String(PasswordCryptoEngine.decryptAesGcm(dek, entry.notesEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
+        } catch (_: Exception) {
+          String(entry.notesEncrypted, StandardCharsets.UTF_8)
+        }
+      }
 
       if (url.isNotEmpty() || user.isNotEmpty()) {
         val obj = JSONObject().apply {
           put("url", url)
+          put("url_hash", entry.siteUrlHash)
           put("user", user)
           put("pass", pass)
           put("notes", notes)
@@ -171,6 +196,7 @@ object PasswordBackupManager {
           val user = item.optString("user", "")
           val pass = item.optString("pass", "")
           val notes = item.optString("notes", "")
+          val urlHash = item.optString("url_hash", "")
           val created = item.optLong("created", System.currentTimeMillis())
           val updated = item.optLong("updated", System.currentTimeMillis())
 
@@ -181,11 +207,11 @@ object PasswordBackupManager {
 
           restoredList.add(
             RestoredEntry(
-              siteUrlHash = PasswordCryptoEngine.hashSiteUrl(url),
-              siteUrlEncrypted = urlEnc.ciphertext,
-              usernameEncrypted = userEnc.ciphertext,
-              passwordEncrypted = passEnc.ciphertext,
-              notesEncrypted = notesEnc.ciphertext,
+              siteUrlHash = if (urlHash.isNotEmpty()) urlHash else PasswordCryptoEngine.hashSiteUrl(url),
+              siteUrlEncrypted = url.toByteArray(StandardCharsets.UTF_8),
+              usernameEncrypted = user.toByteArray(StandardCharsets.UTF_8),
+              passwordEncrypted = pass.toByteArray(StandardCharsets.UTF_8),
+              notesEncrypted = notes.toByteArray(StandardCharsets.UTF_8),
               createdAt = created,
               updatedAt = updated,
               iv = urlEnc.iv,

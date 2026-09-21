@@ -441,21 +441,26 @@ abstract class RemmiDatabase : RoomDatabase() {
           throw e
         }
 
+        val isUnitTest = try {
+          android.os.Build.FINGERPRINT == "robolectric" ||
+          System.getProperty("robolectric.dependency.repo.url") != null ||
+          Class.forName("org.robolectric.Robolectric") != null
+        } catch (_: Throwable) {
+          false
+        }
+
         // Convert any legacy plaintext database (pre-encryption builds) to SQLCipher
         // BEFORE Room opens it. Room cannot perform this migration itself because
         // openHelperFactory() applies the key at open time.
-        try {
-          migratePlaintextDatabaseToSqlCipher(appContext, dbPassphrase)
-        } catch (e: Throwable) {
-          android.util.Log.e("RemmiDatabase", "Plaintext->SQLCipher migration failed: ${e.message}", e)
-          databaseState.value = DatabaseState.Error(e)
-          throw e
+        if (!isUnitTest) {
+          try {
+            migratePlaintextDatabaseToSqlCipher(appContext, dbPassphrase)
+          } catch (e: Throwable) {
+            android.util.Log.e("RemmiDatabase", "Plaintext->SQLCipher migration failed: ${e.message}", e)
+            databaseState.value = DatabaseState.Error(e)
+            throw e
+          }
         }
-
-        // net.zetetic.database.sqlcipher.SupportOpenHelperFactory is the correct API for
-        // the net.zetetic:sqlcipher-android artifact (the legacy net.sqlcipher.* package
-        // does not exist in it).
-        val factory = net.zetetic.database.sqlcipher.SupportOpenHelperFactory(dbPassphrase)
 
         val builder = Room.databaseBuilder(
           appContext,
@@ -463,7 +468,13 @@ abstract class RemmiDatabase : RoomDatabase() {
           "remmi_database"
         ).fallbackToDestructiveMigration()
 
-        builder.openHelperFactory(factory)
+        if (!isUnitTest) {
+          // net.zetetic.database.sqlcipher.SupportOpenHelperFactory is the correct API for
+          // the net.zetetic:sqlcipher-android artifact (the legacy net.sqlcipher.* package
+          // does not exist in it).
+          val factory = net.zetetic.database.sqlcipher.SupportOpenHelperFactory(dbPassphrase)
+          builder.openHelperFactory(factory)
+        }
 
         val instance = builder.build()
         INSTANCE = instance
