@@ -192,14 +192,12 @@ jobs:
         run: |
           set -euo pipefail
           
-          clean_b64=$(printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n "'\'')
-          clean_store_pass=$(printf '%s' "$STORE_PASSWORD" | tr -d '\r\n"'\''')
-          clean_alias=$(printf '%s' "$KEY_ALIAS" | tr -d '\r\n "')
-          clean_key_pass=$(printf '%s' "$KEY_PASSWORD" | tr -d '\r\n"'\''')
+          clean_store_pass="$(printf '%s' "$STORE_PASSWORD" | tr -d '\r\n')"
+          clean_alias="$(printf '%s' "$KEY_ALIAS" | tr -d '\r\n ')"
+          clean_key_pass="$(printf '%s' "$KEY_PASSWORD" | tr -d '\r\n')"
 
           rm -f "${WORKSPACE_PATH}/release.keystore"
-          python3 -c 'import os, base64; open(os.path.join(os.environ.get("WORKSPACE_PATH", "."), "release.keystore"), "wb").write(base64.b64decode(os.environ.get("KEYSTORE_BASE64", "").strip()))'
-          
+          python3 .github/scripts/decode_keystore.py
           chmod 600 "${WORKSPACE_PATH}/release.keystore"
 
           if [ ! -s "${WORKSPACE_PATH}/release.keystore" ]; then
@@ -213,20 +211,20 @@ jobs:
           fi
 
           if ! keytool -list -keystore "${WORKSPACE_PATH}/release.keystore" -storepass "$clean_store_pass" -alias "$clean_alias" >/dev/null 2>&1; then
-            echo "::error::Key alias '$clean_alias' not found in keystore."
+            echo "::error::Key alias '${clean_alias}' not found in keystore."
             exit 1
           fi
 
           if ! keytool -certreq -keystore "${WORKSPACE_PATH}/release.keystore" -storepass "$clean_store_pass" -alias "$clean_alias" -keypass "$clean_key_pass" -file /dev/null >/dev/null 2>&1; then
-            echo "::error::Could not decrypt key entry '$clean_alias' with REMMI_RELEASE_KEY_PASSWORD."
+            echo "::error::Could not decrypt key entry '${clean_alias}' with REMMI_RELEASE_KEY_PASSWORD."
             exit 1
           fi
 
           echo "Keystore and signing keys verified successfully."
           echo "KEYSTORE_PATH=${WORKSPACE_PATH}/release.keystore" >> "$GITHUB_ENV"
-          echo "STORE_PASSWORD=$clean_store_pass" >> "$GITHUB_ENV"
-          echo "KEY_ALIAS=$clean_alias" >> "$GITHUB_ENV"
-          echo "KEY_PASSWORD=$clean_key_pass" >> "$GITHUB_ENV"
+          echo "STORE_PASSWORD=${clean_store_pass}" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=${clean_alias}" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=${clean_key_pass}" >> "$GITHUB_ENV"
 
       - name: Run Release Checks (Tests & Lint)
         env:
