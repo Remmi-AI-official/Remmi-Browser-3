@@ -12,8 +12,10 @@ import org.jsoup.nodes.Element
 import org.mozilla.geckoview.GeckoWebExecutor
 import org.mozilla.geckoview.WebRequest
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.net.URI
+import okhttp3.Request
 
 data class ReaderParagraph(
   val index: Int,
@@ -128,19 +130,28 @@ object ReaderExtractor {
     maxBytes: Long
   ): String {
     body.byteStream().use { input ->
-      val output = ByteArrayOutputStream(minOf(maxBytes, 64L * 1024L).toInt())
+      val output = java.io.ByteArrayOutputStream(
+        minOf(maxBytes, 64L * 1024L).toInt()
+      )
       val buffer = ByteArray(8192)
       var total = 0L
+
       while (true) {
-        val read = input.read(buffer)
-        if (read <= 0) break
-        total += read
-        if (total > maxBytes) {
-          throw IllegalStateException("Reader response exceeds ${maxBytes} bytes")
+        val count = input.read(buffer)
+        if (count <= 0) {
+          break
         }
-        output.write(buffer, 0, read)
+        total += count
+        if (total > maxBytes) {
+          throw IllegalStateException(
+            "Reader response exceeds ${maxBytes} bytes"
+          )
+        }
+        output.write(buffer, 0, count)
       }
-      return output.toByteArray().toString(Charsets.UTF_8)
+
+      return output.toByteArray()
+        .toString(Charsets.UTF_8)
     }
   }
 
@@ -194,19 +205,22 @@ object ReaderExtractor {
 
     // Attempt 1: Fast direct HTTP fetch via OkHttp
     try {
-      val okHttpClient = NetworkRouteAuthority.createHttpClient(
-        isGhost = isGhost || isOnion,
-        targetUrl = url,
-        connectTimeoutSeconds = if (isGhost || isOnion) 6L else 5L,
-        readTimeoutSeconds = if (isGhost || isOnion) 6L else 5L,
-        followRedirects = true
-      )
+      val client =
+        NetworkRouteAuthority.createHttpClient(
+          isGhost = isGhost || isOnion,
+          targetUrl = url,
+          connectTimeoutSeconds = if (isGhost || isOnion) 6L else 5L,
+          readTimeoutSeconds = if (isGhost || isOnion) 6L else 5L,
+          followRedirects = true
+        )
 
-      val req = okhttp3.Request.Builder()
+      val request = Request.Builder()
         .url(url)
         .header(
           "User-Agent",
-          "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36"
+          "Mozilla/5.0 (Linux; Android 14; Mobile) " +
+            "AppleWebKit/537.36 (KHTML, like Gecko) " +
+            "Chrome/125.0.0.0 Mobile Safari/537.36"
         )
         .header(
           "Accept",
@@ -214,25 +228,48 @@ object ReaderExtractor {
         )
         .build()
 
-      val resp = okHttpClient.newCall(req).execute()
-      if (resp.isSuccessful) {
-        val body = resp.body
-        if (body != null) {
-          val html = readBodyBounded(body, MAX_RESPONSE_BYTES)
-          if (html.isNotBlank()) {
-            val parsed = parseHtmlDocument(html, url, currentTitle, domain)
-            if (parsed != null && parsed.activeParagraphs.isNotEmpty()) {
-              return@withContext parsed
-            }
+      client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) {
+          throw IOException("HTTP ${response.code}")
+        }
+
+        val body = response.body
+          ?: throw IOException("Empty response body")
+
+        val html = readBodyBounded(
+          body = body,
+          maxBytes = MAX_RESPONSE_BYTES
+        )
+
+        if (html.isNotBlank()) {
+          val parsed = parseHtmlDocument(
+            html,
+            url,
+            currentTitle,
+            domain
+          )
+
+          if (
+            parsed != null &&
+            parsed.activeParagraphs.isNotEmpty()
+          ) {
+            return@withContext parsed
           }
         }
       }
-    } catch (e: Exception) {
-      Log.w(TAG, "Reader route-authorized fetch failed: ${e.message}")
+    } catch (t: Throwable) {
+      Log.w(
+        TAG,
+        "Reader route-authorized fetch failed: ${t.message}"
+      )
     }
 
     if (isGhost || isOnion) {
-      Log.w(TAG, "Reader extraction failed closed for Ghost/Onion; Gecko fallback disabled")
+      Log.w(
+        TAG,
+        "Reader extraction failed closed for Ghost/Onion"
+      )
+
       return@withContext null
     }
 

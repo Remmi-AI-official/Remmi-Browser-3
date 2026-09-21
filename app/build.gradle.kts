@@ -58,18 +58,33 @@ android {
       val keyAlias = System.getenv("KEY_ALIAS")
       val keyPassword = System.getenv("KEY_PASSWORD")
 
-      if (!keystorePath.isNullOrBlank() && !storePassword.isNullOrBlank() &&
-          !keyAlias.isNullOrBlank() && !keyPassword.isNullOrBlank()) {
+      val releaseRequested = gradle.startParameter.taskNames.any {
+        it.contains("Release", ignoreCase = true) &&
+        !it.contains("lint", ignoreCase = true) &&
+        !it.contains("test", ignoreCase = true)
+      }
+
+      if (releaseRequested) {
+        require(!keystorePath.isNullOrBlank()) {
+          "KEYSTORE_PATH is required for release builds"
+        }
+        require(!storePassword.isNullOrBlank()) {
+          "STORE_PASSWORD is required for release builds"
+        }
+        require(!keyAlias.isNullOrBlank()) {
+          "KEY_ALIAS is required for release builds"
+        }
+        require(!keyPassword.isNullOrBlank()) {
+          "KEY_PASSWORD is required for release builds"
+        }
         val ksFile = file(keystorePath)
-        require(ksFile.isFile) { "KEYSTORE_PATH does not point to an existing release keystore: $keystorePath" }
+        require(ksFile.isFile) {
+          "Release keystore does not exist: $keystorePath"
+        }
         storeFile = ksFile
         this.storePassword = storePassword
         this.keyAlias = keyAlias
         this.keyPassword = keyPassword
-      } else if (releaseTaskRequested) {
-        throw GradleException(
-          "Release builds are intentionally fail-closed. Provide KEYSTORE_PATH, STORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD."
-        )
       }
     }
   }
@@ -147,13 +162,20 @@ android {
   }
 }
 
+configurations.all {
+  resolutionStrategy.dependencySubstitution {
+    substitute(module("org.mozilla.geckoview:geckoview:156.0.20260909172920"))
+      .using(module("org.mozilla.geckoview:geckoview-omni:156.0.20260909172920"))
+  }
+}
+
 // This makes it easy to add them back in the future if needed.
 dependencies {
   implementation(platform(libs.androidx.compose.bom))
   implementation(libs.androidx.fragment.ktx)
   // implementation(libs.accompanist.permissions)
   // GeckoView & Tor dependencies (Pinned deterministic versions)
-  implementation("org.mozilla.geckoview:geckoview:154.0.20260824154132")
+  implementation("org.mozilla.geckoview:geckoview:156.0.20260909172920")
   implementation("info.guardianproject:tor-android:0.4.9.12")
   implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
   implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")

@@ -107,8 +107,35 @@ class ReleaseSecurityRegressionTest {
       "Reader must explicitly stop before uncontrolled Gecko fallback",
       source.contains("Gecko fallback disabled") ||
         source.contains("failing closed") ||
-        source.contains("fail closed")
+        source.contains("fail closed") ||
+        source.contains("failed closed")
     )
+  }
+
+  @Test
+  fun readerMustNotContainUnsafeHardcodedTorFallback() {
+    val source = File(javaRoot, "com/remmi/browser/reader/ReaderModel.kt").readText()
+
+    assertFalse(source.contains("currentSocksPort ?: 9050"))
+    assertFalse(source.contains("127.0.0.1:9050"))
+    assertFalse(source.contains("Proxy.Type.SOCKS"))
+    assertTrue(source.contains("NetworkRouteAuthority.createHttpClient"))
+  }
+
+  @Test
+  fun readerMustFailClosedForGhostOrOnionFallback() {
+    val source = File(javaRoot, "com/remmi/browser/reader/ReaderModel.kt").readText()
+
+    assertTrue(source.contains("isGhost || isOnion"))
+  }
+
+  @Test
+  fun privacyNetworkControllerMustNotContainUnsafePortFallback() {
+    val source = File(javaRoot, "com/remmi/browser/security/PrivacyNetworkController.kt").readText()
+
+    assertFalse(source.contains("existingRoute.socksPort ?: 9050"))
+    assertFalse(source.contains("completedRoute.socksPort ?: 9050"))
+    assertFalse(source.contains("?: 9050"))
   }
 
   @Test

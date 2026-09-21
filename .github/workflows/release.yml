@@ -159,147 +159,75 @@ jobs:
       - name: Verify Production Signing Secrets
         shell: bash
         env:
-          KEYSTORE_B64_A: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 }}
-          KEYSTORE_B64_B: ${{ secrets.KEYSTORE_BASE64 }}
-          PASS_A: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD }}
-          PASS_B: ${{ secrets.STORE_PASSWORD }}
-          KEY_PASS_A: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD }}
-          KEY_PASS_B: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.REMMI_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -z "${KEYSTORE_B64_A:-}${KEYSTORE_B64_B:-}" ] || \
-             [ -z "${PASS_A:-}${PASS_B:-}${KEY_PASS_A:-}${KEY_PASS_B:-}" ]; then
-            echo "::error::Production signing secrets are missing! Please set in GitHub Repository Secrets:"
-            echo "- REMMI_RELEASE_KEYSTORE_B64 (or KEYSTORE_BASE64)"
-            echo "- REMMI_RELEASE_STORE_PASSWORD (or STORE_PASSWORD)"
-            echo "- REMMI_RELEASE_KEY_ALIAS (or KEY_ALIAS)"
-            echo "- REMMI_RELEASE_KEY_PASSWORD (or KEY_PASSWORD)"
-            echo "Automatic signing-key generation is disabled."
-            exit 1
+
+          if [ -z "${KEYSTORE_BASE64:-}" ] || \
+             [ -z "${STORE_PASSWORD:-}" ] || \
+             [ -z "${KEY_ALIAS:-}" ] || \
+             [ -z "${KEY_PASSWORD:-}" ]; then
+
+              echo "::error::Required Remmi production signing secrets are missing."
+              echo "Expected:"
+              echo "REMMI_RELEASE_KEYSTORE_B64"
+              echo "REMMI_RELEASE_STORE_PASSWORD"
+              echo "REMMI_RELEASE_KEY_ALIAS"
+              echo "REMMI_RELEASE_KEY_PASSWORD"
+
+              exit 1
           fi
 
       - name: Setup Keystore
         shell: bash
         env:
-          KEYSTORE_B64_A: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 }}
-          KEYSTORE_B64_B: ${{ secrets.KEYSTORE_BASE64 }}
-          STORE_PASS_A: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD }}
-          STORE_PASS_B: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS_A: ${{ secrets.REMMI_RELEASE_KEY_ALIAS }}
-          KEY_ALIAS_B: ${{ secrets.KEY_ALIAS }}
-          KEY_PASS_A: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD }}
-          KEY_PASS_B: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.REMMI_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.REMMI_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.REMMI_RELEASE_KEY_PASSWORD }}
           WORKSPACE_PATH: ${{ github.workspace }}
         run: |
           set -euo pipefail
           
-          # Collect password candidates
-          declare -a PASS_CANDIDATES=()
-          for p in "${STORE_PASS_B:-}" "${STORE_PASS_A:-}" "${KEY_PASS_B:-}" "${KEY_PASS_A:-}"; do
-            clean_p=$(printf '%s' "$p" | tr -d '\r\n"')
-            if [ -n "$clean_p" ]; then
-              # Deduplicate
-              found=0
-              for existing in "${PASS_CANDIDATES[@]}"; do
-                if [ "$existing" = "$clean_p" ]; then found=1; break; fi
-              done
-              if [ "$found" -eq 0 ]; then
-                PASS_CANDIDATES+=("$clean_p")
-              fi
-            fi
-          done
+          clean_b64=$(printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n "'\'')
+          clean_store_pass=$(printf '%s' "$STORE_PASSWORD" | tr -d '\r\n"'\''')
+          clean_alias=$(printf '%s' "$KEY_ALIAS" | tr -d '\r\n "')
+          clean_key_pass=$(printf '%s' "$KEY_PASSWORD" | tr -d '\r\n"'\''')
 
-          echo "Found ${#PASS_CANDIDATES[@]} unique password candidate(s)."
-
-          # Collect and test base64 candidates
-          FOUND_KEYSTORE=0
-          MATCHED_STORE_PASS=""
+          rm -f "${WORKSPACE_PATH}/release.keystore"
+          python3 -c "import base64, sys; open(sys.argv[2], 'wb').write(base64.b64decode(sys.argv[1]))" "$clean_b64" "${WORKSPACE_PATH}/release.keystore" 2>/dev/null || \
+            printf '%s' "$clean_b64" | base64 --decode --ignore-garbage > "${WORKSPACE_PATH}/release.keystore" 2>/dev/null || true
           
-          declare -a B64_CANDIDATES=()
-          for b64 in "${KEYSTORE_B64_B:-}" "${KEYSTORE_B64_A:-}"; do
-            clean_b64=$(printf '%s' "$b64" | tr -d '\r\n "')
-            if [ -n "$clean_b64" ]; then
-              B64_CANDIDATES+=("$clean_b64")
-            fi
-          done
+          chmod 600 "${WORKSPACE_PATH}/release.keystore"
 
-          echo "Found ${#B64_CANDIDATES[@]} keystore base64 payload(s)."
-
-          cand_idx=0
-          for clean_b64 in "${B64_CANDIDATES[@]}"; do
-            cand_idx=$((cand_idx + 1))
-            echo "Evaluating keystore payload #$cand_idx (length: ${#clean_b64} characters)..."
-            
-            rm -f candidate.keystore
-            if ! printf '%s' "$clean_b64" | base64 -d -i > candidate.keystore 2>/dev/null; then
-              printf '%s' "$clean_b64" | base64 --decode > candidate.keystore 2>/dev/null || true
-            fi
-            
-            if [ ! -s candidate.keystore ]; then
-              echo "Warning: Base64 decode resulted in an empty file for candidate #$cand_idx."
-              continue
-            fi
-
-            pass_idx=0
-            for p in "${PASS_CANDIDATES[@]}"; do
-              pass_idx=$((pass_idx + 1))
-              echo "Testing password candidate #$pass_idx (length: ${#p} chars)..."
-              if keytool -list -keystore candidate.keystore -storepass "$p" >/dev/null 2>&1; then
-                mv candidate.keystore release.keystore
-                chmod 600 release.keystore
-                MATCHED_STORE_PASS="$p"
-                FOUND_KEYSTORE=1
-                echo "Success: Unlocked keystore with password candidate #$pass_idx."
-                break 2
-              fi
-            done
-          done
-
-          if [ "$FOUND_KEYSTORE" -ne 1 ]; then
-            echo "::error::Could not unlock keystore with the provided store passwords."
-            echo "Please ensure the GitHub secret KEYSTORE_BASE64 contains the full base64 string and STORE_PASSWORD is set to the matching password."
+          if [ ! -s "${WORKSPACE_PATH}/release.keystore" ]; then
+            echo "::error::Failed to decode REMMI_RELEASE_KEYSTORE_B64."
             exit 1
           fi
 
-          echo "Keystore unlocked successfully."
-          keytool -list -v -keystore release.keystore -storepass "$MATCHED_STORE_PASS"
-
-          # Determine key alias
-          TARGET_ALIAS=""
-          for a in "${KEY_ALIAS_B:-}" "${KEY_ALIAS_A:-}" "remmi_release"; do
-            clean_a=$(printf '%s' "$a" | tr -d '\r\n "')
-            if [ -n "$clean_a" ] && keytool -list -keystore release.keystore -storepass "$MATCHED_STORE_PASS" -alias "$clean_a" >/dev/null 2>&1; then
-              TARGET_ALIAS="$clean_a"
-              break
-            fi
-          done
-
-          if [ -z "$TARGET_ALIAS" ]; then
-            TARGET_ALIAS=$(keytool -list -keystore release.keystore -storepass "$MATCHED_STORE_PASS" | grep -i 'PrivateKeyEntry' | head -n1 | cut -d',' -f1 | tr -d ' ')
-          fi
-
-          # Determine key password
-          MATCHED_KEY_PASS=""
-          for kp in "$MATCHED_STORE_PASS" "${KEY_PASS_B:-}" "${KEY_PASS_A:-}"; do
-            clean_kp=$(printf '%s' "$kp" | tr -d '\r\n "')
-            if [ -n "$clean_kp" ]; then
-              if keytool -certreq -keystore release.keystore -storepass "$MATCHED_STORE_PASS" -alias "$TARGET_ALIAS" -keypass "$clean_kp" -file /dev/null >/dev/null 2>&1; then
-                MATCHED_KEY_PASS="$clean_kp"
-                break
-              fi
-            fi
-          done
-
-          if [ -z "$MATCHED_KEY_PASS" ]; then
-            echo "::error::Could not decrypt key entry '$TARGET_ALIAS' with the provided key password."
+          if ! keytool -list -keystore "${WORKSPACE_PATH}/release.keystore" -storepass "$clean_store_pass" >/dev/null 2>&1; then
+            echo "::error::Could not unlock keystore with REMMI_RELEASE_STORE_PASSWORD."
             exit 1
           fi
 
-          echo "Key alias '$TARGET_ALIAS' verified successfully."
+          if ! keytool -list -keystore "${WORKSPACE_PATH}/release.keystore" -storepass "$clean_store_pass" -alias "$clean_alias" >/dev/null 2>&1; then
+            echo "::error::Key alias '$clean_alias' not found in keystore."
+            exit 1
+          fi
+
+          if ! keytool -certreq -keystore "${WORKSPACE_PATH}/release.keystore" -storepass "$clean_store_pass" -alias "$clean_alias" -keypass "$clean_key_pass" -file /dev/null >/dev/null 2>&1; then
+            echo "::error::Could not decrypt key entry '$clean_alias' with REMMI_RELEASE_KEY_PASSWORD."
+            exit 1
+          fi
+
+          echo "Keystore and signing keys verified successfully."
           echo "KEYSTORE_PATH=${WORKSPACE_PATH}/release.keystore" >> "$GITHUB_ENV"
-          echo "STORE_PASSWORD=$MATCHED_STORE_PASS" >> "$GITHUB_ENV"
-          echo "KEY_ALIAS=$TARGET_ALIAS" >> "$GITHUB_ENV"
-          echo "KEY_PASSWORD=$MATCHED_KEY_PASS" >> "$GITHUB_ENV"
+          echo "STORE_PASSWORD=$clean_store_pass" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=$clean_alias" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=$clean_key_pass" >> "$GITHUB_ENV"
 
       - name: Run Release Checks (Tests & Lint)
         env:

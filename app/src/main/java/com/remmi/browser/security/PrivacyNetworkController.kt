@@ -169,7 +169,11 @@ class PrivacyNetworkController private constructor(private val context: Context)
 
       // If already fully ready and verified, return active port immediately
       if (existingRoute.phase == GhostRoutePhase.READY && CurrentTorRoute.isReady) {
-        return@withContext Result.success(existingRoute.socksPort ?: 9050)
+        val socksPort = existingRoute.socksPort
+          ?: return@withContext Result.failure(
+            IllegalStateException("READY Ghost route has no SOCKS port")
+          )
+        return@withContext Result.success(socksPort)
       }
 
       // Admission check: if a transition is already underway, wait for it to complete
@@ -179,7 +183,11 @@ class PrivacyNetworkController private constructor(private val context: Context)
         }
         if (completedRoute?.phase == GhostRoutePhase.READY && CurrentTorRoute.isReady) {
           DebugLogManager.log("[ROUTE] ADMISSION_JOINED existing ready route port=${completedRoute.socksPort}")
-          return@withContext Result.success(completedRoute.socksPort ?: 9050)
+          val socksPort = completedRoute.socksPort
+            ?: return@withContext Result.failure(
+              IllegalStateException("Completed Ghost route has no SOCKS port")
+            )
+          return@withContext Result.success(socksPort)
         } else if (completedRoute?.phase != GhostRoutePhase.FAILED) {
           DebugLogManager.log(
             "[ROUTE] ADMISSION_TIMEOUT currentPhase=${CurrentTorRoute.currentPhase}"
