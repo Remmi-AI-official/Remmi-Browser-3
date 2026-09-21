@@ -5,6 +5,12 @@ plugins {
   alias(libs.plugins.roborazzi)
 }
 
+androidComponents {
+  beforeVariants(selector().all()) { variant ->
+    variant.hostTests[com.android.build.api.variant.HostTestBuilder.UNIT_TEST_TYPE]?.enable = true
+  }
+}
+
 android {
   namespace = "com.remmi.browser"
   compileSdk = 36
@@ -13,8 +19,15 @@ android {
     applicationId = "com.remmi.browser"
     minSdk = 26
     targetSdk = 36
-    versionCode = 3
-    versionName = "1.0.2"
+    
+    val configuredVersionCode = providers.gradleProperty("versionCode")
+      .map { it.toInt() }
+      .getOrElse((project.findProperty("versionCode") as? String)?.toIntOrNull() ?: 3)
+    val configuredVersionName = providers.gradleProperty("versionName")
+      .getOrElse((project.findProperty("versionName") as? String) ?: "1.0.2")
+
+    versionCode = configuredVersionCode
+    versionName = configuredVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     ndk {

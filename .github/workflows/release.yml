@@ -23,51 +23,116 @@ on:
         required: false
         default: 'Bug fixes and performance improvements.'
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
 
-      - name: Grant execute permission
+      - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
-      - name: Verify Gradle / Java
-        run: |
-          java -version
-          ./gradlew --version
-
-      - name: Verify Gradle Wrapper
-        shell: bash
-        run: |
-          grep '^distributionUrl=' gradle/wrapper/gradle-wrapper.properties
-
-      - name: Apply Version Configuration
+      - name: Verify Toolchain (Gradle 9.3.1 & JDK 17)
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            V_NAME="${{ github.event.inputs.version_name }}"
-            V_CODE="${{ github.event.inputs.version_code }}"
-            echo "Configuring Version: Name=$V_NAME, Code=$V_CODE"
-            sed -i "s/versionCode = [0-9]*/versionCode = $V_CODE/g" app/build.gradle.kts
-            sed -i "s/versionName = \".*\"/versionName = \"$V_NAME\"/g" app/build.gradle.kts
+          echo "Verifying JDK version..."
+          java -version
+          JAVA_VER=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | cut -d'.' -f1)
+          if [ "$JAVA_VER" != "17" ]; then
+            echo "::error::JDK version must be 17, but detected '$JAVA_VER'"
+            exit 1
           fi
 
-      - name: Setup Keystore
-        id: setup-keystore
+          echo "Verifying Gradle version..."
+          ./gradlew --version
+          GRADLE_VER=$(./gradlew --version | awk '/^Gradle / {print $2}')
+          if [ "$GRADLE_VER" != "9.3.1" ]; then
+            echo "::error::Gradle version must be 9.3.1, but detected '$GRADLE_VER'"
+            exit 1
+          fi
+
+      - name: Validate Release Inputs & Resolve Version
+        id: resolve_version
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_V_NAME: ${{ inputs.version_name }}
+          INPUT_V_CODE: ${{ inputs.version_code }}
+          INPUT_TITLE: ${{ inputs.release_title }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if ! [[ "$INPUT_V_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Invalid versionName '$INPUT_V_NAME'. Must match pattern: ^[0-9]+\.[0-9]+\.[0-9]+$"
+              exit 1
+            fi
+            if ! [[ "$INPUT_V_CODE" =~ ^[1-9][0-9]*$ ]]; then
+              echo "::error::Invalid versionCode '$INPUT_V_CODE'. Must be a positive integer."
+              exit 1
+            fi
+
+            RELEASE_TAG="v${INPUT_V_NAME}"
+            VERSION_NAME="$INPUT_V_NAME"
+            VERSION_CODE="$INPUT_V_CODE"
+            RELEASE_TITLE="${INPUT_TITLE:-Remmi Browser Release} (v${VERSION_NAME})"
+          else
+            if ! [[ "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Push tag '$REF_NAME' is invalid. Must match pattern: ^v[0-9]+\.[0-9]+\.[0-9]+$"
+              exit 1
+            fi
+
+            RELEASE_TAG="$REF_NAME"
+            VERSION_NAME="${REF_NAME#v}"
+            VERSION_CODE="3"
+            RELEASE_TITLE="Remmi Browser ${RELEASE_TAG}"
+          fi
+
+          # Consistency check: tag must match versionName
+          EXPECTED_TAG="v${VERSION_NAME}"
+          if [ "$RELEASE_TAG" != "$EXPECTED_TAG" ]; then
+            echo "::error::Release version mismatch: tag '$RELEASE_TAG' does not correspond to versionName '$VERSION_NAME' (expected '$EXPECTED_TAG')"
+            exit 1
+          fi
+
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "release_title=$RELEASE_TITLE" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare Release Notes
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_NOTES: ${{ inputs.release_notes }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ -n "$INPUT_NOTES" ]; then
+            printf '%s\n' "$INPUT_NOTES" > release-notes.md
+          else
+            printf 'Automated production release for %s\n' "$REF_NAME" > release-notes.md
+          fi
+
+      - name: Verify Production Signing Secrets
         shell: bash
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -76,32 +141,50 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          if [ -n "${KEYSTORE_BASE64:-}" ] && [ -n "${STORE_PASSWORD:-}" ] && [ -n "${KEY_ALIAS:-}" ] && [ -n "${KEY_PASSWORD:-}" ]; then
-            echo "Using production release keystore from secrets..."
-            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release.keystore
-            chmod 600 release.keystore
-            echo "KEYSTORE_PATH=${{ github.workspace }}/release.keystore" >> "$GITHUB_ENV"
-            echo "STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
-            echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
-            echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
-          else
-            echo "No production signing secrets found. Generating release keystore..."
-            keytool -genkey -v -keystore release.keystore -alias remmibrowser -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass remmibrowser -keypass remmibrowser -dname "CN=Remmi Browser, OU=Mobile, O=Remmi, L=City, S=State, C=US"
-            chmod 600 release.keystore
-            echo "KEYSTORE_PATH=${{ github.workspace }}/release.keystore" >> "$GITHUB_ENV"
-            echo "STORE_PASSWORD=remmibrowser" >> "$GITHUB_ENV"
-            echo "KEY_ALIAS=remmibrowser" >> "$GITHUB_ENV"
-            echo "KEY_PASSWORD=remmibrowser" >> "$GITHUB_ENV"
+          if [ -z "${KEYSTORE_BASE64:-}" ] || [ -z "${STORE_PASSWORD:-}" ] || [ -z "${KEY_ALIAS:-}" ] || [ -z "${KEY_PASSWORD:-}" ]; then
+            echo "::error::Production signing secrets are missing! Required: KEYSTORE_BASE64, STORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD. Automatic fallback generation is strictly disabled."
+            exit 1
           fi
 
-      - name: Run Release Checks
+      - name: Setup Keystore
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          WORKSPACE_PATH: ${{ github.workspace }}
         run: |
-          ./gradlew :app:testReleaseUnitTest :app:lintRelease
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+          chmod 600 release.keystore
+          echo "KEYSTORE_PATH=${WORKSPACE_PATH}/release.keystore" >> "$GITHUB_ENV"
+          echo "STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Run Release Checks (Tests & Lint)
+        env:
+          V_NAME: ${{ steps.resolve_version.outputs.version_name }}
+          V_CODE: ${{ steps.resolve_version.outputs.version_code }}
+        run: |
+          ./gradlew \
+            -PversionName="$V_NAME" \
+            -PversionCode="$V_CODE" \
+            :app:testReleaseUnitTest \
+            :app:lintRelease
 
       - name: Build Release APK & AAB
+        env:
+          V_NAME: ${{ steps.resolve_version.outputs.version_name }}
+          V_CODE: ${{ steps.resolve_version.outputs.version_code }}
         run: |
-          ./gradlew :app:assembleRelease :app:bundleRelease --stacktrace
+          ./gradlew \
+            -PversionName="$V_NAME" \
+            -PversionCode="$V_CODE" \
+            :app:assembleRelease \
+            :app:bundleRelease \
+            --stacktrace
 
       - name: Verify and Collect Artifacts
         shell: bash
@@ -111,21 +194,20 @@ jobs:
           
           # Copy APKs
           find app/build/outputs/apk/release/ -type f -name "*.apk" -exec cp {} release-output/ \;
-          # Copy AAB (Bundle)
+          # Copy AABs (Bundle)
           find app/build/outputs/bundle/release/ -type f -name "*.aab" -exec cp {} release-output/ \;
 
           cd release-output
           ls -la
           
-          # Ensure at least one APK and one AAB exist
           count_apk=$(ls -1 *.apk 2>/dev/null | wc -l)
           count_aab=$(ls -1 *.aab 2>/dev/null | wc -l)
           if [ "$count_apk" -eq 0 ] || [ "$count_aab" -eq 0 ]; then
-            echo "ERROR: Artifacts missing. Found $count_apk APKs and $count_aab AABs"
+            echo "::error::Release artifacts missing! Found $count_apk APKs and $count_aab AABs"
             exit 1
           fi
 
-      - name: Compute SHA256
+      - name: Compute SHA256 Checksums
         shell: bash
         run: |
           set -euo pipefail
@@ -138,36 +220,38 @@ jobs:
         run: |
           set -euo pipefail
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
-          test -n "$APKSIGNER"
+          if [ -z "$APKSIGNER" ]; then
+            echo "::error::apksigner tool not found in $ANDROID_HOME/build-tools"
+            exit 1
+          fi
           for apk in release-output/*.apk; do
-            echo "Verifying $apk..."
+            echo "Verifying APK signature: $apk"
             "$APKSIGNER" verify --verbose "$apk"
           done
 
-      - name: Prepare Release Metadata
-        id: release_meta
+      - name: Verify AAB Signature (jarsigner)
         shell: bash
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            V_NAME="${{ github.event.inputs.version_name }}"
-            TITLE="${{ github.event.inputs.release_title }} (v${V_NAME})"
-            TAG="v${V_NAME}"
-            NOTES="${{ github.event.inputs.release_notes }}"
-          else
-            TAG="${{ github.ref_name }}"
-            TITLE="Remmi Browser ${{ github.ref_name }}"
-            NOTES="Automated release for tag ${{ github.ref_name }}"
-          fi
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
-          echo "notes=$NOTES" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          for aab in release-output/*.aab; do
+            echo "Verifying AAB signature: $aab"
+            jarsigner -verify -verbose -certs "$aab"
+          done
 
-      - name: Create GitHub Release and Upload APK / AAB
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-output/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.release_meta.outputs.tag }}
-          name: ${{ steps.release_meta.outputs.title }}
-          body: ${{ steps.release_meta.outputs.notes }}
+          tag_name: ${{ steps.resolve_version.outputs.release_tag }}
+          name: ${{ steps.resolve_version.outputs.release_title }}
+          body_path: release-notes.md
           draft: false
           prerelease: false
           files: |
