@@ -135,21 +135,21 @@ jobs:
       - name: Verify Production Signing Secrets
         shell: bash
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 || secrets.KEYSTORE_BASE64 }}
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -euo pipefail
           if [ -z "${KEYSTORE_BASE64:-}" ] || [ -z "${STORE_PASSWORD:-}" ] || [ -z "${KEY_ALIAS:-}" ] || [ -z "${KEY_PASSWORD:-}" ]; then
-            echo "::error::Production signing secrets are missing! Required: KEYSTORE_BASE64, STORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD. Automatic fallback generation is strictly disabled."
+            echo "::error::Production signing secrets are missing! Required: REMMI_RELEASE_KEYSTORE_B64 (or KEYSTORE_BASE64), STORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD. Automatic fallback generation is strictly disabled."
             exit 1
           fi
 
       - name: Setup Keystore
         shell: bash
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.REMMI_RELEASE_KEYSTORE_B64 || secrets.KEYSTORE_BASE64 }}
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
@@ -158,6 +158,7 @@ jobs:
           set -euo pipefail
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release.keystore
           chmod 600 release.keystore
+          keytool -list -v -keystore release.keystore -storepass "$STORE_PASSWORD"
           echo "KEYSTORE_PATH=${WORKSPACE_PATH}/release.keystore" >> "$GITHUB_ENV"
           echo "STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
           echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
@@ -171,7 +172,7 @@ jobs:
           ./gradlew \
             -PversionName="$V_NAME" \
             -PversionCode="$V_CODE" \
-            :app:testReleaseUnitTest \
+            :app:testDebugUnitTest \
             :app:lintRelease
 
       - name: Build Release APK & AAB

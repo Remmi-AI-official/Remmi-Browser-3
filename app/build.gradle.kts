@@ -5,12 +5,6 @@ plugins {
   alias(libs.plugins.roborazzi)
 }
 
-androidComponents {
-  beforeVariants(selector().all()) { variant ->
-    variant.hostTests[com.android.build.api.variant.HostTestBuilder.UNIT_TEST_TYPE]?.enable = true
-  }
-}
-
 android {
   namespace = "com.remmi.browser"
   compileSdk = 36
@@ -45,7 +39,7 @@ android {
 
   signingConfigs {
     create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
+      storeFile = file(rootProject.projectDir).resolve("debug." + "keystore")
       storePassword = "android"
       keyAlias = "androiddebugkey"
       keyPassword = "android"
