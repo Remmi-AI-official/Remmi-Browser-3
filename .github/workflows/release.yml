@@ -171,7 +171,7 @@ jobs:
           WORKSPACE_PATH: ${{ github.workspace }}
         run: |
           set -euo pipefail
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > release.keystore
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n ' | base64 --decode > release.keystore
           chmod 600 release.keystore
           echo "Verifying keystore access with store password..."
           keytool -list -v -keystore release.keystore -storepass "$STORE_PASSWORD"
