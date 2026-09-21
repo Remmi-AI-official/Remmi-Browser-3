@@ -45,6 +45,11 @@ jobs:
           java-version: '17'
           cache: gradle
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
@@ -60,9 +65,18 @@ jobs:
             exit 1
           fi
 
-          echo "Verifying Gradle version..."
-          ./gradlew --version
-          GRADLE_VER=$(./gradlew --version | awk '/^Gradle / {print $2}')
+          echo "Verifying Gradle version with retry resilience..."
+          for i in 1 2 3 4 5; do
+            if ./gradlew --version > /tmp/gradle_ver_out.txt 2>&1; then
+              cat /tmp/gradle_ver_out.txt
+              break
+            fi
+            echo "Gradle download/verification attempt $i failed. Retrying in 5 seconds..."
+            cat /tmp/gradle_ver_out.txt || true
+            sleep 5
+          done
+          
+          GRADLE_VER=$(cat /tmp/gradle_ver_out.txt | awk '/^Gradle / {print $2}')
           if [ "$GRADLE_VER" != "9.3.1" ]; then
             echo "::error::Gradle version must be 9.3.1, but detected '$GRADLE_VER'"
             exit 1
@@ -176,37 +190,71 @@ jobs:
         run: |
           set -euo pipefail
           
-          # Collect and clean password candidates
+          # Collect password candidates
           declare -a PASS_CANDIDATES=()
           for p in "${STORE_PASS_B:-}" "${STORE_PASS_A:-}" "${KEY_PASS_B:-}" "${KEY_PASS_A:-}"; do
-            clean_p=$(printf '%s' "$p" | tr -d '\r\n')
+            clean_p=$(printf '%s' "$p" | tr -d '\r\n"')
             if [ -n "$clean_p" ]; then
-              PASS_CANDIDATES+=("$clean_p")
+              # Deduplicate
+              found=0
+              for existing in "${PASS_CANDIDATES[@]}"; do
+                if [ "$existing" = "$clean_p" ]; then found=1; break; fi
+              done
+              if [ "$found" -eq 0 ]; then
+                PASS_CANDIDATES+=("$clean_p")
+              fi
             fi
           done
+
+          echo "Found ${#PASS_CANDIDATES[@]} unique password candidate(s)."
 
           # Collect and test base64 candidates
           FOUND_KEYSTORE=0
           MATCHED_STORE_PASS=""
           
+          declare -a B64_CANDIDATES=()
           for b64 in "${KEYSTORE_B64_B:-}" "${KEYSTORE_B64_A:-}"; do
-            clean_b64=$(printf '%s' "$b64" | tr -d '\r\n ')
+            clean_b64=$(printf '%s' "$b64" | tr -d '\r\n "')
             if [ -n "$clean_b64" ]; then
-              printf '%s' "$clean_b64" | base64 --decode > candidate.keystore 2>/dev/null || continue
-              for p in "${PASS_CANDIDATES[@]}"; do
-                if keytool -list -keystore candidate.keystore -storepass "$p" >/dev/null 2>&1; then
-                  mv candidate.keystore release.keystore
-                  chmod 600 release.keystore
-                  MATCHED_STORE_PASS="$p"
-                  FOUND_KEYSTORE=1
-                  break 2
-                fi
-              done
+              B64_CANDIDATES+=("$clean_b64")
             fi
           done
 
+          echo "Found ${#B64_CANDIDATES[@]} keystore base64 payload(s)."
+
+          cand_idx=0
+          for clean_b64 in "${B64_CANDIDATES[@]}"; do
+            cand_idx=$((cand_idx + 1))
+            echo "Evaluating keystore payload #$cand_idx (length: ${#clean_b64} characters)..."
+            
+            rm -f candidate.keystore
+            if ! printf '%s' "$clean_b64" | base64 -d -i > candidate.keystore 2>/dev/null; then
+              printf '%s' "$clean_b64" | base64 --decode > candidate.keystore 2>/dev/null || true
+            fi
+            
+            if [ ! -s candidate.keystore ]; then
+              echo "Warning: Base64 decode resulted in an empty file for candidate #$cand_idx."
+              continue
+            fi
+
+            pass_idx=0
+            for p in "${PASS_CANDIDATES[@]}"; do
+              pass_idx=$((pass_idx + 1))
+              echo "Testing password candidate #$pass_idx (length: ${#p} chars)..."
+              if keytool -list -keystore candidate.keystore -storepass "$p" >/dev/null 2>&1; then
+                mv candidate.keystore release.keystore
+                chmod 600 release.keystore
+                MATCHED_STORE_PASS="$p"
+                FOUND_KEYSTORE=1
+                echo "Success: Unlocked keystore with password candidate #$pass_idx."
+                break 2
+              fi
+            done
+          done
+
           if [ "$FOUND_KEYSTORE" -ne 1 ]; then
-            echo "::error::Could not unlock keystore with the provided store passwords. Please verify the keystore base64 and passwords match."
+            echo "::error::Could not unlock keystore with the provided store passwords."
+            echo "Please ensure the GitHub secret KEYSTORE_BASE64 contains the full base64 string and STORE_PASSWORD is set to the matching password."
             exit 1
           fi
 
@@ -216,7 +264,7 @@ jobs:
           # Determine key alias
           TARGET_ALIAS=""
           for a in "${KEY_ALIAS_B:-}" "${KEY_ALIAS_A:-}" "remmi_release"; do
-            clean_a=$(printf '%s' "$a" | tr -d '\r\n ')
+            clean_a=$(printf '%s' "$a" | tr -d '\r\n "')
             if [ -n "$clean_a" ] && keytool -list -keystore release.keystore -storepass "$MATCHED_STORE_PASS" -alias "$clean_a" >/dev/null 2>&1; then
               TARGET_ALIAS="$clean_a"
               break
@@ -230,7 +278,7 @@ jobs:
           # Determine key password
           MATCHED_KEY_PASS=""
           for kp in "$MATCHED_STORE_PASS" "${KEY_PASS_B:-}" "${KEY_PASS_A:-}"; do
-            clean_kp=$(printf '%s' "$kp" | tr -d '\r\n')
+            clean_kp=$(printf '%s' "$kp" | tr -d '\r\n "')
             if [ -n "$clean_kp" ]; then
               if keytool -certreq -keystore release.keystore -storepass "$MATCHED_STORE_PASS" -alias "$TARGET_ALIAS" -keypass "$clean_kp" -file /dev/null >/dev/null 2>&1; then
                 MATCHED_KEY_PASS="$clean_kp"
