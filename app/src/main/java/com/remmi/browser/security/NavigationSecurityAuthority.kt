@@ -34,7 +34,12 @@ object NavigationSecurityAuthority {
     "http", "https", "about"
   )
 
-  fun validateAndSanitizeNavigation(rawUrl: String, isGhost: Boolean = false): NavigationCheckResult {
+  fun validateAndSanitizeNavigation(
+    rawUrl: String, 
+    isGhost: Boolean = false,
+    allowAutoGhost: Boolean = false,
+    requireReadyRoute: Boolean = true
+  ): NavigationCheckResult {
     val trimmed = rawUrl.trim()
     if (trimmed.isEmpty()) {
       return NavigationCheckResult(NavigationDecision.BLOCK, reason = "Empty navigation target")
@@ -86,14 +91,21 @@ object NavigationSecurityAuthority {
 
     val isOnion = NetworkRouteAuthority.isOnionDestination(trimmed)
     if (isOnion) {
-      if (!isGhost) {
+      if (NetworkRouteAuthority.isV2Onion(trimmed)) {
+        Log.w(TAG, "Navigation BLOCKED: Obsolete Tor v2 onion address '$trimmed'")
+        return NavigationCheckResult(
+          NavigationDecision.BLOCK,
+          reason = "Tor v2 onion services are obsolete and permanently deprecated."
+        )
+      }
+      if (!isGhost && !allowAutoGhost) {
         Log.w(TAG, "Navigation BLOCKED: .onion requested but tab is in Clearnet mode (isGhost=false).")
         return NavigationCheckResult(
           NavigationDecision.BLOCK,
           reason = ".onion hidden services require an active Tor (Ghost) tab session."
         )
       }
-      if (!CurrentTorRoute.isReady) {
+      if (requireReadyRoute && !CurrentTorRoute.isVerifiedOnionRouteReady()) {
         Log.w(TAG, "Navigation BLOCKED: .onion requested but Tor route is not yet fully READY.")
         return NavigationCheckResult(
           NavigationDecision.BLOCK,

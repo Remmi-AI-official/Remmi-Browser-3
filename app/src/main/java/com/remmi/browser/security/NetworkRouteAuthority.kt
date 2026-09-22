@@ -56,36 +56,65 @@ object NetworkRouteAuthority {
   }
 
   /**
-   * Returns whether the given URL target is a legitimate Tor hidden service (.onion).
-   * Distinguishes valid .onion domains (e.g., duckduckgo.onion, sub.example.onion)
-   * from spoofed clearnet domains (e.g., example.onion.attacker.com).
+   * Safely extracts the lowercased parsed hostname from any URL or domain string.
    */
-  fun isOnionDestination(url: String): Boolean {
+  fun extractHostname(url: String): String? {
     val clean = url.trim().lowercase()
-    if (clean.isEmpty()) return false
+    if (clean.isEmpty()) return null
 
-    val host = try {
+    return try {
       val candidate = if (clean.contains("://")) clean else "http://$clean"
       val parsedUri = URI(candidate)
       val parsedHost = parsedUri.host
-      if (parsedHost != null && parsedHost.isNotEmpty()) {
+      if (!parsedHost.isNullOrEmpty()) {
         parsedHost.trimEnd('.')
       } else {
         val uri = Uri.parse(candidate)
-        uri.host?.trimEnd('.') ?: ""
+        uri.host?.trimEnd('.')
       }
     } catch (_: Exception) {
       val withoutScheme = clean.substringAfter("://")
-      withoutScheme.substringBefore('/').substringBefore(':').trimEnd('.')
+      val hostCandidate = withoutScheme.substringBefore('/').substringBefore(':').substringBefore('?').substringBefore('#').trimEnd('.')
+      val cleanHost = if (hostCandidate.contains('@')) hostCandidate.substringAfter('@') else hostCandidate
+      if (cleanHost.isNotEmpty() && !cleanHost.contains('/')) cleanHost else null
     }
-
-    if (host.isEmpty()) return false
-
-    // A valid onion hostname is exactly "onion" or ends with ".onion"
-    // e.g. "example.onion" or "sub.example.onion" -> TRUE
-    // "example.onion.attacker.com" -> FALSE (host is "example.onion.attacker.com")
-    return host == "onion" || host.endsWith(".onion")
   }
+
+  /**
+   * Returns whether the given URL target is a legitimate Tor hidden service (.onion).
+   * Distinguishes valid .onion domains (e.g., duckduckgo.onion, sub.example.onion)
+   * from spoofed clearnet domains (e.g., example.onion.attacker.com) or paths.
+   */
+  fun isOnionDestination(url: String): Boolean {
+    val host = extractHostname(url) ?: return false
+    if (!host.endsWith(".onion")) return false
+    if (host == "onion" || host == ".onion") return false
+    val label = host.removeSuffix(".onion").substringAfterLast('.')
+    return label.isNotEmpty()
+  }
+
+  /**
+   * Checks whether the given onion hostname corresponds to the obsolete 16-character v2 onion format.
+   */
+  fun isV2OnionHostname(hostname: String): Boolean {
+    val clean = hostname.trim().lowercase().trimEnd('.')
+    if (!clean.endsWith(".onion")) return false
+    val label = clean.removeSuffix(".onion").substringAfterLast('.')
+    return label.length == 16 && label.all { (it in 'a'..'z') || (it in '2'..'7') }
+  }
+
+  /**
+   * Returns whether the given URL target is an obsolete v2 .onion address.
+   */
+  fun isV2Onion(url: String): Boolean {
+    val host = extractHostname(url) ?: return false
+    return isV2OnionHostname(host)
+  }
+
+  /**
+   * Authoritative check for whether a verified Tor route is ready for onion traffic.
+   */
+  fun isVerifiedOnionRouteReady(): Boolean = CurrentTorRoute.isVerifiedOnionRouteReady()
 
   /**
    * Produces an OkHttpClient configured strictly according to current route authority.

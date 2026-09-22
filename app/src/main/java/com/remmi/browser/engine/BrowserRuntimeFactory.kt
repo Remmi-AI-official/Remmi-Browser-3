@@ -2,6 +2,7 @@ package com.remmi.browser.engine
 
 import android.content.Context
 import android.util.Log
+import com.remmi.browser.security.CurrentTorRoute
 import com.remmi.browser.security.Mode
 import com.remmi.browser.security.NetworkHardening
 import com.remmi.browser.security.PrivacyProfile
@@ -117,7 +118,7 @@ class BrowserRuntimeFactory private constructor(private val context: Context) {
       }
 
       // Step 2: Manage Tor daemon lifecycle (Tor must NOT run during Shield Mode)
-      var activeTorPort = 9050
+      var activeTorPort = CurrentTorRoute.currentSocksPort ?: 0
       when (targetMode) {
         Mode.SHIELD -> {
           torLifecycle.stopTorDaemon()
@@ -129,7 +130,13 @@ class BrowserRuntimeFactory private constructor(private val context: Context) {
             Log.e(TAG, "Aborting transition to Tor mode: ${err.message}")
             return@withContext Result.failure(err)
           }
-          activeTorPort = torStartRes.getOrDefault(9050)
+          val discoveredPort = torStartRes.getOrNull() ?: CurrentTorRoute.currentSocksPort
+          if (discoveredPort == null || discoveredPort <= 0) {
+            val err = IllegalStateException("Tor daemon started but no valid SOCKS port discovered")
+            Log.e(TAG, err.message ?: "Tor SOCKS port discovery error")
+            return@withContext Result.failure(err)
+          }
+          activeTorPort = discoveredPort
         }
       }
 

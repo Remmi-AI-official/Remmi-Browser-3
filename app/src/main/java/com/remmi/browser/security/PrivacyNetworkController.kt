@@ -246,7 +246,13 @@ class PrivacyNetworkController private constructor(private val context: Context)
       }
 
       configManager.writeProfileConfigAtomic(Mode.TOR, socksPort = socksPort)
-      runtimeFactory.switchProfile(Mode.TOR, runtime)
+      runtimeFactory.switchProfile(
+        targetMode = Mode.TOR,
+        runtime = runtime,
+        onSessionTeardown = {
+          geckoEngine.closeAllSessionsSafely()
+        }
+      )
 
       val proxyApplied = if (runtime != null) {
         NetworkHardening.applyTorNetworkSettings(runtime, socksPort, generation)
@@ -314,7 +320,13 @@ class PrivacyNetworkController private constructor(private val context: Context)
       // Stop Tor daemon completely (lazy Tor daemon, zero background services in Shield mode)
       torLifecycle.stopTorDaemon()
       configManager.writeProfileConfigAtomic(Mode.SHIELD)
-      runtimeFactory.switchProfile(Mode.SHIELD, geckoEngine.runtime)
+      runtimeFactory.switchProfile(
+        targetMode = Mode.SHIELD,
+        runtime = geckoEngine.runtime,
+        onSessionTeardown = {
+          geckoEngine.closeAllSessionsSafely()
+        }
+      )
 
       NetworkHardening.applyShieldNetworkSettings(geckoEngine.runtime, generation)
       geckoEngine.currentProfile = PrivacyProfile.SHIELD
@@ -394,6 +406,8 @@ class PrivacyNetworkController private constructor(private val context: Context)
       }
 
       DebugLogManager.log("[ROUTE] GHOST_ROUTE_READY profile=GHOST port=${c.socksPort} exitIp=${c.verifiedExitIp ?: "Active"} generation=$generation")
+
+      geckoEngine.onCircuitRotated(generation)
 
       Result.success(c)
     }

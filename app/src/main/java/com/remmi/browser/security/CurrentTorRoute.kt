@@ -63,16 +63,18 @@ object CurrentTorRoute {
     get() = _route.value.phase
 
   val isReady: Boolean
-    get() {
-      val r = _route.value
-      return r.phase == GhostRoutePhase.READY &&
-          r.isGhostActive &&
-          r.socksPort != null &&
-          r.socksPort > 0 &&
-          r.isVerified &&
-          !r.failoverDirect &&
-          r.generation > 0L
-    }
+    get() = isVerifiedOnionRouteReady()
+
+  fun isVerifiedOnionRouteReady(): Boolean {
+    val route = _route.value
+    return route.phase == GhostRoutePhase.READY &&
+        route.isGhostActive &&
+        route.isVerified &&
+        !route.failoverDirect &&
+        route.socksPort != null &&
+        route.socksPort > 0 &&
+        route.generation > 0L
+  }
 
   fun markStartingGhost(): Long {
     val generation = generationSequence.incrementAndGet()

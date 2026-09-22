@@ -427,13 +427,15 @@ object NetworkHardening {
     GeckoPreferenceController.resetCache()
   }
 
+  fun isTorConfigActive(): Boolean = lastAppliedRouteKey?.profile == PrivacyProfile.GHOST
+
   fun sanitizeUrl(rawUrl: String): String {
     var trimmed = rawUrl.trim()
     if (trimmed.isEmpty()) return "about:blank"
 
-    val isOnion = NetworkRouteAuthority.isOnionDestination(trimmed) || trimmed.contains(".onion", ignoreCase = true)
+    val isOnion = NetworkRouteAuthority.isOnionDestination(trimmed)
 
-    // Always upgrade http:// to https:// directly unless .onion
+    // Always upgrade http:// to https:// directly for clearnet, but preserve explicit http:// for .onion
     if (trimmed.startsWith("http://", ignoreCase = true) && !isOnion) {
       trimmed = "https://" + trimmed.substring(7)
     }
@@ -445,8 +447,8 @@ object NetworkHardening {
         !trimmed.startsWith("view-source:", ignoreCase = true) &&
         !trimmed.startsWith("file:", ignoreCase = true)) {
       if (trimmed.contains(".") && !trimmed.contains(" ")) {
-        // Enforce HTTP for .onion and HTTPS for clearnet
-        trimmed = if (isOnion) "http://$trimmed" else "https://$trimmed"
+        // Enforce HTTPS-first normalization for both clearnet and scheme-less .onion
+        trimmed = "https://$trimmed"
       } else {
         // Privacy search via DuckDuckGo onion or clearnet privacy search
         val query = java.net.URLEncoder.encode(trimmed, "UTF-8")

@@ -198,7 +198,7 @@ object ReaderExtractor {
     }
 
     val isOnion = NetworkRouteAuthority.isOnionDestination(url)
-    if ((isGhost || isOnion) && !com.remmi.browser.security.CurrentTorRoute.isReady) {
+    if ((isGhost || isOnion) && !com.remmi.browser.security.CurrentTorRoute.isVerifiedOnionRouteReady()) {
       Log.w(TAG, "Reader extraction blocked: Tor route is not verified")
       return@withContext null
     }
@@ -209,8 +209,8 @@ object ReaderExtractor {
         NetworkRouteAuthority.createHttpClient(
           isGhost = isGhost || isOnion,
           targetUrl = url,
-          connectTimeoutSeconds = if (isGhost || isOnion) 6L else 5L,
-          readTimeoutSeconds = if (isGhost || isOnion) 6L else 5L,
+          connectTimeoutSeconds = if (isGhost || isOnion) 30L else 10L,
+          readTimeoutSeconds = if (isGhost || isOnion) 30L else 10L,
           followRedirects = true
         )
 

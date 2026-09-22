@@ -1,6 +1,7 @@
 package com.remmi.browser.engine
 
 import android.content.Context
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -15,6 +16,7 @@ import com.remmi.browser.security.AntiFingerprint
 import com.remmi.browser.security.ContainerType
 import com.remmi.browser.security.CurrentTorRoute
 import com.remmi.browser.security.NetworkHardening
+import com.remmi.browser.security.PrivacyNetworkController
 import com.remmi.browser.security.PrivacyProfile
 import com.remmi.browser.security.SecurityLevel
 import com.remmi.browser.util.PdfPrintHelper
@@ -418,9 +420,38 @@ class GeckoEngineManager private constructor(private val context: Context) {
     return currentScrollPositions[tabId] ?: 0
   }
   private val lastOriginalFailures = mutableMapOf<String, String>()
+  data class OnionFallbackState(
+    val generation: Long,
+    val navId: Long,
+    val attempts: Int,
+    val schemeOrigin: OnionSchemeOrigin,
+    val originalUrl: String,
+    val fallbackUsed: Boolean = false,
+  )
+
+  enum class OnionSchemeOrigin {
+    EXPLICIT_HTTP,
+    EXPLICIT_HTTPS,
+    IMPLICIT
+  }
+
+  private enum class OnionFailureClass {
+    CERTIFICATE,
+    CONNECTION,
+    UNKNOWN
+  }
+
   private val originalRequestedUrls = mutableMapOf<String, String>()
   private val originalRequestedSchemes = mutableMapOf<String, String>()
-  private val onionHttpFallbackAttempts = mutableMapOf<String, Int>()
+  private val onionHttpFallbackAttempts = java.util.concurrent.ConcurrentHashMap<String, OnionFallbackState>()
+  private val pendingOnionNavigations = java.util.concurrent.ConcurrentHashMap<String, String>()
+  private val onionSchemeOrigins = java.util.concurrent.ConcurrentHashMap<String, OnionSchemeOrigin>()
+
+  private fun onionFallbackKey(tabId: String, host: String): String = "$tabId:$host"
+
+  private fun resetOnionFallbackState(tabId: String, host: String) {
+    onionHttpFallbackAttempts.remove(onionFallbackKey(tabId, host))
+  }
   private val sessionGenerations = mutableMapOf<String, Long>()
   private val viewGenerations = mutableMapOf<String, Long>()
   private val lastRedirectUrls = mutableMapOf<String, String>()
@@ -453,7 +484,61 @@ class GeckoEngineManager private constructor(private val context: Context) {
 
   fun getOriginalRequestedUrl(tabId: String): String? = originalRequestedUrls[tabId]
   fun getOriginalRequestedScheme(tabId: String): String? = originalRequestedSchemes[tabId]
-  fun getOnionHttpFallbackAttempts(tabId: String, host: String): Int = onionHttpFallbackAttempts["$tabId:$host"] ?: 0
+  fun getOnionHttpFallbackAttempts(tabId: String, host: String): Int = onionHttpFallbackAttempts[onionFallbackKey(tabId, host)]?.attempts ?: 0
+
+  fun onCircuitRotated(generation: Long) {
+    mainHandler.post {
+      onionHttpFallbackAttempts.clear()
+      Log.i(TAG, "[ONION_ROUTE_ROTATED] Invalidated stale onion fallback states for generation=$generation")
+      com.remmi.browser.util.DebugLogManager.log("[ONION_ROUTE_ROTATED] generation=$generation")
+    }
+  }
+
+  fun logOnionTrace(
+    tabId: String,
+    generation: Long,
+    navId: Long,
+    requestedUrl: String,
+    requestedScheme: String,
+    isOnion: Boolean,
+    tabProfile: String,
+    currentProfile: String,
+    torReady: Boolean,
+    routePhase: String,
+    routeGeneration: Long,
+    socksPort: Int?,
+    proxyApplied: Boolean,
+    sessionId: String,
+  ) {
+    val cleanUrl = try {
+      val u = Uri.parse(requestedUrl)
+      if (u.userInfo != null) {
+        requestedUrl.replace(u.userInfo + "@", "")
+      } else requestedUrl
+    } catch (_: Exception) {
+      requestedUrl
+    }
+
+    val trace = """
+      [ONION_TRACE]
+      tabId=$tabId
+      generation=$generation
+      navId=$navId
+      requestedUrl=$cleanUrl
+      requestedScheme=$requestedScheme
+      isOnion=$isOnion
+      tabProfile=$tabProfile
+      currentProfile=$currentProfile
+      torReady=$torReady
+      routePhase=$routePhase
+      routeGeneration=$routeGeneration
+      socksPort=$socksPort
+      proxyApplied=$proxyApplied
+      sessionId=$sessionId
+    """.trimIndent()
+    Log.i(TAG, trace)
+    com.remmi.browser.util.DebugLogManager.log(trace)
+  }
 
   fun transitionRecoveryState(
     tabId: String,
@@ -669,7 +754,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
         val reqScheme = parsedUri?.scheme?.lowercase() ?: if (url.startsWith("http://", ignoreCase = true)) "http" else if (url.startsWith("https://", ignoreCase = true)) "https" else ""
         originalRequestedUrls[tabId] = url
         originalRequestedSchemes[tabId] = reqScheme
-        if (url.contains(".onion", ignoreCase = true)) {
+        if (com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(url)) {
           val onionSchemeMsg = "[ONION_SCHEME] requested=$url effective=$url"
           Log.i(TAG, onionSchemeMsg)
           com.remmi.browser.util.DebugLogManager.log(onionSchemeMsg)
@@ -1739,7 +1824,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
         }
 
         val tab = TabManager.getInstance().getTab(tabId)
-        val isOnionDestination = url.contains(".onion", ignoreCase = true) || com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(url)
+        val isOnionDestination = com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(url)
         var isGhost = (tab?.profile == PrivacyProfile.GHOST) || (currentProfile == PrivacyProfile.GHOST)
         
         val autoRouteOnion = try {
@@ -1748,17 +1833,55 @@ class GeckoEngineManager private constructor(private val context: Context) {
           true
         }
 
-        // Auto-upgrade clearnet tab to Ghost mode when clicking on a .onion link
-        if (isOnionDestination && !isGhost && autoRouteOnion) {
-          Log.i(TAG, "[ONION_CLICK] .onion link clicked in Clearnet tab; transitioning to Ghost profile and loading via Tor")
-          mainHandler.post {
-            TabManager.getInstance().updateTab(tabId) { it.copy(profile = PrivacyProfile.GHOST) }
-            loadUrl(tabId, url, forceReload = true)
+        if (isOnionDestination) {
+          logOnionTrace(
+            tabId = tabId,
+            generation = gen,
+            navId = navId,
+            requestedUrl = url,
+            requestedScheme = parseUri(url)?.scheme?.lowercase() ?: if (url.startsWith("http://", ignoreCase = true)) "http" else "https",
+            isOnion = true,
+            tabProfile = tab?.profile?.name ?: "STANDARD",
+            currentProfile = currentProfile.name,
+            torReady = CurrentTorRoute.isVerifiedOnionRouteReady(),
+            routePhase = CurrentTorRoute.currentPhase.name,
+            routeGeneration = CurrentTorRoute.currentGeneration,
+            socksPort = CurrentTorRoute.currentSocksPort,
+            proxyApplied = NetworkHardening.isTorConfigActive(),
+            sessionId = sessId
+          )
+        }
+
+        // Auto-upgrade clearnet tab to Ghost mode when navigating to or clicking on a .onion link
+        if (isOnionDestination && !isGhost) {
+          if (autoRouteOnion) {
+            pendingOnionNavigations[tabId] = url
+            Log.i(TAG, "[ONION_AUTO_GHOST] Starting verified Ghost transition for tab=$tabId target=$url")
+            com.remmi.browser.util.DebugLogManager.log("[ONION_AUTO_GHOST] tabId=$tabId target=$url")
+            engineScope.launch(Dispatchers.IO) {
+              val result = PrivacyNetworkController.getInstance(context).enterGhostMode(tabId)
+              withContext(Dispatchers.Main) {
+                val target = pendingOnionNavigations.remove(tabId)
+                if (result.isSuccess && !target.isNullOrBlank()) {
+                  loadUrl(tabId = tabId, url = target, forceReload = true)
+                } else {
+                  Log.w(TAG, "[ONION_AUTO_GHOST] Tor transition failed; onion navigation aborted")
+                }
+              }
+            }
+          } else {
+            Log.w(TAG, "[ONION_BLOCKED] .onion requested in Clearnet tab and autoRouteOnionTabs is disabled")
+            NavigationChainTracker.markSecurityBlocked(tabId, url, "tor_required")
           }
           return GeckoResult.fromValue(AllowOrDeny.DENY)
         }
 
-        val check = com.remmi.browser.security.NavigationSecurityAuthority.validateAndSanitizeNavigation(url, isGhost)
+        val check = com.remmi.browser.security.NavigationSecurityAuthority.validateAndSanitizeNavigation(
+          rawUrl = url,
+          isGhost = isGhost,
+          allowAutoGhost = autoRouteOnion,
+          requireReadyRoute = false
+        )
         when (check.decision) {
             com.remmi.browser.security.NavigationDecision.BLOCK -> {
                 val blockMsg = "[FORENSIC] [NAV_ERROR] tabId=$tabId session=$sessId view=$viewId navId=$navId url=$url error=security_blocked gen=$gen elapsedRealtime=$now"
@@ -1852,7 +1975,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
         } else {
           val origUrl = originalRequestedUrls[tabId] ?: ""
           val origScheme = originalRequestedSchemes[tabId] ?: ""
-          if (origUrl.isNotBlank() && origScheme == "http" && url.startsWith("https://", ignoreCase = true) && url.contains(".onion", ignoreCase = true)) {
+          if (origUrl.isNotBlank() && origScheme == "http" && url.startsWith("https://", ignoreCase = true) && com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(url)) {
             val origHost = parseUri(origUrl)?.host?.lowercase() ?: ""
             val targetHost = parseUri(url)?.host?.lowercase() ?: ""
             if (origHost.isNotEmpty() && origHost == targetHost) {
@@ -2382,7 +2505,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
         com.remmi.browser.util.DebugLogManager.log(errLog)
 
         val targetUrl = uri ?: lastDispatchedUrls[tabId] ?: ""
-        val isOnion = com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(targetUrl) || targetUrl.contains(".onion", ignoreCase = true)
+        val isOnion = com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(targetUrl)
         val gen = navGenerations[tabId] ?: 0L
         val navId = getActiveNavId(tabId)
 
@@ -2391,18 +2514,45 @@ class GeckoEngineManager private constructor(private val context: Context) {
         val origUri = parseUri(origUrl)
         val targetUri = parseUri(targetUrl)
         val origHost = origUri?.host?.lowercase() ?: ""
-        val targetHost = targetUri?.host?.lowercase() ?: ""
+        val targetHost = targetUri?.host?.lowercase() ?: (com.remmi.browser.security.NetworkRouteAuthority.extractHostname(targetUrl) ?: "")
 
-        // 1. Certificate / SSL validation errors:
-        // When an HTTPS site (especially .onion hidden services or self-signed certs) has a certificate error,
-        // classify as terminal certificate error and delegate to Gecko's native about:certerror page.
-        // If the user explicitly requested HTTP originally and was upgraded/redirected to HTTPS, perform at most 1 fallback to HTTP.
-        val isSslOrCertError = error.category == org.mozilla.geckoview.WebRequestError.ERROR_CATEGORY_SECURITY ||
-                               error.code == org.mozilla.geckoview.WebRequestError.ERROR_SECURITY_BAD_CERT ||
-                               error.code == org.mozilla.geckoview.WebRequestError.ERROR_SECURITY_SSL ||
-                               error.code == org.mozilla.geckoview.WebRequestError.ERROR_BAD_HSTS_CERT
+        val isAuthError = (targetUrl.contains("@") && error.code == org.mozilla.geckoview.WebRequestError.ERROR_PROXY_CONNECTION_REFUSED) ||
+                          (error.message?.contains("auth", ignoreCase = true) == true)
 
-        if (isSslOrCertError) {
+        if (isOnion && isAuthError) {
+          Log.w(TAG, "[ONION_AUTH_ERROR] Onion authentication required for targetUrl=$targetUrl")
+          val errorDataUri = OfflineErrorPageGenerator.toDataUri(
+            targetUrl = targetUrl,
+            errorCode = "ERR_ONION_AUTH_REQUIRED",
+            isDark = true
+          )
+          return GeckoResult.fromValue(errorDataUri)
+        }
+
+        val failureClass = when {
+          error.category == org.mozilla.geckoview.WebRequestError.ERROR_CATEGORY_SECURITY ||
+          error.code == org.mozilla.geckoview.WebRequestError.ERROR_SECURITY_BAD_CERT ||
+          error.code == org.mozilla.geckoview.WebRequestError.ERROR_SECURITY_SSL ||
+          error.code == org.mozilla.geckoview.WebRequestError.ERROR_BAD_HSTS_CERT -> OnionFailureClass.CERTIFICATE
+
+          error.code == org.mozilla.geckoview.WebRequestError.ERROR_CONNECTION_REFUSED ||
+          error.code == org.mozilla.geckoview.WebRequestError.ERROR_NET_TIMEOUT ||
+          error.code == org.mozilla.geckoview.WebRequestError.ERROR_NET_RESET ||
+          error.code == org.mozilla.geckoview.WebRequestError.ERROR_NET_INTERRUPT ||
+          error.code == org.mozilla.geckoview.WebRequestError.ERROR_UNKNOWN_SOCKET_TYPE ||
+          error.category == org.mozilla.geckoview.WebRequestError.ERROR_CATEGORY_NETWORK -> OnionFailureClass.CONNECTION
+
+          else -> OnionFailureClass.UNKNOWN
+        }
+
+        val schemeOrigin = onionSchemeOrigins[tabId] ?: when {
+          origScheme == "http" || origUrl.startsWith("http://", ignoreCase = true) -> OnionSchemeOrigin.EXPLICIT_HTTP
+          origScheme == "https" || origUrl.startsWith("https://", ignoreCase = true) -> OnionSchemeOrigin.EXPLICIT_HTTPS
+          else -> OnionSchemeOrigin.IMPLICIT
+        }
+
+        // 1. Certificate / SSL validation errors
+        if (failureClass == OnionFailureClass.CERTIFICATE) {
           val certErrorName = when (error.code) {
             org.mozilla.geckoview.WebRequestError.ERROR_SECURITY_BAD_CERT -> "ERROR_SECURITY_BAD_CERT"
             org.mozilla.geckoview.WebRequestError.ERROR_SECURITY_SSL -> "ERROR_SECURITY_SSL"
@@ -2413,15 +2563,22 @@ class GeckoEngineManager private constructor(private val context: Context) {
           Log.w(TAG, certLog)
           com.remmi.browser.util.DebugLogManager.log(certLog)
 
-          val isExplicitHttp = origScheme == "http" && origUrl.startsWith("http://", ignoreCase = true)
-          val isTargetHttps = targetUrl.startsWith("https://", ignoreCase = true)
           val isSameOnionHost = origHost.isNotEmpty() && origHost == targetHost && origHost.endsWith(".onion")
+          val fallbackKey = onionFallbackKey(tabId, targetHost)
+          val currentFallback = onionHttpFallbackAttempts[fallbackKey]
 
-          val fallbackKey = "$tabId:$targetHost"
-          val attempts = onionHttpFallbackAttempts.getOrDefault(fallbackKey, 0)
-
-          if (isExplicitHttp && isTargetHttps && isSameOnionHost && attempts < 1) {
-            onionHttpFallbackAttempts[fallbackKey] = attempts + 1
+          // CASE B only: If original was EXPLICIT_HTTP, and site redirected HTTP -> HTTPS and HTTPS cert failed:
+          // allow ONE controlled fallback back to the original HTTP URL on the same host and verified route.
+          if (isOnion && schemeOrigin == OnionSchemeOrigin.EXPLICIT_HTTP && isSameOnionHost &&
+              (currentFallback == null || (!currentFallback.fallbackUsed && currentFallback.attempts < 1))) {
+            onionHttpFallbackAttempts[fallbackKey] = OnionFallbackState(
+              generation = gen,
+              navId = navId,
+              attempts = (currentFallback?.attempts ?: 0) + 1,
+              schemeOrigin = schemeOrigin,
+              originalUrl = origUrl,
+              fallbackUsed = true
+            )
             val fallbackLog = "[ONION_HTTP_FALLBACK]\nfrom=$targetUrl\nto=$origUrl\nattempt=1"
             Log.i(TAG, fallbackLog)
             com.remmi.browser.util.DebugLogManager.log(fallbackLog)
@@ -2431,6 +2588,8 @@ class GeckoEngineManager private constructor(private val context: Context) {
             return null
           }
 
+          // CASE A: Explicit HTTPS or already attempted fallback:
+          // Certificate errors remain certificate errors! No automatic downgrade!
           val termLog = "[CERT_ERROR_TERMINAL]\nnavId=$navId\ngeneration=$gen"
           Log.w(TAG, termLog)
           com.remmi.browser.util.DebugLogManager.log(termLog)
@@ -2459,25 +2618,29 @@ class GeckoEngineManager private constructor(private val context: Context) {
         }
 
         // 2. Onion connection failure fallback (port 443 closed/unreachable):
-        // Tor onion hidden services are end-to-end encrypted and authenticated by Tor.
-        // If an onion service was loaded with https:// and port 443 is unreachable (connection refused, timeout, reset),
-        // automatically fall back to http:// (port 80) over Tor ONLY IF original request was http://
-        if (targetUrl.startsWith("https://", ignoreCase = true) && isOnion) {
-          val isExplicitHttp = origScheme == "http" && origUrl.startsWith("http://", ignoreCase = true)
-          val isConnectionError = error.code == org.mozilla.geckoview.WebRequestError.ERROR_CONNECTION_REFUSED ||
-                                  error.code == org.mozilla.geckoview.WebRequestError.ERROR_NET_TIMEOUT ||
-                                  error.code == org.mozilla.geckoview.WebRequestError.ERROR_NET_RESET ||
-                                  error.code == org.mozilla.geckoview.WebRequestError.ERROR_NET_INTERRUPT ||
-                                  error.code == org.mozilla.geckoview.WebRequestError.ERROR_UNKNOWN_SOCKET_TYPE ||
-                                  error.category == org.mozilla.geckoview.WebRequestError.ERROR_CATEGORY_NETWORK
+        // CASE C (IMPLICIT: scheme-less normalized to HTTPS) and CASE B (EXPLICIT_HTTP redirected to HTTPS):
+        if (isOnion && failureClass == OnionFailureClass.CONNECTION && targetUrl.startsWith("https://", ignoreCase = true)) {
+          val fallbackKey = onionFallbackKey(tabId, targetHost)
+          val currentFallback = onionHttpFallbackAttempts[fallbackKey]
+          val isSameOnionHost = origHost.isNotEmpty() && origHost == targetHost && origHost.endsWith(".onion")
 
-          val fallbackKey = "$tabId:$targetHost"
-          val attempts = onionHttpFallbackAttempts.getOrDefault(fallbackKey, 0)
+          val canFallback = (schemeOrigin == OnionSchemeOrigin.IMPLICIT || (schemeOrigin == OnionSchemeOrigin.EXPLICIT_HTTP && isSameOnionHost)) &&
+                            (currentFallback == null || (!currentFallback.fallbackUsed && currentFallback.attempts < 1))
 
-          if (isExplicitHttp && isConnectionError && attempts < 1 && !onionFallbackAttempts.contains(targetUrl)) {
-            onionFallbackAttempts.add(targetUrl)
-            onionHttpFallbackAttempts[fallbackKey] = attempts + 1
-            val fallbackHttpUrl = if (origUrl.isNotBlank()) origUrl else ("http://" + targetUrl.substring(8))
+          if (canFallback) {
+            val fallbackHttpUrl = if (schemeOrigin == OnionSchemeOrigin.EXPLICIT_HTTP && origUrl.isNotBlank()) {
+              origUrl
+            } else {
+              "http://" + targetUrl.substring(8)
+            }
+            onionHttpFallbackAttempts[fallbackKey] = OnionFallbackState(
+              generation = gen,
+              navId = navId,
+              attempts = (currentFallback?.attempts ?: 0) + 1,
+              schemeOrigin = schemeOrigin,
+              originalUrl = origUrl,
+              fallbackUsed = true
+            )
             Log.i(TAG, "[ONION_FALLBACK] Onion HTTPS port 443 unreachable (${error.code}); falling back to HTTP: $fallbackHttpUrl")
             com.remmi.browser.util.DebugLogManager.log("[ONION_FALLBACK] tabId=$tabId url=$targetUrl -> $fallbackHttpUrl reason=port_443_unreachable")
             mainHandler.post {
@@ -2582,6 +2745,12 @@ class GeckoEngineManager private constructor(private val context: Context) {
             gen = gen,
             timestampElapsed = now,
           )
+          if (com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(currUrl)) {
+            val host = com.remmi.browser.security.NetworkRouteAuthority.extractHostname(currUrl) ?: ""
+            if (host.isNotEmpty()) {
+              resetOnionFallbackState(tabId, host)
+            }
+          }
         }
 
         val activeRecovery = activeRecoveries[tabId]
@@ -3616,28 +3785,92 @@ class GeckoEngineManager private constructor(private val context: Context) {
 
   // --- High-Level Navigation & Session Commands ---
 
-  fun loadUrl(tabId: String, url: String, forceReload: Boolean = false) {
-    if (url.isBlank()) return
-    if (forceReload) {
-      onionFallbackAttempts.remove(url)
-    }
-    if (onionFallbackAttempts.size > 100) {
-      onionFallbackAttempts.clear()
+  private fun loadErrorUri(tabId: String, errorUri: String) {
+    if (Looper.myLooper() != Looper.getMainLooper() && Looper.getMainLooper().thread != Thread.currentThread()) {
+      mainHandler.post { loadErrorUri(tabId, errorUri) }
+      return
     }
     val tab = TabManager.getInstance().getTab(tabId)
-    val isOnion = url.contains(".onion", ignoreCase = true) || com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(url)
+    val prof = tab?.profile ?: currentProfile
+    val session = activeSessions[tabId] ?: getOrCreateSessionInternal(tabId, prof)
+    session.loadUri(errorUri)
+  }
+
+  fun loadUrl(tabId: String, url: String, forceReload: Boolean = false) {
+    if (url.isBlank()) return
+    val trimmedUrl = url.trim()
+    val schemeOrigin = when {
+      trimmedUrl.startsWith("http://", ignoreCase = true) -> OnionSchemeOrigin.EXPLICIT_HTTP
+      trimmedUrl.startsWith("https://", ignoreCase = true) -> OnionSchemeOrigin.EXPLICIT_HTTPS
+      else -> OnionSchemeOrigin.IMPLICIT
+    }
+    onionSchemeOrigins[tabId] = schemeOrigin
+
+    val tab = TabManager.getInstance().getTab(tabId)
+    val isOnion = com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(url)
     var isGhost = (tab?.profile == PrivacyProfile.GHOST) || (currentProfile == PrivacyProfile.GHOST)
 
-    // Auto-upgrade tab to GHOST profile if .onion is requested in a clearnet tab
-    if (isOnion && !isGhost) {
-      Log.i(TAG, "[ONION_AUTO_GHOST] .onion URL requested for tab=$tabId; transitioning tab to GHOST profile")
-      TabManager.getInstance().updateTab(tabId) { it.copy(profile = PrivacyProfile.GHOST) }
-      isGhost = true
+    if (isOnion) {
+      if (com.remmi.browser.security.NetworkRouteAuthority.isV2Onion(url)) {
+        Log.w(TAG, "[ONION_V2_BLOCKED] v2 onion deprecated: $url")
+        val errorUri = OfflineErrorPageGenerator.toDataUri(
+          targetUrl = url,
+          errorCode = "ERR_V2_ONION_DEPRECATED",
+          isDark = true
+        )
+        loadErrorUri(tabId, errorUri)
+        return
+      }
+
+      val autoRouteOnion = try {
+        SettingsRepository.getInstance(context).settings.value.autoRouteOnionTabs
+      } catch (_: Throwable) {
+        true
+      }
+
+      if (!isGhost) {
+        if (autoRouteOnion) {
+          Log.i(TAG, "[ONION_AUTO_GHOST] .onion URL requested for tab=$tabId; transitioning tab to GHOST profile")
+          TabManager.getInstance().updateTab(tabId) { it.copy(profile = PrivacyProfile.GHOST) }
+          isGhost = true
+        } else {
+          Log.w(TAG, "[ONION_BLOCKED] Onion requested in clearnet tab but autoRouteOnionTabs is disabled")
+          val errorUri = OfflineErrorPageGenerator.toDataUri(
+            targetUrl = url,
+            errorCode = "ERR_TOR_REQUIRED",
+            isDark = true
+          )
+          loadErrorUri(tabId, errorUri)
+          return
+        }
+      }
     }
 
-    val check = com.remmi.browser.security.NavigationSecurityAuthority.validateAndSanitizeNavigation(url, isGhost)
+    val autoRouteOnion = try {
+      SettingsRepository.getInstance(context).settings.value.autoRouteOnionTabs
+    } catch (_: Throwable) {
+      true
+    }
+
+    val check = com.remmi.browser.security.NavigationSecurityAuthority.validateAndSanitizeNavigation(
+      rawUrl = url,
+      isGhost = isGhost,
+      allowAutoGhost = autoRouteOnion,
+      requireReadyRoute = false
+    )
     if (check.decision == com.remmi.browser.security.NavigationDecision.BLOCK) {
       Log.w(TAG, "Blocked navigation to '$url' reason: ${check.reason}")
+      val errorUri = OfflineErrorPageGenerator.toDataUri(
+        targetUrl = url,
+        errorCode = when (check.reason) {
+          "v2_onion_deprecated" -> "ERR_V2_ONION_DEPRECATED"
+          "tor_required" -> "ERR_TOR_REQUIRED"
+          "tor_route_not_ready" -> "ERR_PROXY_CONNECTION_FAILED"
+          else -> "ERR_BLOCKED_BY_ADMINISTRATOR"
+        },
+        isDark = true
+      )
+      loadErrorUri(tabId, errorUri)
       return
     }
     val targetUrl = check.sanitizedUrl ?: url
@@ -3737,7 +3970,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
     val isRuntimeReady = (_initState.value == GeckoInitState.READY && (runtime != null || uriLoaderForTest != null))
     val isAttached = isViewAttached(tabId)
     val torLifecycle = com.remmi.browser.security.TorLifecycleManager.getInstance(context)
-    val isTorGateOpen = if (isGhost) (torLifecycle.isTorReady.value || com.remmi.browser.security.CurrentTorRoute.isReady) else true
+    val isTorGateOpen = if (isGhost) (torLifecycle.isTorReady.value || com.remmi.browser.security.CurrentTorRoute.isVerifiedOnionRouteReady()) else true
 
     if (!isRuntimeReady || !isAttached || !isTorGateOpen) {
       val queueMsg = "[FORENSIC] [GECKO_NAV_QUEUE] tabId=$tabId session=$sessId navId=$navId gen=$gen url=$targetUrl thread=$threadName reason=runtimeReady=$isRuntimeReady,attached=$isAttached,torGateOpen=$isTorGateOpen"
@@ -3806,6 +4039,24 @@ class GeckoEngineManager private constructor(private val context: Context) {
       if (testLoader != null) {
         testLoader(tabId, currentSession, targetUrl)
       } else {
+        if (isOnion) {
+          logOnionTrace(
+            tabId = tabId,
+            generation = gen,
+            navId = navId,
+            requestedUrl = targetUrl,
+            requestedScheme = schemeOrigin.name,
+            isOnion = true,
+            tabProfile = tab?.profile?.name ?: "STANDARD",
+            currentProfile = currentProfile.name,
+            torReady = CurrentTorRoute.isVerifiedOnionRouteReady(),
+            routePhase = CurrentTorRoute.currentPhase.name,
+            routeGeneration = CurrentTorRoute.currentGeneration,
+            socksPort = CurrentTorRoute.currentSocksPort,
+            proxyApplied = NetworkHardening.isTorConfigActive(),
+            sessionId = currentSessId
+          )
+        }
         if (shouldReplace && targetUrl != "about:blank") {
           currentSession.load(GeckoSession.Loader().uri(targetUrl).flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY))
         } else {
@@ -4051,6 +4302,15 @@ class GeckoEngineManager private constructor(private val context: Context) {
     latestLocationUrls.remove(tabId)
     dispatchedNavigationsHistory.remove(tabId)
     currentScrollPositions.remove(tabId)
+    val onionPrefix = "$tabId:"
+    val onionKeysToRemove = onionHttpFallbackAttempts.keys.filter { it.startsWith(onionPrefix) }
+    for (k in onionKeysToRemove) {
+      onionHttpFallbackAttempts.remove(k)
+    }
+    pendingOnionNavigations.remove(tabId)
+    onionSchemeOrigins.remove(tabId)
+    originalRequestedUrls.remove(tabId)
+    originalRequestedSchemes.remove(tabId)
     navGenerations.remove(tabId)
     lastRecoveredGenerations.remove(tabId)
     presentationStates.remove(tabId)
@@ -4117,6 +4377,11 @@ class GeckoEngineManager private constructor(private val context: Context) {
     latestProgressUrls.clear()
     latestLocationUrls.clear()
     dispatchedNavigationsHistory.clear()
+    onionHttpFallbackAttempts.clear()
+    pendingOnionNavigations.clear()
+    onionSchemeOrigins.clear()
+    originalRequestedUrls.clear()
+    originalRequestedSchemes.clear()
     navGenerations.clear()
     lastRecoveredGenerations.clear()
     presentationStates.clear()
