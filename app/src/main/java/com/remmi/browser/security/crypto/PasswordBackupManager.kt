@@ -46,73 +46,32 @@ object PasswordBackupManager {
     exportPassword: CharArray?, // null for device-bound
     dek: ByteArray,
   ): String {
-    // 1. Build plaintext JSON containing decrypted entries without exposing master DEK
     val jsonEntries = JSONArray()
     for (entry in entries) {
-      val url = try {
-        String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.siteUrlEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-      } catch (_: Exception) {
-        try {
-          String(PasswordCryptoEngine.decryptAesGcm(dek, entry.siteUrlEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-        } catch (_: Exception) {
-          null
-        }
-      } ?: continue
-
-      val user = try {
-        String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.usernameEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-      } catch (_: Exception) {
-        try {
-          String(PasswordCryptoEngine.decryptAesGcm(dek, entry.usernameEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-        } catch (_: Exception) {
-          ""
-        }
+      val obj = JSONObject().apply {
+        put("url_hash", entry.siteUrlHash)
+        put("url_enc", Base64.getEncoder().encodeToString(entry.siteUrlEncrypted))
+        put("user_enc", Base64.getEncoder().encodeToString(entry.usernameEncrypted))
+        put("pass_enc", Base64.getEncoder().encodeToString(entry.passwordEncrypted))
+        put("notes_enc", Base64.getEncoder().encodeToString(entry.notesEncrypted))
+        put("iv", Base64.getEncoder().encodeToString(entry.iv))
+        put("tag", Base64.getEncoder().encodeToString(entry.authTag))
+        put("created", entry.createdAt)
+        put("updated", entry.updatedAt)
       }
-
-      val pass = try {
-        String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.passwordEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-      } catch (_: Exception) {
-        try {
-          String(PasswordCryptoEngine.decryptAesGcm(dek, entry.passwordEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-        } catch (_: Exception) {
-          ""
-        }
-      }
-
-      val notes = try {
-        String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.notesEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-      } catch (_: Exception) {
-        try {
-          String(PasswordCryptoEngine.decryptAesGcm(dek, entry.notesEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
-        } catch (_: Exception) {
-          ""
-        }
-      }
-
-      if (url.isNotEmpty() || user.isNotEmpty()) {
-        val obj = JSONObject().apply {
-          put("url", url)
-          put("url_hash", entry.siteUrlHash)
-          put("user", user)
-          put("pass", pass)
-          put("notes", notes)
-          put("created", entry.createdAt)
-          put("updated", entry.updatedAt)
-        }
-        jsonEntries.put(obj)
-      }
+      jsonEntries.put(obj)
     }
 
-    // Version 2: Raw DEK is NEVER exposed in the backup payload
     val root = JSONObject().apply {
-      put("version", 2)
+      put("version", 1)
       put("count", jsonEntries.length())
       put("timestamp", System.currentTimeMillis())
+      put("dek_b64", Base64.getEncoder().encodeToString(dek))
       put("entries", jsonEntries)
     }
 
     val plaintextPayload = root.toString().toByteArray(StandardCharsets.UTF_8)
-    var salt = PasswordCryptoEngine.generateSecureRandomBytes(PasswordCryptoEngine.SALT_LENGTH_BYTES)
+    val salt = PasswordCryptoEngine.generateSecureRandomBytes(PasswordCryptoEngine.SALT_LENGTH_BYTES)
     val backupKey = if (exportPassword != null && exportPassword.isNotEmpty()) {
       val kdf = PasswordCryptoEngine.deriveKeyEncryptionKey(exportPassword, salt)
       kdf.kek
@@ -129,7 +88,7 @@ object PasswordBackupManager {
 
       val exportJson = JSONObject().apply {
         put("remmi_vault_backup", true)
-        put("version", 2)
+        put("version", 1)
         put("device_bound", exportPassword == null || exportPassword.isEmpty())
         put("entries_count", jsonEntries.length())
         put("timestamp", System.currentTimeMillis())
@@ -191,8 +150,28 @@ object PasswordBackupManager {
 
       val restoredList = mutableListOf<RestoredEntry>()
 
-      if (version >= 2 || !payloadJson.has("dek_b64")) {
-        // Version 2: Plaintext entries decrypted from backup and packaged with currentDek
+      if (payloadJson.has("dek_b64")) {
+        val backupDekB64 = payloadJson.getString("dek_b64")
+        val backupDek = Base64.getDecoder().decode(backupDekB64)
+        for (i in 0 until entriesArray.length()) {
+          val item = entriesArray.getJSONObject(i)
+          restoredList.add(
+            RestoredEntry(
+              siteUrlHash = item.getString("url_hash"),
+              siteUrlEncrypted = Base64.getDecoder().decode(item.getString("url_enc")),
+              usernameEncrypted = Base64.getDecoder().decode(item.getString("user_enc")),
+              passwordEncrypted = Base64.getDecoder().decode(item.getString("pass_enc")),
+              notesEncrypted = Base64.getDecoder().decode(item.getString("notes_enc")),
+              createdAt = item.optLong("created", System.currentTimeMillis()),
+              updatedAt = item.optLong("updated", System.currentTimeMillis()),
+              iv = Base64.getDecoder().decode(item.getString("iv")),
+              authTag = Base64.getDecoder().decode(item.getString("tag")),
+            )
+          )
+        }
+        return Pair(backupDek, restoredList)
+      } else {
+        // Plaintext export fallback: packaged with currentDek
         for (i in 0 until entriesArray.length()) {
           val item = entriesArray.getJSONObject(i)
           val url = item.optString("url", "")
@@ -223,27 +202,6 @@ object PasswordBackupManager {
           )
         }
         return Pair(currentDek, restoredList)
-      } else {
-        // Version 1 legacy fallback
-        val backupDekB64 = payloadJson.getString("dek_b64")
-        val backupDek = Base64.getDecoder().decode(backupDekB64)
-        for (i in 0 until entriesArray.length()) {
-          val item = entriesArray.getJSONObject(i)
-          restoredList.add(
-            RestoredEntry(
-              siteUrlHash = item.getString("url_hash"),
-              siteUrlEncrypted = Base64.getDecoder().decode(item.getString("url_enc")),
-              usernameEncrypted = Base64.getDecoder().decode(item.getString("user_enc")),
-              passwordEncrypted = Base64.getDecoder().decode(item.getString("pass_enc")),
-              notesEncrypted = Base64.getDecoder().decode(item.getString("notes_enc")),
-              createdAt = item.optLong("created", System.currentTimeMillis()),
-              updatedAt = item.optLong("updated", System.currentTimeMillis()),
-              iv = Base64.getDecoder().decode(item.getString("iv")),
-              authTag = Base64.getDecoder().decode(item.getString("tag")),
-            )
-          )
-        }
-        return Pair(backupDek, restoredList)
       }
     } finally {
       if (!isDeviceBound) {
