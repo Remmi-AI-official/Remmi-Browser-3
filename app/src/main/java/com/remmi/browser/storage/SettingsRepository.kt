@@ -349,7 +349,11 @@ class SettingsRepository(private val context: Context) {
   }
 
   fun updateCyberHudEnabled(enabled: Boolean) {
-    prefs.edit().putBoolean("cyber_hud_enabled", enabled).apply()
+    val editor = prefs.edit().putBoolean("cyber_hud_enabled", enabled)
+    if (!enabled) {
+      editor.putString("cyber_theme", CyberTheme.NORMAL_DEFAULT.id)
+    }
+    editor.apply()
     _settings.value = _settings.value.copy(
       cyberHudEnabled = enabled,
       cyberTheme = if (!enabled) CyberTheme.NORMAL_DEFAULT else _settings.value.cyberTheme

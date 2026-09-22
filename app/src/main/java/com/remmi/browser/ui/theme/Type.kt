@@ -95,7 +95,7 @@ fun getBrowserTypography(fontFamily: FontFamily, isNormal: Boolean): Typography 
         fontSize = if (isNormal) 28.sp else 30.sp,
         lineHeight = if (isNormal) 34.sp else 36.sp,
         letterSpacing = 0.sp,
-        color = if (isNormal) Color.Unspecified else NeonColors.NeonCyan,
+        color = Color.Unspecified,
       ),
     displayMedium =
       TextStyle(
@@ -104,7 +104,7 @@ fun getBrowserTypography(fontFamily: FontFamily, isNormal: Boolean): Typography 
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp,
-        color = if (isNormal) Color.Unspecified else NeonColors.NeonCyan,
+        color = Color.Unspecified,
       ),
     titleLarge =
       TextStyle(
@@ -113,7 +113,7 @@ fun getBrowserTypography(fontFamily: FontFamily, isNormal: Boolean): Typography 
         fontSize = 18.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.sp,
-        color = if (isNormal) Color.Unspecified else NeonColors.TextPrimary,
+        color = Color.Unspecified,
       ),
     titleMedium =
       TextStyle(
@@ -122,7 +122,7 @@ fun getBrowserTypography(fontFamily: FontFamily, isNormal: Boolean): Typography 
         fontSize = 15.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp,
-        color = if (isNormal) Color.Unspecified else NeonColors.TextPrimary,
+        color = Color.Unspecified,
       ),
     bodyLarge =
       TextStyle(
@@ -131,7 +131,7 @@ fun getBrowserTypography(fontFamily: FontFamily, isNormal: Boolean): Typography 
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.2.sp,
-        color = if (isNormal) Color.Unspecified else NeonColors.TextPrimary,
+        color = Color.Unspecified,
       ),
     bodyMedium =
       TextStyle(
@@ -140,7 +140,7 @@ fun getBrowserTypography(fontFamily: FontFamily, isNormal: Boolean): Typography 
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.2.sp,
-        color = if (isNormal) Color.Unspecified else NeonColors.TextSecondary,
+        color = Color.Unspecified,
       ),
     labelSmall =
       TextStyle(
@@ -149,7 +149,7 @@ fun getBrowserTypography(fontFamily: FontFamily, isNormal: Boolean): Typography 
         fontSize = 10.sp,
         lineHeight = 14.sp,
         letterSpacing = 0.2.sp,
-        color = if (isNormal) Color.Unspecified else NeonColors.NeonCyan,
+        color = Color.Unspecified,
       ),
     labelMedium =
       TextStyle(
@@ -158,7 +158,7 @@ fun getBrowserTypography(fontFamily: FontFamily, isNormal: Boolean): Typography 
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.2.sp,
-        color = if (isNormal) Color.Unspecified else NeonColors.NeonYellow,
+        color = Color.Unspecified,
       ),
   )
 }

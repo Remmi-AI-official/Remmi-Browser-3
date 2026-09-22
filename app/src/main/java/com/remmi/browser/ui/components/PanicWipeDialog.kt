@@ -39,6 +39,7 @@ import com.remmi.browser.security.WipeStepTelemetry
 import com.remmi.browser.security.WipeVerifier
 import com.remmi.browser.storage.RemmiDatabase
 import com.remmi.browser.ui.theme.ThemeCyber
+import com.remmi.browser.util.findActivity
 import kotlinx.coroutines.launch
 
 @Composable
@@ -82,7 +83,7 @@ fun PanicWipeDialog(
         Toast.makeText(context, "Panic wipe executed. Closing Remmi Browser...", Toast.LENGTH_SHORT).show()
         onDismiss()
         kotlinx.coroutines.delay(600)
-        val activity = context as? android.app.Activity
+        val activity = context.findActivity()
         activity?.finishAffinity()
         kotlin.system.exitProcess(0)
       }
@@ -125,9 +126,9 @@ fun PanicWipeDialog(
   }
 
   fun launchBiometricPrompt() {
-    val fragmentActivity = context as? FragmentActivity
-    if (fragmentActivity == null) {
-      authenticateAndWipe()
+    val fragmentActivity = context.findActivity() as? FragmentActivity
+    if (fragmentActivity == null || fragmentActivity.isFinishing || fragmentActivity.isDestroyed) {
+      Toast.makeText(context, "Biometric authentication is unavailable.", Toast.LENGTH_SHORT).show()
       return
     }
 

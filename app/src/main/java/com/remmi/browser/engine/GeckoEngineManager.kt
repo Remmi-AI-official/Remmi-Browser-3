@@ -4016,6 +4016,13 @@ class GeckoEngineManager private constructor(private val context: Context) {
     }
   }
 
+  fun closeSessionFromActivity(tabId: String) {
+    if (tabId.isBlank()) return
+    mainScope.launch {
+      closeSessionSafely(tabId)
+    }
+  }
+
   suspend fun closeSessionSafely(tabId: String): CloseResult = withContext(Dispatchers.Main.immediate) {
     assertMainThread("CLOSE_SESSION_SAFELY id=$tabId")
     sessionCallbacks.remove(tabId)

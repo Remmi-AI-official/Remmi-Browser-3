@@ -155,10 +155,10 @@ fun BackupRestoreDialog(
           var importedCount = 0
           for (item in restoredEntries) {
             try {
-              val url = String(PasswordCryptoEngine.decryptAesGcm(backupDek, item.siteUrlEncrypted, item.iv, item.authTag), StandardCharsets.UTF_8)
-              val user = String(PasswordCryptoEngine.decryptAesGcm(backupDek, item.usernameEncrypted, item.iv, item.authTag), StandardCharsets.UTF_8)
-              val pass = String(PasswordCryptoEngine.decryptAesGcm(backupDek, item.passwordEncrypted, item.iv, item.authTag), StandardCharsets.UTF_8)
-              val notes = String(PasswordCryptoEngine.decryptAesGcm(backupDek, item.notesEncrypted, item.iv, item.authTag), StandardCharsets.UTF_8)
+              val url = String(PasswordCryptoEngine.decryptAesGcmPacked(backupDek, item.siteUrlEncrypted, item.iv, item.authTag), StandardCharsets.UTF_8)
+              val user = String(PasswordCryptoEngine.decryptAesGcmPacked(backupDek, item.usernameEncrypted, item.iv, item.authTag), StandardCharsets.UTF_8)
+              val pass = String(PasswordCryptoEngine.decryptAesGcmPacked(backupDek, item.passwordEncrypted, item.iv, item.authTag), StandardCharsets.UTF_8)
+              val notes = String(PasswordCryptoEngine.decryptAesGcmPacked(backupDek, item.notesEncrypted, item.iv, item.authTag), StandardCharsets.UTF_8)
 
               repo.saveOrUpdateEntry(
                 url = url,

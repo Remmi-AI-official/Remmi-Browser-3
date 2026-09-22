@@ -449,6 +449,19 @@ object PasswordCryptoEngine {
   }
 
   // --- 7. Hardware Keystore Biometric Key Operations ---
+  fun getExistingBiometricKeystoreKey(): SecretKey? {
+    return try {
+      val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+      if (!keyStore.containsAlias(BIOMETRIC_KEY_ALIAS)) {
+        null
+      } else {
+        keyStore.getKey(BIOMETRIC_KEY_ALIAS, null) as? SecretKey
+      }
+    } catch (_: Exception) {
+      null
+    }
+  }
+
   fun getOrCreateBiometricKeystoreKey(forceRecreate: Boolean = false): SecretKey {
     val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
     if (!forceRecreate && keyStore.containsAlias(BIOMETRIC_KEY_ALIAS)) {

@@ -434,7 +434,7 @@ class PasswordManagerRepository private constructor(
 
   fun prepareBiometricEncryptCipher(): Result<Cipher> {
     return try {
-      val key = PasswordCryptoEngine.getOrCreateBiometricKeystoreKey(forceRecreate = true)
+      val key = PasswordCryptoEngine.getOrCreateBiometricKeystoreKey(forceRecreate = false)
       val cipher = Cipher.getInstance("AES/GCM/NoPadding")
       cipher.init(Cipher.ENCRYPT_MODE, key)
       Result.success(cipher)
@@ -451,10 +451,21 @@ class PasswordManagerRepository private constructor(
       return@withContext Result.failure(IllegalStateException("Biometric unlock not configured or enabled."))
     }
 
+    val key = PasswordCryptoEngine.getExistingBiometricKeystoreKey()
+    if (key == null) {
+      val cleared = metadata.copy(
+        biometricEnabled = false,
+        biometricWrappedDek = null,
+        biometricIv = null,
+        biometricAuthTag = null,
+      )
+      getDb().masterKeyMetadataDao().saveMetadata(cleared)
+      return@withContext Result.failure(SecurityException("Biometric key is unavailable. Re-enrollment required."))
+    }
+
     val iv = metadata.biometricIv
 
     try {
-      val key = PasswordCryptoEngine.getOrCreateBiometricKeystoreKey(forceRecreate = false)
       val cipher = Cipher.getInstance("AES/GCM/NoPadding")
       val gcmSpec = javax.crypto.spec.GCMParameterSpec(128, iv)
       cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec)
@@ -498,6 +509,9 @@ class PasswordManagerRepository private constructor(
 
     try {
       val wrapped = PasswordCryptoEngine.wrapDekWithBiometric(state.dek, biometricCipher)
+      if (wrapped.ciphertext.isEmpty() || wrapped.iv.isEmpty() || wrapped.authTag.isEmpty()) {
+        return@withContext false
+      }
       val updated = metadata.copy(
         biometricWrappedDek = wrapped.ciphertext,
         biometricIv = wrapped.iv,
@@ -1100,11 +1114,13 @@ class PasswordManagerRepository private constructor(
           verifierSalt = newVerifierSalt,
         )
         getDb().masterKeyMetadataDao().saveMetadata(updated)
+        val stateDek = dek.clone()
         resetFailedAttempts()
-        _lockState.value = VaultLockState.Unlocked(dek)
+        _lockState.value = VaultLockState.Unlocked(stateDek)
         return@withContext Result.success(Unit)
       } finally {
         PasswordCryptoEngine.zeroize(newKdf.kek)
+        PasswordCryptoEngine.zeroize(dek)
       }
     } catch (e: Exception) {
       return@withContext Result.failure(e)
@@ -1161,8 +1177,9 @@ class PasswordManagerRepository private constructor(
           pinVerifierSalt = newVerifierSalt,
         )
         getDb().masterKeyMetadataDao().saveMetadata(updated)
+        val stateDek = dek.clone()
         resetFailedAttempts()
-        _lockState.value = VaultLockState.Unlocked(dek)
+        _lockState.value = VaultLockState.Unlocked(stateDek)
         return@withContext Result.success(Unit)
       } finally {
         PasswordCryptoEngine.zeroize(newKdf.kek)

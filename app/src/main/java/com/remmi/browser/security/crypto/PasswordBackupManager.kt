@@ -55,34 +55,37 @@ object PasswordBackupManager {
         try {
           String(PasswordCryptoEngine.decryptAesGcm(dek, entry.siteUrlEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
         } catch (_: Exception) {
-          String(entry.siteUrlEncrypted, StandardCharsets.UTF_8)
+          null
         }
-      }
+      } ?: continue
+
       val user = try {
         String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.usernameEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
       } catch (_: Exception) {
         try {
           String(PasswordCryptoEngine.decryptAesGcm(dek, entry.usernameEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
         } catch (_: Exception) {
-          String(entry.usernameEncrypted, StandardCharsets.UTF_8)
+          ""
         }
       }
+
       val pass = try {
         String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.passwordEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
       } catch (_: Exception) {
         try {
           String(PasswordCryptoEngine.decryptAesGcm(dek, entry.passwordEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
         } catch (_: Exception) {
-          String(entry.passwordEncrypted, StandardCharsets.UTF_8)
+          ""
         }
       }
+
       val notes = try {
         String(PasswordCryptoEngine.decryptAesGcmPacked(dek, entry.notesEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
       } catch (_: Exception) {
         try {
           String(PasswordCryptoEngine.decryptAesGcm(dek, entry.notesEncrypted, entry.iv, entry.authTag), StandardCharsets.UTF_8)
         } catch (_: Exception) {
-          String(entry.notesEncrypted, StandardCharsets.UTF_8)
+          ""
         }
       }
 
@@ -200,22 +203,22 @@ object PasswordBackupManager {
           val created = item.optLong("created", System.currentTimeMillis())
           val updated = item.optLong("updated", System.currentTimeMillis())
 
-          val urlEnc = PasswordCryptoEngine.encryptAesGcm(currentDek, url.toByteArray(StandardCharsets.UTF_8))
-          val userEnc = PasswordCryptoEngine.encryptAesGcm(currentDek, user.toByteArray(StandardCharsets.UTF_8))
-          val passEnc = PasswordCryptoEngine.encryptAesGcm(currentDek, pass.toByteArray(StandardCharsets.UTF_8))
-          val notesEnc = PasswordCryptoEngine.encryptAesGcm(currentDek, notes.toByteArray(StandardCharsets.UTF_8))
+          val urlEnc = PasswordCryptoEngine.encryptAesGcmPacked(currentDek, url.toByteArray(StandardCharsets.UTF_8))
+          val userEnc = PasswordCryptoEngine.encryptAesGcmPacked(currentDek, user.toByteArray(StandardCharsets.UTF_8))
+          val passEnc = PasswordCryptoEngine.encryptAesGcmPacked(currentDek, pass.toByteArray(StandardCharsets.UTF_8))
+          val notesEnc = PasswordCryptoEngine.encryptAesGcmPacked(currentDek, notes.toByteArray(StandardCharsets.UTF_8))
 
           restoredList.add(
             RestoredEntry(
               siteUrlHash = if (urlHash.isNotEmpty()) urlHash else PasswordCryptoEngine.hashSiteUrl(url),
-              siteUrlEncrypted = url.toByteArray(StandardCharsets.UTF_8),
-              usernameEncrypted = user.toByteArray(StandardCharsets.UTF_8),
-              passwordEncrypted = pass.toByteArray(StandardCharsets.UTF_8),
-              notesEncrypted = notes.toByteArray(StandardCharsets.UTF_8),
+              siteUrlEncrypted = urlEnc,
+              usernameEncrypted = userEnc,
+              passwordEncrypted = passEnc,
+              notesEncrypted = notesEnc,
               createdAt = created,
               updatedAt = updated,
-              iv = urlEnc.iv,
-              authTag = urlEnc.authTag,
+              iv = ByteArray(0),
+              authTag = ByteArray(0),
             )
           )
         }

@@ -99,10 +99,7 @@ class WebAppActivity : FragmentActivity() {
   }
 
   override fun onDestroy() {
-    val engine = GeckoEngineManager.getInstance(applicationContext)
-    lifecycleScope.launch(Dispatchers.Main) {
-      engine.closeSessionSafely(webAppTabId)
-    }
+    GeckoEngineManager.getInstance(applicationContext).closeSessionFromActivity(webAppTabId)
     super.onDestroy()
   }
 }

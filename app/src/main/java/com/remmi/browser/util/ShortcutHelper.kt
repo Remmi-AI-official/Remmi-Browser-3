@@ -85,7 +85,7 @@ object ShortcutHelper {
           url = targetUrl,
           isInstallMode = isInstallMode
         )
-        val iconCompat = IconCompat.createWithBitmap(iconBitmap)
+        val iconCompat = IconCompat.createWithAdaptiveBitmap(iconBitmap)
         val shortcutId = (if (isInstallMode) "pwa_" else "shortcut_") + (targetUrl.hashCode() and 0x7FFFFFFF)
 
         if (ShortcutManagerCompat.isRequestPinShortcutSupported(context)) {
@@ -94,7 +94,6 @@ object ShortcutHelper {
             .setLongLabel(displayTitle)
             .setIcon(iconCompat)
             .setIntent(shortcutIntent)
-            .setAlwaysBadged()
             .build()
 
           val success = ShortcutManagerCompat.requestPinShortcut(context, pinShortcutInfo, null)
@@ -103,23 +102,14 @@ object ShortcutHelper {
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             onSuccess?.invoke()
           } else {
-            val errorMsg = "Could not request shortcut pinning"
+            val errorMsg = "Could not request shortcut pinning on this launcher"
             Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
             onError?.invoke(errorMsg)
           }
         } else {
-          // Fallback for older launcher broadcasts
-          @Suppress("DEPRECATION")
-          val addIntent = Intent("com.android.launcher.action.INSTALL_SHORTCUT").apply {
-            putExtra(Intent.EXTRA_SHORTCUT_INTENT, shortcutIntent)
-            putExtra(Intent.EXTRA_SHORTCUT_NAME, displayTitle)
-            putExtra(Intent.EXTRA_SHORTCUT_ICON, iconBitmap)
-            putExtra("duplicate", false)
-          }
-          context.sendBroadcast(addIntent)
-          val msg = if (isInstallMode) "Installed '$displayTitle' on Home screen" else "Added shortcut for '$displayTitle'"
-          Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-          onSuccess?.invoke()
+          val errorMsg = "Launcher does not support pinned shortcuts"
+          Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+          onError?.invoke(errorMsg)
         }
       } catch (e: Exception) {
         val errorMsg = "Failed to create shortcut: ${e.message}"

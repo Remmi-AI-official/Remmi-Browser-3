@@ -36,10 +36,10 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
@@ -66,15 +66,17 @@ jobs:
               cat /tmp/gradle_ver_out.txt
               break
             fi
-            echo "Attempt $i failed. Attempting resilient download from GitHub releases mirror..."
+            echo "Attempt $i failed. Attempting resilient download from Gradle distribution mirrors..."
             
             # Find or trigger wrapper dist directory creation
             ./gradlew --version >/dev/null 2>&1 || true
             DIST_HASH_DIR=$(find "$HOME/.gradle/wrapper/dists/gradle-9.3.1-bin" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | head -n1 || true)
             if [ -n "$DIST_HASH_DIR" ]; then
               echo "Downloading directly into $DIST_HASH_DIR..."
-              curl -fSL --retry 5 --retry-delay 3 --connect-timeout 20 -o "$DIST_HASH_DIR/gradle-9.3.1-bin.zip" \
-                "https://github.com/gradle/gradle-distributions/releases/download/v9.3.1/gradle-9.3.1-bin.zip" || true
+              curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 -o "$DIST_HASH_DIR/gradle-9.3.1-bin.zip" \
+                "https://services.gradle.org/distributions/gradle-9.3.1-bin.zip" || \
+              curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 -o "$DIST_HASH_DIR/gradle-9.3.1-bin.zip" \
+                "https://downloads.gradle.org/distributions/gradle-9.3.1-bin.zip" || true
             fi
             sleep 3
           done

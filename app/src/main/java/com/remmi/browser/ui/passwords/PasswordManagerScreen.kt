@@ -118,6 +118,7 @@ import com.remmi.browser.security.VaultLockState
 import com.remmi.browser.security.crypto.DecryptedPasswordEntry
 import com.remmi.browser.security.crypto.PasswordCryptoEngine
 import com.remmi.browser.ui.theme.ThemeCyber
+import com.remmi.browser.util.findActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -130,9 +131,10 @@ fun promptBiometricAuth(
   title: String,
   subtitle: String,
   onSuccess: () -> Unit,
+  onError: ((String) -> Unit)? = null,
 ) {
-  if (activity == null) {
-    onSuccess()
+  if (activity == null || activity.isFinishing || activity.isDestroyed) {
+    onError?.invoke("Authentication UI is unavailable.")
     return
   }
   val executor = ContextCompat.getMainExecutor(activity)
@@ -144,7 +146,9 @@ fun promptBiometricAuth(
         onSuccess()
       }
       override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-        // User canceled or authentication error
+        if (errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+          onError?.invoke(errString.toString())
+        }
       }
       override fun onAuthenticationFailed() {
         // Biometric retry
@@ -163,15 +167,15 @@ fun promptBiometricAuth(
   try {
     prompt.authenticate(promptInfo)
   } catch (_: Exception) {
-    val fallbackInfo = BiometricPrompt.PromptInfo.Builder()
-      .setTitle(title)
-      .setSubtitle(subtitle)
-      .setNegativeButtonText("Cancel")
-      .build()
     try {
+      val fallbackInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle(title)
+        .setSubtitle(subtitle)
+        .setNegativeButtonText("Cancel")
+        .build()
       prompt.authenticate(fallbackInfo)
-    } catch (_: Exception) {
-      onSuccess()
+    } catch (e2: Exception) {
+      onError?.invoke(e2.message ?: "Authentication failed")
     }
   }
 }
@@ -188,11 +192,19 @@ fun PasswordManagerScreen(
   val clipboard = remember { ClipboardManager(context) }
 
   // Screenshot security protection (FLAG_SECURE)
-  DisposableEffect(Unit) {
-    val window = (context as? Activity)?.window
-    window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-    onDispose {
-      window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+  val hostActivity = context.findActivity()
+  DisposableEffect(hostActivity) {
+    val window = hostActivity?.window
+    if (window == null) {
+      onDispose {}
+    } else {
+      val wasSecure = (window.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE) != 0
+      window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+      onDispose {
+        if (!wasSecure) {
+          window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+      }
     }
   }
 
@@ -540,7 +552,11 @@ private fun LockedVaultScreen(
   var errorMessage by remember { mutableStateOf<String?>(null) }
 
   fun triggerBiometrics() {
-    val activity = context as? FragmentActivity ?: return
+    val activity = context.findActivity() as? FragmentActivity
+    if (activity == null || activity.isFinishing || activity.isDestroyed) {
+      errorMessage = "Authentication UI is unavailable."
+      return
+    }
     scope.launch {
       val meta = repo.getMasterKeyMetadata()
       if (meta == null || !meta.biometricEnabled) {
@@ -1561,7 +1577,7 @@ private fun AccountEntryCard(
         IconButton(
           onClick = {
             if (!isPasswordVisible) {
-              val activity = context as? FragmentActivity
+              val activity = context.findActivity() as? FragmentActivity
               promptBiometricAuth(
                 activity = activity,
                 title = "View Password",
@@ -1584,7 +1600,7 @@ private fun AccountEntryCard(
 
         IconButton(
           onClick = {
-            val activity = context as? FragmentActivity
+            val activity = context.findActivity() as? FragmentActivity
             promptBiometricAuth(
               activity = activity,
               title = "Copy Password",
@@ -1856,7 +1872,11 @@ private fun VaultSettingsSheet(
   }
 
   fun enrollBiometric() {
-    val activity = context as? FragmentActivity ?: return
+    val activity = context.findActivity() as? FragmentActivity
+    if (activity == null || activity.isFinishing || activity.isDestroyed) {
+      Toast.makeText(context, "Authentication UI is unavailable.", Toast.LENGTH_SHORT).show()
+      return
+    }
     val cipherResult = repo.prepareBiometricEncryptCipher()
     if (cipherResult.isSuccess) {
       val cipher = cipherResult.getOrNull() ?: return
