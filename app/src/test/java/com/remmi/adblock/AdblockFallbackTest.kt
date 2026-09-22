@@ -1,5 +1,6 @@
 package com.remmi.adblock
 
+import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.After
 import org.junit.Before
 import org.junit.Assert.assertEquals
@@ -18,6 +19,11 @@ class AdblockFallbackTest {
   @Before
   fun setUp() {
     val bridge = AdblockBridge.getInstance()
+    var attempts = 0
+    while (ReflectionHelpers.getField<AtomicBoolean>(bridge, "isInitializing").get() && attempts < 50) {
+      Thread.sleep(20)
+      attempts++
+    }
     if (!bridge.isInitialized()) {
       bridge.initEngine()
     }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,10 +30,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -59,6 +62,7 @@ import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -539,59 +543,50 @@ private fun LockedVaultScreen(
     val activity = context as? FragmentActivity ?: return
     scope.launch {
       val meta = repo.getMasterKeyMetadata()
-      if (meta?.kdfParams == "DEVICE_KEYSTORE") {
-        promptBiometricAuth(
-          activity = activity,
-          title = "Unlock Password Vault",
-          subtitle = "Authenticate using fingerprint, face, or device screen lock",
-          onSuccess = {
-            scope.launch {
-              val res = repo.unlockWithDeviceBiometrics()
-              if (res.isFailure) {
-                errorMessage = "Unlock failed: ${res.exceptionOrNull()?.message}"
-              }
-            }
-          }
-        )
-      } else {
-        val cipherResult = repo.prepareBiometricDecryptCipher()
-        if (cipherResult.isSuccess) {
-          val cipher = cipherResult.getOrNull() ?: return@launch
-          val executor = ContextCompat.getMainExecutor(context)
-          val prompt = BiometricPrompt(
-            activity,
-            executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-              override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                val authCipher = result.cryptoObject?.cipher
-                if (authCipher != null) {
-                  scope.launch {
-                    repo.unlockWithBiometric(authCipher)
+      if (meta == null || !meta.biometricEnabled) {
+        return@launch
+      }
+
+      val cipherResult = repo.prepareBiometricDecryptCipher()
+      if (cipherResult.isSuccess) {
+        val cipher = cipherResult.getOrNull() ?: return@launch
+        val executor = ContextCompat.getMainExecutor(activity)
+        val prompt = BiometricPrompt(
+          activity,
+          executor,
+          object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+              val authCipher = result.cryptoObject?.cipher
+              if (authCipher != null) {
+                scope.launch {
+                  val unlockRes = repo.unlockWithBiometric(authCipher)
+                  if (unlockRes.isFailure) {
+                    errorMessage = "Biometric unlock failed: ${unlockRes.exceptionOrNull()?.message}"
                   }
                 }
               }
-              override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                // Graceful fallback to password/PIN
+            }
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+              if (errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                errorMessage = errString.toString()
               }
             }
-          )
-          val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Unlock Password Vault")
-            .setSubtitle("Authenticate to access your credentials")
-            .setNegativeButtonText("Use Passphrase / PIN")
-            .build()
-          prompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
-        } else {
-          promptBiometricAuth(
-            activity = activity,
-            title = "Unlock Password Vault",
-            subtitle = "Authenticate using fingerprint or device screen lock",
-            onSuccess = {
-              scope.launch {
-                repo.unlockWithDeviceBiometrics()
-              }
+            override fun onAuthenticationFailed() {
+              // Biometric retry allowed
             }
-          )
+          }
+        )
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+          .setTitle("Unlock Password Vault")
+          .setSubtitle("Authenticate using your biometric credential")
+          .setNegativeButtonText("Use Passphrase / PIN")
+          .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+          .build()
+        prompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+      } else {
+        val err = cipherResult.exceptionOrNull()?.message
+        if (err != null) {
+          errorMessage = err
         }
       }
     }
@@ -600,7 +595,7 @@ private fun LockedVaultScreen(
   LaunchedEffect(Unit) {
     if (repo.isBiometricAvailable()) {
       val meta = repo.getMasterKeyMetadata()
-      if (meta?.kdfParams == "DEVICE_KEYSTORE" || meta?.biometricEnabled == true) {
+      if (meta?.biometricEnabled == true) {
         triggerBiometrics()
       }
     }
@@ -1824,7 +1819,7 @@ private fun EmptyVaultFolderView(
 }
 
 // -------------------------------------------------------------
-// VAULT SETTINGS SHEET
+// VAULT SETTINGS SHEET & SECURITY CONTROLS
 // -------------------------------------------------------------
 @Composable
 private fun VaultSettingsSheet(
@@ -1834,15 +1829,152 @@ private fun VaultSettingsSheet(
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
 
-  var isBiometricAvailable by remember { mutableStateOf(repo.isBiometricAvailable()) }
+  var isBiometricSupported by remember { mutableStateOf(repo.isBiometricAvailable()) }
+  var isBiometricEnabled by remember { mutableStateOf(false) }
+  var isPinEnabled by remember { mutableStateOf(false) }
   var isAutoWipeEnabled by remember { mutableStateOf(false) }
 
+  var showChangePasswordDialog by remember { mutableStateOf(false) }
+  var showSetPinDialog by remember { mutableStateOf(false) }
+  var showChangePinDialog by remember { mutableStateOf(false) }
+  var showRemovePinConfirm by remember { mutableStateOf(false) }
+
+  fun reloadMetadata() {
+    scope.launch {
+      val meta = repo.getMasterKeyMetadata()
+      if (meta != null) {
+        isAutoWipeEnabled = meta.autoWipeEnabled
+        isBiometricEnabled = meta.biometricEnabled
+        isPinEnabled = meta.pinEnabled
+      }
+      isBiometricSupported = repo.isBiometricAvailable()
+    }
+  }
+
   LaunchedEffect(Unit) {
-    val meta = repo.getMasterKeyMetadata()
-    if (meta != null) {
-      isAutoWipeEnabled = meta.autoWipeEnabled
-      if (meta.kdfParams != "DEVICE_KEYSTORE") {
-        isBiometricAvailable = repo.isBiometricAvailable() && meta.biometricEnabled
+    reloadMetadata()
+  }
+
+  fun enrollBiometric() {
+    val activity = context as? FragmentActivity ?: return
+    val cipherResult = repo.prepareBiometricEncryptCipher()
+    if (cipherResult.isSuccess) {
+      val cipher = cipherResult.getOrNull() ?: return
+      val executor = ContextCompat.getMainExecutor(activity)
+      val prompt = BiometricPrompt(
+        activity,
+        executor,
+        object : BiometricPrompt.AuthenticationCallback() {
+          override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            val authCipher = result.cryptoObject?.cipher
+            if (authCipher != null) {
+              scope.launch {
+                val ok = repo.enableBiometricUnlock(authCipher)
+                if (ok) {
+                  isBiometricEnabled = true
+                  Toast.makeText(context, "Biometric unlock enabled", Toast.LENGTH_SHORT).show()
+                  reloadMetadata()
+                } else {
+                  Toast.makeText(context, "Failed to link biometric key", Toast.LENGTH_SHORT).show()
+                }
+              }
+            }
+          }
+
+          override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+            if (errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+              Toast.makeText(context, "Biometric enrollment: $errString", Toast.LENGTH_SHORT).show()
+            }
+          }
+        }
+      )
+      val promptInfo = BiometricPrompt.PromptInfo.Builder()
+        .setTitle("Enroll Biometrics")
+        .setSubtitle("Authenticate using your biometric credential to enable quick unlock")
+        .setNegativeButtonText("Cancel")
+        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        .build()
+      prompt.authenticate(promptInfo, BiometricPrompt.CryptoObject(cipher))
+    } else {
+      Toast.makeText(context, "Biometric cipher error: ${cipherResult.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+    }
+  }
+
+  if (showChangePasswordDialog) {
+    ChangeMasterPasswordDialog(
+      repo = repo,
+      onDismiss = { showChangePasswordDialog = false },
+      onSuccess = {
+        showChangePasswordDialog = false
+        reloadMetadata()
+        Toast.makeText(context, "Master Passphrase updated successfully", Toast.LENGTH_SHORT).show()
+      }
+    )
+  }
+
+  if (showSetPinDialog) {
+    SetMasterPinDialog(
+      repo = repo,
+      onDismiss = { showSetPinDialog = false },
+      onSuccess = {
+        showSetPinDialog = false
+        reloadMetadata()
+        Toast.makeText(context, "Quick Unlock PIN configured", Toast.LENGTH_SHORT).show()
+      }
+    )
+  }
+
+  if (showChangePinDialog) {
+    ChangeMasterPinDialog(
+      repo = repo,
+      onDismiss = { showChangePinDialog = false },
+      onSuccess = {
+        showChangePinDialog = false
+        reloadMetadata()
+        Toast.makeText(context, "Quick Unlock PIN updated", Toast.LENGTH_SHORT).show()
+      }
+    )
+  }
+
+  if (showRemovePinConfirm) {
+    Dialog(onDismissRequest = { showRemovePinConfirm = false }) {
+      Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surface),
+        border = BorderStroke(1.dp, ThemeCyber.colors.dangerRed.copy(alpha = 0.5f)),
+        modifier = Modifier.padding(12.dp)
+      ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+          Text("Remove Quick PIN?", color = ThemeCyber.colors.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+          Spacer(modifier = Modifier.height(8.dp))
+          Text(
+            "Quick unlock PIN will be removed. You will need your Master Passphrase to unlock your vault.",
+            color = ThemeCyber.colors.textSecondary,
+            fontSize = 12.5.sp
+          )
+          Spacer(modifier = Modifier.height(18.dp))
+          Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+            TextButton(onClick = { showRemovePinConfirm = false }) {
+              Text("Cancel", color = ThemeCyber.colors.textSecondary)
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+              onClick = {
+                scope.launch {
+                  val ok = repo.removeMasterPin()
+                  showRemovePinConfirm = false
+                  if (ok) {
+                    reloadMetadata()
+                    Toast.makeText(context, "PIN removed", Toast.LENGTH_SHORT).show()
+                  }
+                }
+              },
+              colors = ButtonDefaults.buttonColors(containerColor = ThemeCyber.colors.dangerRed)
+            ) {
+              Text("Remove PIN", color = Color.White)
+            }
+          }
+        }
       }
     }
   }
@@ -1857,7 +1989,12 @@ private fun VaultSettingsSheet(
         .padding(horizontal = 4.dp)
         .testTag("dialog_vault_settings")
     ) {
-      Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(20.dp)
+          .verticalScroll(androidx.compose.foundation.rememberScrollState())
+      ) {
         Row(
           verticalAlignment = Alignment.CenterVertically,
           modifier = Modifier.fillMaxWidth()
@@ -1871,9 +2008,9 @@ private fun VaultSettingsSheet(
           }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-        // Military Encryption Specs Card
+        // Military Encryption Architecture Card
         Card(
           shape = RoundedCornerShape(12.dp),
           colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surfaceLight),
@@ -1882,13 +2019,135 @@ private fun VaultSettingsSheet(
           Column(modifier = Modifier.padding(12.dp)) {
             Text("Encryption Architecture", color = ThemeCyber.colors.primary, fontWeight = FontWeight.Bold, fontSize = 12.5.sp, fontFamily = ThemeCyber.fontFamily)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("• Cipher: AES-256-GCM (Authenticated Encryption)\n• Key Derivation: Argon2id with 64MB memory limit\n• Tamper Seal: HMAC-SHA256 zero-knowledge\n• Zeroization: Plaintext keys wiped in memory after decrypt", color = ThemeCyber.colors.textSecondary, fontSize = 11.5.sp, lineHeight = 16.sp, fontFamily = ThemeCyber.fontFamily)
+            Text("• Cipher: AES-256-GCM (Authenticated Encryption)\n• Key Derivation: Argon2id (64MB memory, 3 iterations)\n• Tamper Verification: HMAC-SHA256 zero-knowledge\n• Zeroization: Key buffers cleared in memory immediately", color = ThemeCyber.colors.textSecondary, fontSize = 11.sp, lineHeight = 15.sp, fontFamily = ThemeCyber.fontFamily)
           }
         }
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Auto-Lock Option
+        // Change Master Passphrase Option
+        Card(
+          shape = RoundedCornerShape(12.dp),
+          colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surfaceLight),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(12.dp).fillMaxWidth()
+          ) {
+            Column(modifier = Modifier.weight(1f)) {
+              Text("Master Passphrase", color = ThemeCyber.colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = 13.sp, fontFamily = ThemeCyber.fontFamily)
+              Text("Vault master encryption key", color = ThemeCyber.colors.textSecondary, fontSize = 11.sp, fontFamily = ThemeCyber.fontFamily)
+            }
+            OutlinedButton(
+              onClick = { showChangePasswordDialog = true },
+              shape = RoundedCornerShape(8.dp),
+              border = BorderStroke(1.dp, ThemeCyber.colors.primary.copy(alpha = 0.6f)),
+              contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+            ) {
+              Text("Change", color = ThemeCyber.colors.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+          }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Master PIN Option
+        Card(
+          shape = RoundedCornerShape(12.dp),
+          colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surfaceLight),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(12.dp).fillMaxWidth()
+          ) {
+            Column(modifier = Modifier.weight(1f)) {
+              Text("Quick Unlock PIN", color = ThemeCyber.colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = 13.sp, fontFamily = ThemeCyber.fontFamily)
+              Text(if (isPinEnabled) "8–12 digit quick access configured" else "Convenient 8–12 digit numeric unlock", color = ThemeCyber.colors.textSecondary, fontSize = 11.sp, fontFamily = ThemeCyber.fontFamily)
+            }
+            if (isPinEnabled) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                OutlinedButton(
+                  onClick = { showChangePinDialog = true },
+                  shape = RoundedCornerShape(8.dp),
+                  border = BorderStroke(1.dp, ThemeCyber.colors.primary.copy(alpha = 0.6f)),
+                  contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                  Text("Change", color = ThemeCyber.colors.primary, fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                IconButton(
+                  onClick = { showRemovePinConfirm = true },
+                  modifier = Modifier.size(28.dp)
+                ) {
+                  Icon(Icons.Default.Delete, contentDescription = "Remove PIN", tint = ThemeCyber.colors.dangerRed, modifier = Modifier.size(16.dp))
+                }
+              }
+            } else {
+              OutlinedButton(
+                onClick = { showSetPinDialog = true },
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(1.dp, ThemeCyber.colors.primary.copy(alpha = 0.6f)),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+              ) {
+                Text("Set PIN", color = ThemeCyber.colors.primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+              }
+            }
+          }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Biometric Unlock Option
+        Card(
+          shape = RoundedCornerShape(12.dp),
+          colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surfaceLight),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.padding(12.dp).fillMaxWidth()
+          ) {
+            Column(modifier = Modifier.weight(1f)) {
+              Text("Biometric Unlock", color = ThemeCyber.colors.textPrimary, fontWeight = FontWeight.Medium, fontSize = 13.sp, fontFamily = ThemeCyber.fontFamily)
+              Text(
+                if (!isBiometricSupported) "Not supported or enrolled on device"
+                else "Hardware-backed fingerprint or face unlock",
+                color = ThemeCyber.colors.textSecondary,
+                fontSize = 11.sp,
+                fontFamily = ThemeCyber.fontFamily
+              )
+            }
+            Switch(
+              checked = isBiometricEnabled && isBiometricSupported,
+              enabled = isBiometricSupported,
+              onCheckedChange = { enable ->
+                if (enable) {
+                  enrollBiometric()
+                } else {
+                  scope.launch {
+                    repo.disableBiometricUnlock()
+                    isBiometricEnabled = false
+                    Toast.makeText(context, "Biometric unlock disabled", Toast.LENGTH_SHORT).show()
+                    reloadMetadata()
+                  }
+                }
+              },
+              colors = SwitchDefaults.colors(
+                checkedThumbColor = ThemeCyber.colors.primary,
+                checkedTrackColor = ThemeCyber.colors.primary.copy(alpha = 0.4f)
+              )
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Auto-Wipe Option
         Card(
           shape = RoundedCornerShape(12.dp),
           colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surfaceLight),
@@ -1917,7 +2176,7 @@ private fun VaultSettingsSheet(
           }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         Button(
           onClick = {
@@ -1931,6 +2190,504 @@ private fun VaultSettingsSheet(
           Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Black)
           Spacer(modifier = Modifier.width(8.dp))
           Text("Lock Vault Immediately", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.5.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+      }
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// CHANGE MASTER PASSWORD DIALOG
+// -------------------------------------------------------------
+@Composable
+private fun ChangeMasterPasswordDialog(
+  repo: PasswordManagerRepository,
+  onDismiss: () -> Unit,
+  onSuccess: () -> Unit,
+) {
+  val scope = rememberCoroutineScope()
+  var oldPassword by remember { mutableStateOf("") }
+  var newPassword by remember { mutableStateOf("") }
+  var confirmPassword by remember { mutableStateOf("") }
+  var showOldPassword by remember { mutableStateOf(false) }
+  var showNewPassword by remember { mutableStateOf(false) }
+  var isSubmitting by remember { mutableStateOf(false) }
+  var errorMessage by remember { mutableStateOf<String?>(null) }
+
+  val strength = remember(newPassword) {
+    PasswordCryptoEngine.evaluatePasswordStrength(newPassword.toCharArray())
+  }
+
+  Dialog(onDismissRequest = onDismiss) {
+    Card(
+      shape = RoundedCornerShape(18.dp),
+      colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surface),
+      border = BorderStroke(1.dp, ThemeCyber.colors.primary.copy(alpha = 0.5f)),
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(6.dp)
+    ) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(20.dp)
+          .verticalScroll(rememberScrollState())
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.VpnKey, contentDescription = null, tint = ThemeCyber.colors.primary, modifier = Modifier.size(20.dp))
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("Change Master Passphrase", color = ThemeCyber.colors.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        OutlinedTextField(
+          value = oldPassword,
+          onValueChange = { oldPassword = it; errorMessage = null },
+          label = { Text("Current Passphrase") },
+          visualTransformation = if (showOldPassword) VisualTransformation.None else PasswordVisualTransformation(),
+          trailingIcon = {
+            IconButton(onClick = { showOldPassword = !showOldPassword }) {
+              Icon(if (showOldPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null, tint = ThemeCyber.colors.textSecondary)
+            }
+          },
+          singleLine = true,
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = ThemeCyber.colors.primary,
+            unfocusedBorderColor = ThemeCyber.colors.surfaceLight,
+            focusedTextColor = ThemeCyber.colors.textPrimary,
+            unfocusedTextColor = ThemeCyber.colors.textPrimary,
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+          value = newPassword,
+          onValueChange = { newPassword = it; errorMessage = null },
+          label = { Text("New Passphrase (min 12 chars)") },
+          visualTransformation = if (showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
+          trailingIcon = {
+            IconButton(onClick = { showNewPassword = !showNewPassword }) {
+              Icon(if (showNewPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff, contentDescription = null, tint = ThemeCyber.colors.textSecondary)
+            }
+          },
+          singleLine = true,
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = ThemeCyber.colors.primary,
+            unfocusedBorderColor = ThemeCyber.colors.surfaceLight,
+            focusedTextColor = ThemeCyber.colors.textPrimary,
+            unfocusedTextColor = ThemeCyber.colors.textPrimary,
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        if (newPassword.isNotEmpty()) {
+          val strengthColor = when {
+            strength.score >= 80 -> ThemeCyber.colors.primary
+            strength.score >= 50 -> ThemeCyber.colors.warningYellow
+            else -> ThemeCyber.colors.dangerRed
+          }
+          Spacer(modifier = Modifier.height(6.dp))
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(
+              text = "Strength: ${strength.score}%",
+              fontSize = 11.sp,
+              color = strengthColor,
+              fontWeight = FontWeight.Bold,
+              fontFamily = ThemeCyber.fontFamily
+            )
+            Text(
+              text = strength.feedback,
+              fontSize = 10.5.sp,
+              color = ThemeCyber.colors.textSecondary,
+              fontFamily = ThemeCyber.fontFamily
+            )
+          }
+          Spacer(modifier = Modifier.height(4.dp))
+          LinearProgressIndicator(
+            progress = { strength.score / 100f },
+            color = strengthColor,
+            trackColor = ThemeCyber.colors.surfaceLight,
+            modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp))
+          )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+          value = confirmPassword,
+          onValueChange = { confirmPassword = it; errorMessage = null },
+          label = { Text("Confirm New Passphrase") },
+          visualTransformation = if (showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
+          singleLine = true,
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = ThemeCyber.colors.primary,
+            unfocusedBorderColor = ThemeCyber.colors.surfaceLight,
+            focusedTextColor = ThemeCyber.colors.textPrimary,
+            unfocusedTextColor = ThemeCyber.colors.textPrimary,
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        if (errorMessage != null) {
+          Spacer(modifier = Modifier.height(8.dp))
+          Text(errorMessage!!, color = ThemeCyber.colors.dangerRed, fontSize = 12.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+          TextButton(onClick = onDismiss) {
+            Text("Cancel", color = ThemeCyber.colors.textSecondary)
+          }
+          Spacer(modifier = Modifier.width(8.dp))
+          Button(
+            enabled = !isSubmitting && oldPassword.isNotBlank() && newPassword.length >= 12 && newPassword == confirmPassword,
+            onClick = {
+              if (newPassword != confirmPassword) {
+                errorMessage = "New passphrases do not match"
+                return@Button
+              }
+              isSubmitting = true
+              scope.launch {
+                val oldArr = oldPassword.toCharArray()
+                val newArr = newPassword.toCharArray()
+                val res = repo.changeMasterPasswordWithVerification(oldArr, newArr)
+                oldArr.fill('0')
+                newArr.fill('0')
+                isSubmitting = false
+                if (res.isSuccess) {
+                  onSuccess()
+                } else {
+                  errorMessage = res.exceptionOrNull()?.message ?: "Current passphrase incorrect or update failed"
+                }
+              }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = ThemeCyber.colors.primary),
+            shape = RoundedCornerShape(10.dp)
+          ) {
+            if (isSubmitting) {
+              CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.Black, strokeWidth = 2.dp)
+            } else {
+              Text("Update Passphrase", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// SET MASTER PIN DIALOG
+// -------------------------------------------------------------
+@Composable
+private fun SetMasterPinDialog(
+  repo: PasswordManagerRepository,
+  onDismiss: () -> Unit,
+  onSuccess: () -> Unit,
+) {
+  val scope = rememberCoroutineScope()
+  var pin by remember { mutableStateOf("") }
+  var confirmPin by remember { mutableStateOf("") }
+  var isSubmitting by remember { mutableStateOf(false) }
+  var errorMessage by remember { mutableStateOf<String?>(null) }
+
+  val pinValidation = remember(pin) {
+    PasswordCryptoEngine.evaluatePinStrength(pin.toCharArray())
+  }
+
+  Dialog(onDismissRequest = onDismiss) {
+    Card(
+      shape = RoundedCornerShape(18.dp),
+      colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surface),
+      border = BorderStroke(1.dp, ThemeCyber.colors.primary.copy(alpha = 0.5f)),
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(6.dp)
+    ) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(20.dp)
+          .verticalScroll(rememberScrollState())
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.Lock, contentDescription = null, tint = ThemeCyber.colors.primary, modifier = Modifier.size(20.dp))
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("Set Quick Unlock PIN", color = ThemeCyber.colors.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+          "Enter an 8 to 12 digit numeric PIN for fast local unlocking.",
+          color = ThemeCyber.colors.textSecondary,
+          fontSize = 12.sp,
+          fontFamily = ThemeCyber.fontFamily
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        OutlinedTextField(
+          value = pin,
+          onValueChange = {
+            if (it.length <= 12 && it.all { c -> c.isDigit() }) {
+              pin = it
+              errorMessage = null
+            }
+          },
+          label = { Text("New PIN (8–12 Digits)") },
+          visualTransformation = PasswordVisualTransformation(),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+          singleLine = true,
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = ThemeCyber.colors.primary,
+            unfocusedBorderColor = ThemeCyber.colors.surfaceLight,
+            focusedTextColor = ThemeCyber.colors.textPrimary,
+            unfocusedTextColor = ThemeCyber.colors.textPrimary,
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        if (pin.isNotEmpty() && !pinValidation.first) {
+          Spacer(modifier = Modifier.height(4.dp))
+          Text(pinValidation.second, color = ThemeCyber.colors.warningYellow, fontSize = 11.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+          value = confirmPin,
+          onValueChange = {
+            if (it.length <= 12 && it.all { c -> c.isDigit() }) {
+              confirmPin = it
+              errorMessage = null
+            }
+          },
+          label = { Text("Confirm PIN") },
+          visualTransformation = PasswordVisualTransformation(),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+          singleLine = true,
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = ThemeCyber.colors.primary,
+            unfocusedBorderColor = ThemeCyber.colors.surfaceLight,
+            focusedTextColor = ThemeCyber.colors.textPrimary,
+            unfocusedTextColor = ThemeCyber.colors.textPrimary,
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        if (errorMessage != null) {
+          Spacer(modifier = Modifier.height(8.dp))
+          Text(errorMessage!!, color = ThemeCyber.colors.dangerRed, fontSize = 12.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+          TextButton(onClick = onDismiss) {
+            Text("Cancel", color = ThemeCyber.colors.textSecondary)
+          }
+          Spacer(modifier = Modifier.width(8.dp))
+          Button(
+            enabled = !isSubmitting && pin.length in 8..12 && pin == confirmPin && pinValidation.first,
+            onClick = {
+              if (pin != confirmPin) {
+                errorMessage = "PINs do not match"
+                return@Button
+              }
+              isSubmitting = true
+              scope.launch {
+                val pinArr = pin.toCharArray()
+                val res = repo.setupMasterPin(pinArr)
+                pinArr.fill('0')
+                isSubmitting = false
+                if (res.isSuccess) {
+                  onSuccess()
+                } else {
+                  errorMessage = res.exceptionOrNull()?.message ?: "Failed to configure PIN"
+                }
+              }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = ThemeCyber.colors.primary),
+            shape = RoundedCornerShape(10.dp)
+          ) {
+            if (isSubmitting) {
+              CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.Black, strokeWidth = 2.dp)
+            } else {
+              Text("Save PIN", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// CHANGE MASTER PIN DIALOG
+// -------------------------------------------------------------
+@Composable
+private fun ChangeMasterPinDialog(
+  repo: PasswordManagerRepository,
+  onDismiss: () -> Unit,
+  onSuccess: () -> Unit,
+) {
+  val scope = rememberCoroutineScope()
+  var oldPin by remember { mutableStateOf("") }
+  var newPin by remember { mutableStateOf("") }
+  var confirmPin by remember { mutableStateOf("") }
+  var isSubmitting by remember { mutableStateOf(false) }
+  var errorMessage by remember { mutableStateOf<String?>(null) }
+
+  val pinValidation = remember(newPin) {
+    PasswordCryptoEngine.evaluatePinStrength(newPin.toCharArray())
+  }
+
+  Dialog(onDismissRequest = onDismiss) {
+    Card(
+      shape = RoundedCornerShape(18.dp),
+      colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surface),
+      border = BorderStroke(1.dp, ThemeCyber.colors.primary.copy(alpha = 0.5f)),
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(6.dp)
+    ) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(20.dp)
+          .verticalScroll(rememberScrollState())
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(Icons.Default.Lock, contentDescription = null, tint = ThemeCyber.colors.primary, modifier = Modifier.size(20.dp))
+          Spacer(modifier = Modifier.width(8.dp))
+          Text("Change Quick PIN", color = ThemeCyber.colors.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        OutlinedTextField(
+          value = oldPin,
+          onValueChange = {
+            if (it.length <= 12 && it.all { c -> c.isDigit() }) {
+              oldPin = it
+              errorMessage = null
+            }
+          },
+          label = { Text("Current PIN") },
+          visualTransformation = PasswordVisualTransformation(),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+          singleLine = true,
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = ThemeCyber.colors.primary,
+            unfocusedBorderColor = ThemeCyber.colors.surfaceLight,
+            focusedTextColor = ThemeCyber.colors.textPrimary,
+            unfocusedTextColor = ThemeCyber.colors.textPrimary,
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+          value = newPin,
+          onValueChange = {
+            if (it.length <= 12 && it.all { c -> c.isDigit() }) {
+              newPin = it
+              errorMessage = null
+            }
+          },
+          label = { Text("New PIN (8–12 Digits)") },
+          visualTransformation = PasswordVisualTransformation(),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+          singleLine = true,
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = ThemeCyber.colors.primary,
+            unfocusedBorderColor = ThemeCyber.colors.surfaceLight,
+            focusedTextColor = ThemeCyber.colors.textPrimary,
+            unfocusedTextColor = ThemeCyber.colors.textPrimary,
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        if (newPin.isNotEmpty() && !pinValidation.first) {
+          Spacer(modifier = Modifier.height(4.dp))
+          Text(pinValidation.second, color = ThemeCyber.colors.warningYellow, fontSize = 11.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        OutlinedTextField(
+          value = confirmPin,
+          onValueChange = {
+            if (it.length <= 12 && it.all { c -> c.isDigit() }) {
+              confirmPin = it
+              errorMessage = null
+            }
+          },
+          label = { Text("Confirm New PIN") },
+          visualTransformation = PasswordVisualTransformation(),
+          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+          singleLine = true,
+          colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = ThemeCyber.colors.primary,
+            unfocusedBorderColor = ThemeCyber.colors.surfaceLight,
+            focusedTextColor = ThemeCyber.colors.textPrimary,
+            unfocusedTextColor = ThemeCyber.colors.textPrimary,
+          ),
+          modifier = Modifier.fillMaxWidth()
+        )
+
+        if (errorMessage != null) {
+          Spacer(modifier = Modifier.height(8.dp))
+          Text(errorMessage!!, color = ThemeCyber.colors.dangerRed, fontSize = 12.sp, fontFamily = ThemeCyber.fontFamily)
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+          TextButton(onClick = onDismiss) {
+            Text("Cancel", color = ThemeCyber.colors.textSecondary)
+          }
+          Spacer(modifier = Modifier.width(8.dp))
+          Button(
+            enabled = !isSubmitting && oldPin.isNotBlank() && newPin.length in 8..12 && newPin == confirmPin && pinValidation.first,
+            onClick = {
+              if (newPin != confirmPin) {
+                errorMessage = "New PINs do not match"
+                return@Button
+              }
+              isSubmitting = true
+              scope.launch {
+                val oldArr = oldPin.toCharArray()
+                val newArr = newPin.toCharArray()
+                val res = repo.changeMasterPinWithVerification(oldArr, newArr)
+                oldArr.fill('0')
+                newArr.fill('0')
+                isSubmitting = false
+                if (res.isSuccess) {
+                  onSuccess()
+                } else {
+                  errorMessage = res.exceptionOrNull()?.message ?: "Current PIN is incorrect or change failed"
+                }
+              }
+            },
+            colors = ButtonDefaults.buttonColors(containerColor = ThemeCyber.colors.primary),
+            shape = RoundedCornerShape(10.dp)
+          ) {
+            if (isSubmitting) {
+              CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.Black, strokeWidth = 2.dp)
+            } else {
+              Text("Update PIN", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
+          }
         }
       }
     }

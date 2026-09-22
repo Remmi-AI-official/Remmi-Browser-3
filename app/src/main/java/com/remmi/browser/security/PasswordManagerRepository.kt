@@ -195,24 +195,6 @@ class PasswordManagerRepository private constructor(
         pinVerifierPair = PasswordCryptoEngine.computeVerifier(pinKdfResult.kek)
       }
 
-      var biometricWrappedDek: ByteArray? = null
-      var biometricIv: ByteArray? = null
-      var biometricAuthTag: ByteArray? = null
-
-      if (enableBiometrics) {
-        try {
-          val key = PasswordCryptoEngine.getOrCreateBiometricKeystoreKey()
-          val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-          cipher.init(Cipher.ENCRYPT_MODE, key)
-          val wrapped = PasswordCryptoEngine.wrapDekWithBiometric(dek, cipher)
-          biometricWrappedDek = wrapped.ciphertext
-          biometricIv = wrapped.iv
-          biometricAuthTag = wrapped.authTag
-        } catch (e: Exception) {
-          Log.w(TAG, "Biometric Keystore init deferred: ${e.message}")
-        }
-      }
-
       val metadata = MasterKeyMetadataEntity(
         id = 1,
         encryptedDek = encryptedDek.ciphertext,
@@ -222,10 +204,10 @@ class PasswordManagerRepository private constructor(
         kdfParams = kdfResult.paramsDescription,
         verifier = verifier,
         verifierSalt = verifierSalt,
-        biometricWrappedDek = biometricWrappedDek,
-        biometricIv = biometricIv,
-        biometricAuthTag = biometricAuthTag,
-        biometricEnabled = enableBiometrics && biometricWrappedDek != null,
+        biometricWrappedDek = null,
+        biometricIv = null,
+        biometricAuthTag = null,
+        biometricEnabled = false,
         pinEnabled = pinEncryptedDek != null,
         pinEncryptedDek = pinEncryptedDek?.ciphertext,
         pinDekIv = pinEncryptedDek?.iv,
@@ -452,7 +434,7 @@ class PasswordManagerRepository private constructor(
 
   fun prepareBiometricEncryptCipher(): Result<Cipher> {
     return try {
-      val key = PasswordCryptoEngine.getOrCreateBiometricKeystoreKey()
+      val key = PasswordCryptoEngine.getOrCreateBiometricKeystoreKey(forceRecreate = true)
       val cipher = Cipher.getInstance("AES/GCM/NoPadding")
       cipher.init(Cipher.ENCRYPT_MODE, key)
       Result.success(cipher)
@@ -465,11 +447,14 @@ class PasswordManagerRepository private constructor(
     val metadata = getDb().masterKeyMetadataDao().getMetadata()
       ?: return@withContext Result.failure(IllegalStateException("Vault uninitialized."))
 
+    if (!metadata.biometricEnabled || metadata.biometricWrappedDek == null || metadata.biometricIv == null || metadata.biometricAuthTag == null) {
+      return@withContext Result.failure(IllegalStateException("Biometric unlock not configured or enabled."))
+    }
+
     val iv = metadata.biometricIv
-      ?: return@withContext Result.failure(IllegalStateException("Biometric unlock not initialized."))
 
     try {
-      val key = PasswordCryptoEngine.getOrCreateBiometricKeystoreKey()
+      val key = PasswordCryptoEngine.getOrCreateBiometricKeystoreKey(forceRecreate = false)
       val cipher = Cipher.getInstance("AES/GCM/NoPadding")
       val gcmSpec = javax.crypto.spec.GCMParameterSpec(128, iv)
       cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec)
@@ -536,6 +521,7 @@ class PasswordManagerRepository private constructor(
       biometricAuthTag = null,
     )
     getDb().masterKeyMetadataDao().saveMetadata(updated)
+    PasswordCryptoEngine.deleteBiometricKeystoreKey()
     return@withContext true
   }
 

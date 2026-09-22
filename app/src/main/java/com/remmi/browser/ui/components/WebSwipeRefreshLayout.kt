@@ -12,18 +12,36 @@ class WebSwipeRefreshLayout @JvmOverloads constructor(
 
   var canScrollUpCallback: (() -> Boolean)? = null
 
+  private var startY = 0f
+  private var isDraggingDown = false
+
   override fun canChildScrollUp(): Boolean {
     return canScrollUpCallback?.invoke() ?: super.canChildScrollUp()
-  }
-
-  override fun requestDisallowInterceptTouchEvent(b: Boolean) {
-    super.requestDisallowInterceptTouchEvent(b)
   }
 
   override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
     if (!isEnabled) {
       return false
     }
+
+    when (ev.actionMasked) {
+      MotionEvent.ACTION_DOWN -> {
+        startY = ev.y
+        isDraggingDown = false
+      }
+      MotionEvent.ACTION_MOVE -> {
+        val deltaY = ev.y - startY
+        isDraggingDown = deltaY > 0
+        if (canChildScrollUp()) {
+          return false
+        }
+      }
+      MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+        isDraggingDown = false
+      }
+    }
+
     return super.onInterceptTouchEvent(ev)
   }
 }
+
