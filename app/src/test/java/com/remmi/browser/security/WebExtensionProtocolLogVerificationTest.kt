@@ -5,6 +5,7 @@ import com.remmi.adblock.AdblockState
 import com.remmi.adblock.BlockExtension
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -13,10 +14,17 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.util.ReflectionHelpers
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class WebExtensionProtocolLogVerificationTest {
+
+  @After
+  fun tearDown() {
+    val bridge = AdblockBridge.getInstance()
+    ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
+  }
 
   @Test
   fun testAdblockSelfTestAndState() = runBlocking {
