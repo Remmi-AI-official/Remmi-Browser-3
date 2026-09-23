@@ -13,8 +13,8 @@ jobs:
   unzip-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
 
       - name: Extract zip contents directly to root
         run: |
