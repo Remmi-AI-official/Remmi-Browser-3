@@ -32,7 +32,7 @@ class WebSwipeRefreshLayout @JvmOverloads constructor(
       MotionEvent.ACTION_MOVE -> {
         val deltaY = ev.y - startY
         isDraggingDown = deltaY > 0
-        if (canChildScrollUp()) {
+        if (!isDraggingDown || canChildScrollUp()) {
           return false
         }
       }

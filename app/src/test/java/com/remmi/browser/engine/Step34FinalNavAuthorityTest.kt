@@ -49,7 +49,6 @@ class Step34FinalNavAuthorityTest {
     override fun onSecurityChange(isSecure: Boolean) {}
     override fun onNavStateChange(canGoBack: Boolean, canGoForward: Boolean) {}
     override fun onTrackerBlocked(url: String, type: String) {}
-    override fun onScrollChanged(scrollX: Int, scrollY: Int, isScrollingDown: Boolean) {}
   }
 
   private fun makeLoadRequest(

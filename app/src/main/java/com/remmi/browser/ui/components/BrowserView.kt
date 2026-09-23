@@ -64,7 +64,6 @@ fun BrowserView(
   onReaderArticleExtracted: ((ReaderArticle?) -> Unit)? = null,
   onContextMenuRequested: ((WebContextMenuData) -> Unit)? = null,
   onDownloadRequested: ((DownloadConfirmationRequest) -> Unit)? = null,
-  onScrollChange: ((isScrollingDown: Boolean) -> Unit)? = null,
   modifier: Modifier = Modifier,
 ) {
   val context = LocalContext.current
@@ -101,7 +100,6 @@ fun BrowserView(
   val currentOnSecurityChange by rememberUpdatedState(onSecurityChange)
   val currentOnNavStateChange by rememberUpdatedState(onNavStateChange)
   val currentOnTrackerBlocked by rememberUpdatedState(onTrackerBlocked)
-  val currentOnScrollChange by rememberUpdatedState(onScrollChange)
   val currentOnReaderArticleExtracted by rememberUpdatedState(onReaderArticleExtracted)
   val currentOnDownloadRequested by rememberUpdatedState(onDownloadRequested)
   val currentOnContextMenuRequested by rememberUpdatedState(onContextMenuRequested)
@@ -170,10 +168,6 @@ fun BrowserView(
 
       override fun onTrackerBlocked(url: String, type: String) {
         currentOnTrackerBlocked(url, type)
-      }
-
-      override fun onScrollChanged(scrollX: Int, scrollY: Int, isScrollingDown: Boolean) {
-        currentOnScrollChange?.invoke(isScrollingDown)
       }
 
       override fun onExternalResponse(response: WebResponse) {

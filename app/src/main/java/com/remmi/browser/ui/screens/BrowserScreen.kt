@@ -22,6 +22,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -344,20 +345,6 @@ fun BrowserScreen(
   var showPanicWipeDialog by remember { mutableStateOf(false) }
   var showPrintPdfProgress by remember { mutableStateOf(false) }
   var activeDownloadConfirmation by remember { mutableStateOf<DownloadConfirmationRequest?>(null) }
-
-  // Top Bar Visibility on scroll (hide when scrolling down, show when scrolling up / top of page)
-  var isTopBarVisible by remember { mutableStateOf(true) }
-
-  // Reset top bar to visible whenever tab switches, new tab is opened, or page starts loading
-  LaunchedEffect(activeTab.id) {
-    isTopBarVisible = true
-  }
-
-  LaunchedEffect(activeTab.isLoading) {
-    if (activeTab.isLoading) {
-      isTopBarVisible = true
-    }
-  }
 
   // Live Download Banner State & Event Collector
   var activeDownloadBannerEvent by remember { mutableStateOf<DownloadEvent?>(null) }
@@ -784,7 +771,7 @@ fun BrowserScreen(
           modifier = Modifier.fillMaxSize()
         ) {
           // 1. Sleek Terminal URL Bar Top Bar
-          if (isTopBarVisible && !isFullScreenMode && !activeTab.isReaderMode && !isNewTab) {
+          if (!isFullScreenMode && !activeTab.isReaderMode && !isNewTab) {
             Box(
               modifier = Modifier
                 .fillMaxWidth()
@@ -1108,9 +1095,6 @@ fun BrowserScreen(
                       onTrackerBlocked = { url, _ ->
                         tabManager.incrementTrackerCount(activeTab.id, url)
                       },
-                      onScrollChange = { _ ->
-                        // Keep viewport stable for 120Hz/60Hz buttery-smooth Gecko hardware-accelerated scrolling
-                      },
                       onReaderArticleExtracted = { article ->
                         tabManager.setReaderArticle(activeTab.id, article)
                       },
@@ -1348,26 +1332,9 @@ fun BrowserScreen(
         val isEffectiveTor = isTorConnected || activeTab.profile == PrivacyProfile.GHOST
         val isPageLoading = (activeTab.isLoading || isWaitingForTor) && !isNewTab
         if (isPageLoading) {
-          val effectiveProg = if (activeTab.progress > 0) {
-            (activeTab.progress.toFloat() / 100f).coerceIn(0.08f, 1f)
-          } else {
-            0.15f
-          }
-          val animProgress by animateFloatAsState(
-            targetValue = effectiveProg,
-            animationSpec = tween(durationMillis = 200, easing = LinearOutSlowInEasing),
-            label = "top_bar_loading_progress"
-          )
-          androidx.compose.material3.LinearProgressIndicator(
-            progress = { animProgress },
-            modifier = Modifier
-              .fillMaxWidth()
-              .height(3.dp)
-              .align(Alignment.TopCenter)
-              .zIndex(10f)
-              .testTag("cyber_top_progress_bar"),
-            color = if (isEffectiveTor) ThemeCyber.colors.torPurple else ThemeCyber.colors.primary,
-            trackColor = if (isEffectiveTor) ThemeCyber.colors.torPurple.copy(alpha = 0.25f) else ThemeCyber.colors.primary.copy(alpha = 0.25f),
+          PageLoadingIndicator(
+            isEffectiveTor = isEffectiveTor,
+            progress = activeTab.progress
           )
         }
       } // Close Box(modifier=weight(1f))
@@ -3114,6 +3081,34 @@ fun BrowserScreen(
       )
     }
   }
+}
+
+@Composable
+private fun BoxScope.PageLoadingIndicator(
+  isEffectiveTor: Boolean,
+  progress: Int,
+) {
+  val effectiveProg = if (progress > 0) {
+    (progress.toFloat() / 100f).coerceIn(0.08f, 1f)
+  } else {
+    0.15f
+  }
+  val animProgress by animateFloatAsState(
+    targetValue = effectiveProg,
+    animationSpec = tween(durationMillis = 200, easing = LinearOutSlowInEasing),
+    label = "top_bar_loading_progress"
+  )
+  androidx.compose.material3.LinearProgressIndicator(
+    progress = { animProgress },
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(3.dp)
+      .align(Alignment.TopCenter)
+      .zIndex(10f)
+      .testTag("cyber_top_progress_bar"),
+    color = if (isEffectiveTor) ThemeCyber.colors.torPurple else ThemeCyber.colors.primary,
+    trackColor = if (isEffectiveTor) ThemeCyber.colors.torPurple.copy(alpha = 0.25f) else ThemeCyber.colors.primary.copy(alpha = 0.25f),
+  )
 }
 
 

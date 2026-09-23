@@ -67,7 +67,6 @@ interface GeckoTabCallbacks {
   fun onTrackerBlocked(url: String, type: String) {}
   fun onExternalResponse(response: WebResponse) {}
   fun onContextMenu(data: WebContextMenuData) {}
-  fun onScrollChanged(scrollX: Int, scrollY: Int, isScrollingDown: Boolean) {}
   fun onFirstContentfulPaint() {}
   fun onFirstComposite() {}
   fun onPaintStatusReset() {}
@@ -3066,28 +3065,14 @@ class GeckoEngineManager private constructor(private val context: Context) {
 
     // Wire Scroll delegate
     session.scrollDelegate = object : GeckoSession.ScrollDelegate {
-      private var lastScrollY = 0
       override fun onScrollChanged(session: GeckoSession, scrollX: Int, scrollY: Int) {
-        currentScrollPositions[tabId] = scrollY
         if (!isCallbackAuthoritative(tabId, session, "onScrollChanged", isViewBound = true)) {
           return
         }
-
-        if (scrollY <= 15) {
-          lastScrollY = scrollY
-          sessionCallbacks[tabId]?.onScrollChanged(scrollX, scrollY, false)
-          return
-        }
-
-        val deltaY = scrollY - lastScrollY
-        // Threshold to avoid toggling on micro-jitters
-        if (Math.abs(deltaY) < 14) {
-          return
-        }
-
-        val isScrollingDown = deltaY > 0
-        lastScrollY = scrollY
-        sessionCallbacks[tabId]?.onScrollChanged(scrollX, scrollY, isScrollingDown)
+        currentScrollPositions[tabId] = scrollY
+        // No toolbar auto-hide logic.
+        // No direction inference.
+        // No thresholding.
       }
     }
 

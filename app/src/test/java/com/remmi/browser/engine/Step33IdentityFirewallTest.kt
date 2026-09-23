@@ -48,7 +48,6 @@ class Step33IdentityFirewallTest {
   private var capturedLoading: Boolean? = null
   private var capturedProgress: Int? = null
   private var capturedUrl: String? = null
-  private var capturedScrollY: Int? = null
 
   private val testCallbacks = object : GeckoTabCallbacks {
     override fun onUrlChange(url: String) {
@@ -64,9 +63,6 @@ class Step33IdentityFirewallTest {
     override fun onSecurityChange(isSecure: Boolean) {}
     override fun onNavStateChange(canGoBack: Boolean, canGoForward: Boolean) {}
     override fun onTrackerBlocked(url: String, type: String) {}
-    override fun onScrollChanged(scrollX: Int, scrollY: Int, isScrollingDown: Boolean) {
-      capturedScrollY = scrollY
-    }
   }
 
   @Before
@@ -84,7 +80,6 @@ class Step33IdentityFirewallTest {
     capturedLoading = null
     capturedProgress = null
     capturedUrl = null
-    capturedScrollY = null
 
     manager.uriLoaderForTest = { _, _, _ -> }
     manager.sessionOpenerForTest = { _, _ -> }
@@ -135,15 +130,14 @@ class Step33IdentityFirewallTest {
 
     // When attached, scroll is processed
     session.scrollDelegate?.onScrollChanged(session, 0, 150)
-    assertEquals(150, capturedScrollY)
+    assertEquals(150, manager.getScrollY(tab.id))
 
     // Detach view
     manager.detachViewSync(tab.id, gv)
-    capturedScrollY = null
 
     // Scroll callback when detached must be ignored by firewall
     session.scrollDelegate?.onScrollChanged(session, 0, 300)
-    assertNull("View-bound scroll callback must be rejected when detached", capturedScrollY)
+    assertEquals(150, manager.getScrollY(tab.id))
   }
 
   /**
