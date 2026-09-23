@@ -10,9 +10,12 @@ import android.util.LruCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.mozilla.geckoview.GeckoView
 import java.io.File
@@ -41,6 +44,15 @@ class TabThumbnailManager private constructor(private val context: Context) {
   // Version tracker to notify Jetpack Compose when a thumbnail is updated
   private val _thumbnailVersions = MutableStateFlow<Map<String, Long>>(emptyMap())
   val thumbnailVersions: StateFlow<Map<String, Long>> = _thumbnailVersions.asStateFlow()
+
+  /**
+   * Returns a distinct Flow of version changes for a specific tab ID,
+   * avoiding full-grid recomposition when other tab thumbnails update.
+   */
+  fun thumbnailVersionFlow(tabId: String): Flow<Long> =
+    _thumbnailVersions
+      .map { it[tabId] ?: 0L }
+      .distinctUntilChanged()
 
   // Concurrency & Debounce controls
   private val pendingCaptureRunnables = ConcurrentHashMap<String, Runnable>()

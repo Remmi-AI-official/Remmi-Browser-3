@@ -18,8 +18,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -266,7 +268,7 @@ fun TabGridSheet(
   val isDark = !isLight
   val scope = rememberCoroutineScope()
   val thumbnailManager = remember { TabThumbnailManager.getInstance(context) }
-  val thumbnailVersions by thumbnailManager.thumbnailVersions.collectAsState()
+  val gridState = rememberLazyGridState()
 
   // Theme Colors dynamically matching selected CyberTheme
   val backgroundColor = cyberColors.background
@@ -716,14 +718,17 @@ fun TabGridSheet(
     Spacer(modifier = Modifier.height(10.dp))
 
     // 4. MAIN SCROLLABLE CONTENT (SPACES + TAB FILTERS + TAB GRID)
-    LazyColumn(
+    LazyVerticalGrid(
+      columns = GridCells.Fixed(2),
+      state = gridState,
       modifier = Modifier
         .weight(1f)
         .fillMaxWidth(),
-      verticalArrangement = Arrangement.spacedBy(14.dp)
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+      verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
       // TAB FILTERS SECTION (Chips: All, Recent, Active, Sleep)
-      item {
+      item(span = { GridItemSpan(maxLineSpan) }) {
         LazyRow(
           horizontalArrangement = Arrangement.spacedBy(8.dp),
           contentPadding = PaddingValues(horizontal = 2.dp)
@@ -771,7 +776,7 @@ fun TabGridSheet(
       }
 
       // ALL TABS SECTION HEADER
-      item {
+      item(span = { GridItemSpan(maxLineSpan) }) {
         Row(
           modifier = Modifier
             .fillMaxWidth()
@@ -819,66 +824,60 @@ fun TabGridSheet(
         }
       }
 
-      // TAB GRID ITEMS (2 COLUMNS ADAPTIVE)
+      // TAB GRID ITEMS (2 COLUMNS ADAPTIVE VIA LAZYVERTICALGRID WITH PER-TAB IDENTITY)
       if (filteredTabs.isNotEmpty()) {
-        val chunkedTabs = filteredTabs.chunked(2)
-        items(chunkedTabs) { row ->
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-          ) {
-            for (tab in row) {
-              val originalIndex = tabs.indexOfFirst { it.id == tab.id }
-              val isActive = originalIndex == activeIndex
-              val isSelected = selectedTabIds.contains(tab.id)
-              val group = tabGroups.find { it.id == tab.groupId }
-              val groupColor = group?.let { Color(it.colorHex) }
+        items(
+          items = filteredTabs,
+          key = { tab -> tab.id },
+          contentType = { "tab_card" }
+        ) { tab ->
+          val originalIndex = tabs.indexOfFirst { it.id == tab.id }
+          val isActive = originalIndex == activeIndex
+          val isSelected = selectedTabIds.contains(tab.id)
+          val group = tabGroups.find { it.id == tab.groupId }
+          val groupColor = group?.let { Color(it.colorHex) }
 
-              // Trigger reactive thumbnail state by observing thumbnailVersions
-              val versionKey = thumbnailVersions[tab.id] ?: 0L
-              val thumbnailBitmap = remember(tab.id, versionKey) {
-                thumbnailManager.getThumbnail(tab.id)
-              }
+          // Dedicated per-card thumbnail version flow: only recomposes when this specific tab's thumbnail changes
+          val version by remember(tab.id) {
+            thumbnailManager.thumbnailVersionFlow(tab.id)
+          }.collectAsState(initial = 0L)
 
-              Box(modifier = Modifier.weight(1f)) {
-                ModernTabCard(
-                  tab = tab,
-                  isActive = isActive,
-                  isSelected = isSelected,
-                  isSelectMode = isSelectMode,
-                  groupColor = groupColor,
-                  thumbnail = thumbnailBitmap,
-                  activeAccentColor = activeAccentColor,
-                  isTorConnected = isTorConnected,
-                  onSelect = {
-                    if (isSelectMode) {
-                      if (isSelected) selectedTabIds.remove(tab.id) else selectedTabIds.add(tab.id)
-                    } else {
-                      if (originalIndex >= 0) {
-                        onTabSelect(originalIndex)
-                        onDismiss()
-                      }
-                    }
-                  },
-                  onClose = {
-                    if (tab.isLocked) {
-                      Toast.makeText(context, "Tab is locked. Unlock it before closing.", Toast.LENGTH_SHORT).show()
-                    } else {
-                      onTabClose(tab.id)
-                    }
-                  },
-                  onOptions = { tabOptionsTarget = tab }
-                )
-              }
-            }
-            if (row.size == 1) {
-              Spacer(modifier = Modifier.weight(1f))
-            }
+          val thumbnailBitmap = remember(tab.id, version) {
+            thumbnailManager.getThumbnail(tab.id)
           }
+
+          ModernTabCard(
+            tab = tab,
+            isActive = isActive,
+            isSelected = isSelected,
+            isSelectMode = isSelectMode,
+            groupColor = groupColor,
+            thumbnail = thumbnailBitmap,
+            activeAccentColor = activeAccentColor,
+            isTorConnected = isTorConnected,
+            onSelect = {
+              if (isSelectMode) {
+                if (isSelected) selectedTabIds.remove(tab.id) else selectedTabIds.add(tab.id)
+              } else {
+                if (originalIndex >= 0) {
+                  onTabSelect(originalIndex)
+                  onDismiss()
+                }
+              }
+            },
+            onClose = {
+              if (tab.isLocked) {
+                Toast.makeText(context, "Tab is locked. Unlock it before closing.", Toast.LENGTH_SHORT).show()
+              } else {
+                onTabClose(tab.id)
+              }
+            },
+            onOptions = { tabOptionsTarget = tab }
+          )
         }
       } else {
         // Empty State
-        item {
+        item(span = { GridItemSpan(maxLineSpan) }) {
           Box(
             modifier = Modifier
               .fillMaxWidth()

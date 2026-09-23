@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -244,13 +245,6 @@ fun ReaderView(
     }
   }
 
-  // Calculate reading progress (0.0f to 1.0f)
-  val readingProgress = if (scrollState.maxValue > 0) {
-    (scrollState.value.toFloat() / scrollState.maxValue.toFloat()).coerceIn(0f, 1f)
-  } else {
-    0f
-  }
-
   Box(
     modifier = modifier
       .fillMaxSize()
@@ -402,13 +396,9 @@ fun ReaderView(
           }
 
           // Real-time Reading Progress Bar
-          LinearProgressIndicator(
-            progress = { readingProgress },
-            modifier = Modifier
-              .fillMaxWidth()
-              .height(2.dp),
-            color = readerTheme.accentColor,
-            trackColor = Color.Transparent
+          ReadingProgressBar(
+            scrollState = scrollState,
+            accentColor = readerTheme.accentColor,
           )
         }
       }
@@ -2117,3 +2107,31 @@ private fun parseColorOrFallback(hex: String): Color {
     Color(0xFFFFEB3B)
   }
 }
+
+/**
+ * Dedicated progress bar that isolates high-frequency scroll state reads from the large
+ * ReaderView composable, evaluating scroll progress only during the draw phase of
+ * LinearProgressIndicator without triggering recompositions of ReaderView.
+ */
+@Composable
+private fun ReadingProgressBar(
+  scrollState: ScrollState,
+  accentColor: Color,
+  modifier: Modifier = Modifier,
+) {
+  LinearProgressIndicator(
+    progress = {
+      if (scrollState.maxValue > 0) {
+        (scrollState.value.toFloat() / scrollState.maxValue.toFloat()).coerceIn(0f, 1f)
+      } else {
+        0f
+      }
+    },
+    modifier = modifier
+      .fillMaxWidth()
+      .height(2.dp),
+    color = accentColor,
+    trackColor = Color.Transparent,
+  )
+}
+
