@@ -1418,8 +1418,14 @@ class AdblockBridge {
       val uri = try {
         URI(url)
       } catch (e: Exception) {
+        // CRASH FIX: kabhi rethrow mat karo — uncaught exception = process death.
         Log.e(TAG, "[ADBLOCK_DECISION_ERROR] invalid_url: ${url.take(30)}...", e)
-        throw e
+        return returnDecision(url, BlockDecision(
+          blocked = false,
+          ruleId = "invalid_url",
+          ruleSource = "KotlinFallback",
+          engineGeneration = currentGen
+        ))
       }
 
       val host = uri.host?.lowercase() ?: run {
@@ -1540,8 +1546,14 @@ class AdblockBridge {
         engineGeneration = currentGen
       ))
     } catch (t: Throwable) {
+      // CRASH FIX: fail-open. Adblock decision me safe default ALLOW hai.
       Log.e(TAG, "[ADBLOCK_DECISION_ERROR] ${t.javaClass.name}: ${t.message}", t)
-      throw t
+      return BlockDecision(
+        blocked = false,
+        ruleId = "error_fail_open",
+        ruleSource = "KotlinFallback",
+        engineGeneration = getEngineGeneration()
+      )
     }
   }
 

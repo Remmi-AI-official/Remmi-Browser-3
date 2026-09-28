@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -26,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -105,6 +107,7 @@ fun BrowserView(
   val currentOnContextMenuRequested by rememberUpdatedState(onContextMenuRequested)
 
   // Callbacks bundle decoupled from GeckoSession
+  val lastForwardedProgress = remember(tab.id) { java.util.concurrent.atomic.AtomicInteger(-1) }
   val tabCallbacks = remember(tab.id, tab.profile) {
     object : GeckoTabCallbacks {
       override fun onUrlChange(url: String) {
@@ -124,14 +127,20 @@ fun BrowserView(
       override fun onProgressChange(progress: Int) {
         if (progress in 1..99) {
           isCurrentlyLoading = true
-          progressFloat = (progress.toFloat() / 100f).coerceIn(0.08f, 1f)
-          currentOnProgressChange(progress)
+          progressFloat = (progress.toFloat() / 100f).coerceIn(0.08f, 1f) // local, sasta
+          val last = lastForwardedProgress.get()
+          if (last < 0 || kotlin.math.abs(progress - last) >= 5) { // >=5% tabhi forward
+            lastForwardedProgress.set(progress)
+            currentOnProgressChange(progress)
+          }
         } else if (progress >= 100) {
           isCurrentlyLoading = false
           progressFloat = 1f
+          lastForwardedProgress.set(100)
           currentOnProgressChange(100)
         } else {
           progressFloat = 0f
+          lastForwardedProgress.set(0)
           currentOnProgressChange(0)
         }
       }
@@ -381,14 +390,18 @@ fun BrowserView(
     }
   }
 
-  val surfaceColor = if (ThemeCyber.colors.isLight) android.graphics.Color.WHITE else android.graphics.Color.parseColor("#121824")
+  val swipeSchemeColor2 = remember { android.graphics.Color.parseColor("#00E5FF") }
+  val swipeSchemeColor3 = remember { android.graphics.Color.parseColor("#7C4DFF") }
+  val darkSurfaceColor = remember { android.graphics.Color.parseColor("#121824") }
+  val darkProgressBgColor = remember { android.graphics.Color.parseColor("#1E2430") }
+  val surfaceColor = if (ThemeCyber.colors.isLight) android.graphics.Color.WHITE else darkSurfaceColor
   val primaryColorInt = android.graphics.Color.argb(
     (ThemeCyber.colors.primary.alpha * 255).toInt(),
     (ThemeCyber.colors.primary.red * 255).toInt(),
     (ThemeCyber.colors.primary.green * 255).toInt(),
     (ThemeCyber.colors.primary.blue * 255).toInt()
   )
-  val progressBgColor = if (ThemeCyber.colors.isLight) android.graphics.Color.WHITE else android.graphics.Color.parseColor("#1E2430")
+  val progressBgColor = if (ThemeCyber.colors.isLight) android.graphics.Color.WHITE else darkProgressBgColor
   val isRealWebPage = !tab.isReaderMode && tab.url.isNotBlank() && tab.url != "about:blank" && tab.url != "remmi://newtab" && tab.url != "about:home"
 
   Box(
@@ -412,8 +425,8 @@ fun BrowserView(
           isEnabled = isRealWebPage
           setColorSchemeColors(
             primaryColorInt,
-            android.graphics.Color.parseColor("#00E5FF"),
-            android.graphics.Color.parseColor("#7C4DFF")
+            swipeSchemeColor2,
+            swipeSchemeColor3
           )
           setProgressBackgroundColorSchemeColor(progressBgColor)
         }
@@ -528,8 +541,8 @@ fun BrowserView(
         swipeLayout.isEnabled = isRealWebPage
         swipeLayout.setColorSchemeColors(
           primaryColorInt,
-          android.graphics.Color.parseColor("#00E5FF"),
-          android.graphics.Color.parseColor("#7C4DFF")
+          swipeSchemeColor2,
+          swipeSchemeColor3
         )
         swipeLayout.setProgressBackgroundColorSchemeColor(progressBgColor)
         if (!tab.isLoading && swipeLayout.isRefreshing) {
@@ -554,5 +567,17 @@ fun BrowserView(
         swipeRefreshRef = null
       },
     )
+
+    if (isCurrentlyLoading && progressFloat in 0.01f..0.99f) {
+      LinearProgressIndicator(
+        progress = { progressFloat },
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(2.5.dp)
+          .align(Alignment.TopCenter),
+        color = if (tab.profile == PrivacyProfile.GHOST) ThemeCyber.colors.torPurple else ThemeCyber.colors.primary,
+        trackColor = Color.Transparent,
+      )
+    }
   }
 }

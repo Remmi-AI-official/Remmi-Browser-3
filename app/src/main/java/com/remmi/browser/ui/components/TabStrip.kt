@@ -67,6 +67,7 @@ import com.remmi.browser.ui.theme.CyberMonoFamily
 import com.remmi.browser.ui.theme.ThemeCyber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // -------------------------------------------------------------
 // HORIZONTAL DESKTOP / TABLET TAB STRIP
@@ -842,8 +843,8 @@ fun TabGridSheet(
             thumbnailManager.thumbnailVersionFlow(tab.id)
           }.collectAsState(initial = 0L)
 
-          val thumbnailBitmap = remember(tab.id, version) {
-            thumbnailManager.getThumbnail(tab.id)
+          val thumbnailBitmap by produceState<Bitmap?>(initialValue = null, tab.id, version) {
+            value = withContext(Dispatchers.IO) { thumbnailManager.getThumbnail(tab.id) }
           }
 
           ModernTabCard(

@@ -164,9 +164,10 @@ fun TerminalUrlBar(
     }
   }
 
-  // Live Query Suggestions for History & Bookmarks
+  // Live Query Suggestions for History & Bookmarks (debounced to avoid heavy DB hits while typing)
   LaunchedEffect(isEditing, editText) {
     if (isEditing) {
+      kotlinx.coroutines.delay(250) // naya keystroke aaya to purana cancel
       val query = editText.trim()
       withContext(Dispatchers.IO) {
         val db = RemmiDatabase.getDatabaseAsync(context)

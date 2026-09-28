@@ -123,19 +123,22 @@ class TabThumbnailManager private constructor(private val context: Context) {
   fun saveThumbnail(tabId: String, rawBitmap: Bitmap) {
     if (rawBitmap.isRecycled) return
 
-    val scaled = scaleToThumbnail(rawBitmap, TARGET_WIDTH)
-    if (scaled !== rawBitmap && !rawBitmap.isRecycled) {
-      try { rawBitmap.recycle() } catch (_: Throwable) {}
-    }
-    memoryCache.put(tabId, scaled)
-    val now = System.currentTimeMillis()
-    _thumbnailVersions.value = _thumbnailVersions.value + (tabId to now)
-
     ioScope.launch(Dispatchers.IO) {
+      if (rawBitmap.isRecycled) return@launch
+      val scaled = scaleToThumbnail(rawBitmap, TARGET_WIDTH)
+      if (scaled !== rawBitmap && !rawBitmap.isRecycled) {
+        try { rawBitmap.recycle() } catch (_: Throwable) {}
+      }
+      memoryCache.put(tabId, scaled)
+      val now = System.currentTimeMillis()
+      _thumbnailVersions.value = _thumbnailVersions.value + (tabId to now)
+
       try {
-        val file = File(thumbnailDir, "thumb_$tabId.jpg")
-        FileOutputStream(file).use { out ->
-          scaled.compress(Bitmap.CompressFormat.JPEG, 80, out)
+        if (!scaled.isRecycled) {
+          val file = File(thumbnailDir, "thumb_$tabId.jpg")
+          FileOutputStream(file).use { out ->
+            scaled.compress(Bitmap.CompressFormat.JPEG, 80, out)
+          }
         }
       } catch (e: Exception) {
         Log.w(TAG, "Failed to persist thumbnail to disk for $tabId: ${e.message}")

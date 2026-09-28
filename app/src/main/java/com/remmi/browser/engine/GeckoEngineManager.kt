@@ -3770,9 +3770,18 @@ class GeckoEngineManager private constructor(private val context: Context) {
 
   // --- High-Level Navigation & Session Commands ---
 
-  private fun loadErrorUri(tabId: String, errorUri: String) {
+  private fun loadErrorUri(tabId: String, errorUri: String, retryCount: Int = 0) {
     if (Looper.myLooper() != Looper.getMainLooper() && Looper.getMainLooper().thread != Thread.currentThread()) {
-      mainHandler.post { loadErrorUri(tabId, errorUri) }
+      mainHandler.post { loadErrorUri(tabId, errorUri, retryCount) }
+      return
+    }
+    if (_initState.value == GeckoInitState.NOT_STARTED) {
+      initializeRuntimeAsync()
+    }
+    val isRuntimeReady = (_initState.value == GeckoInitState.READY && (runtime != null || uriLoaderForTest != null))
+    if (!isRuntimeReady) {
+      if (_initState.value == GeckoInitState.FAILED || retryCount >= 20) return
+      mainHandler.postDelayed({ loadErrorUri(tabId, errorUri, retryCount + 1) }, 500)
       return
     }
     val tab = TabManager.getInstance().getTab(tabId)

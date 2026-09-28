@@ -3093,13 +3093,8 @@ private fun BoxScope.PageLoadingIndicator(
   } else {
     0.15f
   }
-  val animProgress by animateFloatAsState(
-    targetValue = effectiveProg,
-    animationSpec = tween(durationMillis = 200, easing = LinearOutSlowInEasing),
-    label = "top_bar_loading_progress"
-  )
   androidx.compose.material3.LinearProgressIndicator(
-    progress = { animProgress },
+    progress = { effectiveProg },
     modifier = Modifier
       .fillMaxWidth()
       .height(3.dp)
