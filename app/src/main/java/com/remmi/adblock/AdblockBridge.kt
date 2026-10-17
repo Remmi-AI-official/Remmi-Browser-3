@@ -1301,7 +1301,11 @@ class AdblockBridge {
   }
 
   fun shouldBlock(url: String, sourceUrl: String = "", resourceType: String = "other"): Boolean {
-    return evaluateDecision(url, sourceUrl, resourceType = resourceType).blocked
+    val decision = evaluateDecision(url, sourceUrl, resourceType = resourceType)
+    if (decision.ruleId == "invalid_url") {
+      throw IllegalArgumentException("Invalid URL: $url")
+    }
+    return decision.blocked
   }
 
   private fun returnDecision(url: String, decision: BlockDecision): BlockDecision {
