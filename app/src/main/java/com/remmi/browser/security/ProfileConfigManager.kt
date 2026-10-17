@@ -150,10 +150,10 @@ class ProfileConfigManager(private val context: Context) {
       appendLine("""user_pref("general.smoothScroll.msdPhysics.continuousMode", false);""")
       appendLine("""user_pref("apz.overscroll.enabled", true);""")
       appendLine("""user_pref("apz.allow_zooming", true);""")
-      appendLine("""user_pref("apz.paint_skipping.enabled", false);""")
-      appendLine("""user_pref("apz.peek_messages.enabled", false);""")
-      appendLine("""user_pref("image.mem.surfacecache.max_size_kb", 24576);""")
-      appendLine("""user_pref("browser.low_end_device_optimizations", true);""")
+      appendLine("""user_pref("apz.paint_skipping.enabled", true);""")
+      appendLine("""user_pref("apz.peek_messages.enabled", true);""")
+      appendLine("""user_pref("image.mem.surfacecache.max_size_kb", 65536);""")
+      appendLine("""user_pref("browser.low_end_device_optimizations", false);""")
       appendLine()
       appendLine("// Form & Password Manager Engine Integration")
       appendLine("""user_pref("signon.rememberSignons", true);""")
@@ -261,12 +261,12 @@ class ProfileConfigManager(private val context: Context) {
       appendLine("""user_pref("general.smoothScroll", true);""")
       appendLine("""user_pref("general.smoothScroll.msdPhysics.enabled", false);""")
       appendLine("""user_pref("general.smoothScroll.msdPhysics.continuousMode", false);""")
-      appendLine("""user_pref("apz.paint_skipping.enabled", false);""")
-      appendLine("""user_pref("apz.peek_messages.enabled", false);""")
+      appendLine("""user_pref("apz.paint_skipping.enabled", true);""")
+      appendLine("""user_pref("apz.peek_messages.enabled", true);""")
       appendLine("""user_pref("browser.cache.memory.enable", true);""")
       appendLine("""user_pref("browser.cache.memory.capacity", 16384);""")
-      appendLine("""user_pref("image.mem.surfacecache.max_size_kb", 24576);""")
-      appendLine("""user_pref("browser.low_end_device_optimizations", true);""")
+      appendLine("""user_pref("image.mem.surfacecache.max_size_kb", 65536);""")
+      appendLine("""user_pref("browser.low_end_device_optimizations", false);""")
     }
   }
 
@@ -323,8 +323,8 @@ class ProfileConfigManager(private val context: Context) {
       appendLine("  general.smoothScroll: true")
       appendLine("  browser.cache.memory.enable: true")
       appendLine("  browser.cache.memory.capacity: 16384")
-      appendLine("  image.mem.surfacecache.max_size_kb: 24576")
-      appendLine("  browser.low_end_device_optimizations: true")
+      appendLine("  image.mem.surfacecache.max_size_kb: 65536")
+      appendLine("  browser.low_end_device_optimizations: false")
     }
   }
 
@@ -351,8 +351,8 @@ class ProfileConfigManager(private val context: Context) {
       appendLine("  privacy.reduceTimerPrecision: true")
       appendLine("  privacy.reduceTimerPrecision.microseconds: 2000")
       appendLine("  general.smoothScroll: true")
-      appendLine("  image.mem.surfacecache.max_size_kb: 24576")
-      appendLine("  browser.low_end_device_optimizations: true")
+      appendLine("  image.mem.surfacecache.max_size_kb: 65536")
+      appendLine("  browser.low_end_device_optimizations: false")
     }
   }
 
@@ -485,6 +485,11 @@ class ProfileConfigManager(private val context: Context) {
       return false
     }
 
+    val hasLegacyScrollFlickerFlags =
+      content.contains(""""apz.paint_skipping.enabled", false""") ||
+      content.contains(""""apz.peek_messages.enabled", false""") ||
+      content.contains(""""browser.low_end_device_optimizations", true""")
+
     return when (mode) {
       Mode.SHIELD -> {
         content.contains("network.trr.mode") &&
@@ -493,7 +498,8 @@ class ProfileConfigManager(private val context: Context) {
         content.contains("dom.webaudio.enabled") &&
         content.contains("privacy.resistFingerprinting.randomDataOnCanvasExtract") &&
         !content.contains("gfx.webrender.all") &&
-        !content.contains("layers.acceleration.force-enabled")
+        !content.contains("layers.acceleration.force-enabled") &&
+        !hasLegacyScrollFlickerFlags
       }
       Mode.TOR -> {
         content.contains("network.proxy.type") &&
@@ -502,7 +508,8 @@ class ProfileConfigManager(private val context: Context) {
         content.contains("dom.maxHardwareConcurrency") &&
         content.contains("privacy.resistFingerprinting.autoDeclineNoUserInputCanvasPrompts") &&
         !content.contains("gfx.webrender.all") &&
-        !content.contains("layers.acceleration.force-enabled")
+        !content.contains("layers.acceleration.force-enabled") &&
+        !hasLegacyScrollFlickerFlags
       }
     }
   }

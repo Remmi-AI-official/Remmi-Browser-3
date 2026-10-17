@@ -75,7 +75,7 @@ object HangWatchdog {
         }
         latch.await()
       } catch (_: Throwable) {}
-    }, 500L, 500L, TimeUnit.MILLISECONDS)
+    }, 2500L, 2500L, TimeUnit.MILLISECONDS)
   }
 
   /**

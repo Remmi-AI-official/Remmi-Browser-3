@@ -104,7 +104,15 @@ class MainActivity : FragmentActivity() {
           synchronized(pendingPermissionCallbacks) {
             pendingPermissionCallbacks.add(permissions to onResult)
           }
-          requestPermissionLauncher.launch(ungranted.toTypedArray())
+          try {
+            requestPermissionLauncher.launch(ungranted.toTypedArray())
+          } catch (e: Exception) {
+            android.util.Log.w("MainActivity", "Permission launch failed (lifecycle state): ${e.message}")
+            synchronized(pendingPermissionCallbacks) {
+              pendingPermissionCallbacks.removeAll { it.second === onResult }
+            }
+            onResult(permissions.associateWith { false })
+          }
         }
       }
     }
@@ -291,6 +299,13 @@ class MainActivity : FragmentActivity() {
         }
       }
     }
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    // Prevent GeckoView / SurfaceView hierarchy state from bloating the Binder parcel
+    // (TransactionTooLargeException) or causing duplicate session restoration crashes on resume.
+    outState.remove("android:viewHierarchyState")
   }
 
   override fun onStop() {

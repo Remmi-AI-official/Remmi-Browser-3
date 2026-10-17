@@ -76,16 +76,9 @@ fun BrowserView(
 
   var geckoViewRef by remember { mutableStateOf<GeckoView?>(null) }
   var swipeRefreshRef by remember { mutableStateOf<WebSwipeRefreshLayout?>(null) }
-  var isCurrentlyLoading by remember(tab.id) { mutableStateOf(tab.isLoading) }
-  var progressFloat by remember(tab.id) { mutableFloatStateOf(if (tab.isLoading) (tab.progress.coerceAtLeast(15).toFloat() / 100f) else 0f) }
 
-  LaunchedEffect(tab.isLoading, tab.progress) {
-    isCurrentlyLoading = tab.isLoading
-    if (tab.isLoading) {
-      val prog = if (tab.progress > 0) (tab.progress.toFloat() / 100f).coerceIn(0.15f, 1f) else 0.15f
-      progressFloat = prog
-    } else {
-      progressFloat = 0f
+  LaunchedEffect(tab.isLoading) {
+    if (!tab.isLoading) {
       swipeRefreshRef?.isRefreshing = false
     }
   }
@@ -126,20 +119,15 @@ fun BrowserView(
 
       override fun onProgressChange(progress: Int) {
         if (progress in 1..99) {
-          isCurrentlyLoading = true
-          progressFloat = (progress.toFloat() / 100f).coerceIn(0.08f, 1f) // local, sasta
           val last = lastForwardedProgress.get()
           if (last < 0 || kotlin.math.abs(progress - last) >= 5) { // >=5% tabhi forward
             lastForwardedProgress.set(progress)
             currentOnProgressChange(progress)
           }
         } else if (progress >= 100) {
-          isCurrentlyLoading = false
-          progressFloat = 1f
           lastForwardedProgress.set(100)
           currentOnProgressChange(100)
         } else {
-          progressFloat = 0f
           lastForwardedProgress.set(0)
           currentOnProgressChange(0)
         }
@@ -150,12 +138,8 @@ fun BrowserView(
           Log.i("BrowserView", "[FORENSIC][SUPPRESS_TRANSIENT_LOADING_STOP] tabId=${tab.id} isLoading=false suppressed during REAL_NAVIGATION_IN_PROGRESS")
           return
         }
-        isCurrentlyLoading = isLoading
         currentOnLoadingChange(isLoading)
-        if (isLoading) {
-          if (progressFloat <= 0f) progressFloat = 0.15f
-        } else {
-          progressFloat = 0f
+        if (!isLoading) {
           android.util.Log.i("AppStartup", "STATE_LOG: FIRST_PAGE_STOP (time=${android.os.SystemClock.elapsedRealtime()})")
           // Isolation step: disabled automatic thumbnail capture on page stop to prevent capturePixels() from blocking or causing flicker
           // val isRealWebUrl = tab.url.isNotBlank() && tab.url != "about:blank" && tab.url != "remmi://newtab" && tab.url != "about:home"
@@ -421,6 +405,8 @@ fun BrowserView(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
           )
+          isSaveEnabled = false
+          isSaveFromParentEnabled = false
           setBackgroundColor(surfaceColor)
           isEnabled = isRealWebPage
           setColorSchemeColors(
@@ -481,6 +467,7 @@ fun BrowserView(
           (targetGeckoView.parent as? ViewGroup)?.removeView(targetGeckoView)
           targetGeckoView.setBackgroundColor(surfaceColor)
           targetGeckoView.tag = tab.id
+          targetGeckoView.setDynamicToolbarMaxHeight(0)
           swipeLayout.addView(targetGeckoView)
           // Atomically remove old views only after the target replacement view is attached
           for (i in swipeLayout.childCount - 1 downTo 0) {
@@ -491,8 +478,9 @@ fun BrowserView(
           }
         }
         val geckoView = targetGeckoView
-        geckoView.alpha = 1f
-        geckoView.setDynamicToolbarMaxHeight(0)
+        if (geckoView.alpha != 1f) {
+          geckoView.alpha = 1f
+        }
         geckoViewRef = geckoView
         val prevTag = geckoView.tag as? String
         val isTagMatch = prevTag == tab.id
@@ -535,16 +523,9 @@ fun BrowserView(
             geckoView.canScrollVertically(-1)
           }
         }
-        swipeLayout.setOnRefreshListener {
-          geckoEngine.reload(tab.id)
+        if (swipeLayout.isEnabled != isRealWebPage) {
+          swipeLayout.isEnabled = isRealWebPage
         }
-        swipeLayout.isEnabled = isRealWebPage
-        swipeLayout.setColorSchemeColors(
-          primaryColorInt,
-          swipeSchemeColor2,
-          swipeSchemeColor3
-        )
-        swipeLayout.setProgressBackgroundColorSchemeColor(progressBgColor)
         if (!tab.isLoading && swipeLayout.isRefreshing) {
           swipeLayout.isRefreshing = false
         }
@@ -567,17 +548,5 @@ fun BrowserView(
         swipeRefreshRef = null
       },
     )
-
-    if (isCurrentlyLoading && progressFloat in 0.01f..0.99f) {
-      LinearProgressIndicator(
-        progress = { progressFloat },
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(2.5.dp)
-          .align(Alignment.TopCenter),
-        color = if (tab.profile == PrivacyProfile.GHOST) ThemeCyber.colors.torPurple else ThemeCyber.colors.primary,
-        trackColor = Color.Transparent,
-      )
-    }
   }
 }

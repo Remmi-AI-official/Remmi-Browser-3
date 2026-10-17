@@ -479,36 +479,7 @@ fun TerminalUrlBar(
             }
           }
           
-          // Integrated Micro Loading Indicator at bottom edge of address bar capsule
-          if (isLoading) {
-            val infiniteTransition = rememberInfiniteTransition(label = "url_shimmer")
-            val shimmerAlpha by infiniteTransition.animateFloat(
-              initialValue = 0.4f,
-              targetValue = 1f,
-              animationSpec = infiniteRepeatable(
-                animation = tween(700, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
-              ),
-              label = "shimmer_alpha"
-            )
-            Box(
-              modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .height(2.dp)
-                .clip(RoundedCornerShape(bottomStart = 23.dp, bottomEnd = 23.dp))
-                .background(
-                  Brush.horizontalGradient(
-                    colors = listOf(
-                      accentColor.copy(alpha = 0.2f),
-                      accentColor.copy(alpha = shimmerAlpha),
-                      ThemeCyber.colors.secondary.copy(alpha = shimmerAlpha),
-                      accentColor.copy(alpha = 0.2f)
-                    )
-                  )
-                )
-            )
-          }
+          // Top loading progress is handled cleanly by PageLoadingIndicator in BrowserScreen
         }
       }
 

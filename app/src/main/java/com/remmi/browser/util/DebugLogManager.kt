@@ -121,6 +121,16 @@ object DebugLogManager {
     }
   }
 
+  private val REGEX_DOWNLOAD_URL = Regex("""downloadUrl=(https?://[^\s]+)""")
+  private val REGEX_STORAGE_URL = Regex("""https?://([a-zA-Z0-9.\-]+(?:\.googleusercontent\.com|\.amazonaws\.com|\.storage\.googleapis\.com|\.core\.windows\.net))/[^\s]*""")
+  private val REGEX_QUERY_PARAMS = Regex("""(https?://[^\s?#]+)\?[^\s]*""")
+  private val REGEX_PRIVATE_FILE = Regex("""file:///(?:data/user/\d+|data/data)/[^\s/]+/([^\s]+)""")
+  private val REGEX_CONTENT_URI = Regex("""content://[^\s]+""")
+  private val REGEX_BEARER = Regex("""(?i)\bBearer\s+[A-Za-z0-9\-._~+/=]+""")
+  private val REGEX_BASIC = Regex("""(?i)Basic\s+[A-Za-z0-9+/=]+""")
+  private val REGEX_SECRETS = Regex("""(?i)\b(authorization|bearer|token|password|passwd|secret|cookie|set-cookie|key|pin|passphrase|signature|sig|access_token|refresh_token|id_token|session_token|auth_token)\s*[:=]\s*([^\s,;]+)""")
+  private val REGEX_ONION_QUERY = Regex("""([a-z2-7]{56}\.onion)/[^\s?#]*\?[^\s]*""")
+
   fun sanitize(message: String): String {
     // Fast path: if the string does not contain URLs, headers, or credential markers, skip all regex work
     val hasUrl = message.contains("://") || message.contains(".onion")
@@ -134,7 +144,7 @@ object DebugLogManager {
 
     // 1. Redact downloadUrl=... in any log message to strictly hide signed URLs
     if (sanitized.contains("downloadUrl=")) {
-      sanitized = sanitized.replace(Regex("""downloadUrl=(https?://[^\s]+)""")) { mr ->
+      sanitized = sanitized.replace(REGEX_DOWNLOAD_URL) { mr ->
         val rawUrl = mr.groupValues[1]
         val host = UrlSanitizer.extractHost(rawUrl)
         val hash = UrlSanitizer.sha256(rawUrl)
@@ -144,7 +154,7 @@ object DebugLogManager {
 
     // 2. Redact signed storage URLs pointing to cloud buckets
     if (sanitized.contains(".com/") || sanitized.contains(".net/")) {
-      sanitized = sanitized.replace(Regex("""https?://([a-zA-Z0-9.\-]+(?:\.googleusercontent\.com|\.amazonaws\.com|\.storage\.googleapis\.com|\.core\.windows\.net))/[^\s]*""")) { mr ->
+      sanitized = sanitized.replace(REGEX_STORAGE_URL) { mr ->
         val host = mr.groupValues[1]
         val hash = UrlSanitizer.sha256(mr.value)
         "https://$host/[REDACTED_STORAGE_URL]?urlHash=$hash"
@@ -153,17 +163,17 @@ object DebugLogManager {
 
     // 3. Redact query parameters in standard URLs
     if (sanitized.contains("?")) {
-      sanitized = sanitized.replace(Regex("""(https?://[^\s?#]+)\?[^\s]*""")) { mr ->
+      sanitized = sanitized.replace(REGEX_QUERY_PARAMS) { mr ->
         "${mr.groupValues[1]}?[REDACTED_QUERY]"
       }
     }
 
     // 4. Redact private file:// and content:// URLs
     if (sanitized.contains("file://") || sanitized.contains("content://")) {
-      sanitized = sanitized.replace(Regex("""file:///(?:data/user/\d+|data/data)/[^\s/]+/([^\s]+)""")) { mr ->
+      sanitized = sanitized.replace(REGEX_PRIVATE_FILE) { mr ->
         "file://[REDACTED_PRIVATE_APP_DIR]/${mr.groupValues[1]}"
       }
-      sanitized = sanitized.replace(Regex("""content://[^\s]+""")) {
+      sanitized = sanitized.replace(REGEX_CONTENT_URI) {
         "content://[REDACTED_CONTENT_URI]"
       }
     }
@@ -176,25 +186,23 @@ object DebugLogManager {
         lower.contains("signature") || lower.contains("sig") || lower.contains("auth")) {
       // 5. Redact standalone Bearer tokens
       if (lower.contains("bearer")) {
-        sanitized = sanitized.replace(Regex("""(?i)\bBearer\s+[A-Za-z0-9\-._~+/=]+"""), "Bearer [REDACTED]")
+        sanitized = sanitized.replace(REGEX_BEARER, "Bearer [REDACTED]")
       }
 
       // 6. Redact Basic auth blobs
       if (lower.contains("basic")) {
-        sanitized = sanitized.replace(Regex("""(?i)Basic\s+[A-Za-z0-9+/=]+"""), "Basic [REDACTED]")
+        sanitized = sanitized.replace(REGEX_BASIC, "Basic [REDACTED]")
       }
 
       // 7. Redact authorization headers, bearer tokens, passwords, cookies, secrets, signatures
-      sanitized = sanitized.replace(
-        Regex("""(?i)\b(authorization|bearer|token|password|passwd|secret|cookie|set-cookie|key|pin|passphrase|signature|sig|access_token|refresh_token|id_token|session_token|auth_token)\s*[:=]\s*([^\s,;]+)""")
-      ) { mr ->
+      sanitized = sanitized.replace(REGEX_SECRETS) { mr ->
         "${mr.groupValues[1]}: [REDACTED]"
       }
     }
 
     // 8. Redact Onion addresses query params or paths
     if (sanitized.contains(".onion")) {
-      sanitized = sanitized.replace(Regex("""([a-z2-7]{56}\.onion)/[^\s?#]*\?[^\s]*""")) { mr ->
+      sanitized = sanitized.replace(REGEX_ONION_QUERY) { mr ->
         "${mr.groupValues[1]}/[REDACTED_PATH]?[REDACTED_QUERY]"
       }
     }

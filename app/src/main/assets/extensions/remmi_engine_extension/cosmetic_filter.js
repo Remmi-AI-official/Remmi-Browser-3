@@ -19,9 +19,16 @@
   let scanTimer = null;
   let batchInjectTimer = null;
   let isInflight = false;
+  let lastScrollTime = 0;
   const pendingClassesSet = new Set();
   const pendingIdsSet = new Set();
   let domObserver = null;
+
+  try {
+    window.addEventListener('scroll', function () {
+      lastScrollTime = Date.now();
+    }, { passive: true, capture: true });
+  } catch (_e) {}
 
   // Used to prevent extremely malformed selectors from crashing the style injection
   function isSafeCssSelector(selector) {
@@ -67,12 +74,27 @@
       return;
     }
 
+    // If user is actively scrolling after initial page load, defer style mutation until scroll settles
+    // to prevent mid-scroll CSSOM invalidation and fixed/sticky top menu flickering.
+    if (document.readyState === 'complete' && lastScrollTime > 0 && (Date.now() - lastScrollTime) < 220) {
+      batchInjectTimer = setTimeout(flushPendingInjections, 220);
+      return;
+    }
+
     const chunk = PENDING_INJECTIONS.splice(0, PENDING_INJECTIONS.length);
     if (styleEl.sheet) {
-      for (let i = 0; i < chunk.length; i++) {
+      const GROUP_SIZE = 32;
+      for (let i = 0; i < chunk.length; i += GROUP_SIZE) {
+        const sub = chunk.slice(i, i + GROUP_SIZE);
         try {
-          styleEl.sheet.insertRule(chunk[i] + ' { display: none !important; }', styleEl.sheet.cssRules.length);
-        } catch (_e) {}
+          styleEl.sheet.insertRule(sub.join(', ') + ' { display: none !important; }', styleEl.sheet.cssRules.length);
+        } catch (_groupErr) {
+          for (let j = 0; j < sub.length; j++) {
+            try {
+              styleEl.sheet.insertRule(sub[j] + ' { display: none !important; }', styleEl.sheet.cssRules.length);
+            } catch (_e) {}
+          }
+        }
       }
     } else {
       const cssText = chunk.join(',\n') + ' { display: none !important; }\n';
@@ -188,6 +210,10 @@
     if (scanTimer) return;
     scanTimer = setTimeout(() => {
       scanTimer = null;
+      if (lastScrollTime > 0 && (Date.now() - lastScrollTime) < 220) {
+        scheduleScan();
+        return;
+      }
       flushDynamicSelectors();
     }, 350);
   }
@@ -257,7 +283,13 @@
             }
           }
         } else if (m.type === 'attributes') {
-          if (collectNode(m.target)) {
+          const targetEl = m.target;
+          const tag = targetEl && targetEl.tagName;
+          // Ignore scroll-driven sticky header class toggles on root/navigation containers
+          if (tag === 'HEADER' || tag === 'NAV' || tag === 'BODY' || tag === 'HTML') {
+            continue;
+          }
+          if (collectNode(targetEl)) {
             shouldScan = true;
           }
         }

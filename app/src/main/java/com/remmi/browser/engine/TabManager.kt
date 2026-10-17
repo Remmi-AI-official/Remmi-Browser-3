@@ -61,11 +61,14 @@ class TabManager {
   private fun startTrackerFlushLoop() {
     scope.launch {
       while (isActive) {
-        delay(5000L)
+        delay(12000L)
         if (isAutoFlushEnabled) {
           try {
-            // Only flush for the currently active tab during polling to prevent whole-app recomposition stutter
-            flushPendingTrackerStats(activeTab?.id)
+            val currentActive = activeTab
+            if (currentActive != null && !currentActive.isLoading) {
+              // Only flush for the currently active tab when idle to prevent mid-load/mid-scroll recomposition stutter
+              flushPendingTrackerStats(currentActive.id)
+            }
           } catch (_: Exception) {}
         }
       }

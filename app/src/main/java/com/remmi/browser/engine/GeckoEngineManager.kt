@@ -254,6 +254,8 @@ class GeckoEngineManager private constructor(private val context: Context) {
       isFocusable = true
       isFocusableInTouchMode = true
       isNestedScrollingEnabled = false
+      isSaveEnabled = false
+      isSaveFromParentEnabled = false
       setDynamicToolbarMaxHeight(0)
       tag = tabId
     }
@@ -262,6 +264,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
   }
 
   private val attachedViews = mutableMapOf<String, GeckoView>()
+  private val tabActiveStates = java.util.concurrent.ConcurrentHashMap<String, Boolean>()
   // Guards against duplicate attachView() calls racing from AndroidView/factory and lifecycle ON_RESUME.
   private val attachingTabs = mutableSetOf<String>()
   private val onionFallbackAttempts = java.util.Collections.synchronizedSet(mutableSetOf<String>())
@@ -862,18 +865,38 @@ class GeckoEngineManager private constructor(private val context: Context) {
   }
 
   fun getMemoryForensicSnapshot(trigger: String): String {
-    if (!com.remmi.browser.BuildConfig.DEBUG && trigger == "NAV_START") {
+    if (!com.remmi.browser.BuildConfig.DEBUG && (trigger == "NAV_START" || trigger == "NAV_STOP")) {
       return ""
     }
-    val snap = try { com.remmi.browser.util.ProcessMemoryTelemetry.captureSnapshot() } catch (_: Throwable) { null }
+    val isMain = Looper.myLooper() == Looper.getMainLooper()
+    if (isMain && (trigger == "NAV_START" || trigger == "NAV_STOP")) {
+      engineScope.launch(Dispatchers.IO) {
+        try {
+          val snap = com.remmi.browser.util.ProcessMemoryTelemetry.captureSnapshot()
+          val rssMb = snap.rssBytes / (1024 * 1024)
+          val pssMb = snap.pssBytes / (1024 * 1024)
+          val javaUsedMb = snap.javaHeapUsedBytes / (1024 * 1024)
+          val javaMaxMb = snap.javaHeapMaxBytes / (1024 * 1024)
+          val nativeMb = snap.nativeHeapAllocatedBytes / (1024 * 1024)
+          val memMsg = "[FORENSIC][MEMORY_SNAPSHOT] trigger=$trigger rss=${rssMb}MB pss=${pssMb}MB javaHeap=${javaUsedMb}/${javaMaxMb}MB nativeHeap=${nativeMb}MB"
+          com.remmi.browser.util.DebugLogManager.log(memMsg)
+        } catch (_: Throwable) {}
+      }
+      return ""
+    }
+    val snap = try {
+      if (isMain) {
+        com.remmi.browser.util.ProcessMemoryTelemetry.getRecentSnapshots().lastOrNull()
+      } else {
+        com.remmi.browser.util.ProcessMemoryTelemetry.captureSnapshot()
+      }
+    } catch (_: Throwable) { null }
     val rssMb = (snap?.rssBytes ?: 0L) / (1024 * 1024)
     val pssMb = (snap?.pssBytes ?: 0L) / (1024 * 1024)
-    val javaUsedMb = (snap?.javaHeapUsedBytes ?: 0L) / (1024 * 1024)
-    val javaMaxMb = (snap?.javaHeapMaxBytes ?: 0L) / (1024 * 1024)
+    val javaUsedMb = (snap?.javaHeapUsedBytes ?: com.remmi.browser.util.HangWatchdog.getHeapUsedBytes()) / (1024 * 1024)
+    val javaMaxMb = (snap?.javaHeapMaxBytes ?: com.remmi.browser.util.HangWatchdog.getHeapMaxBytes()) / (1024 * 1024)
     val nativeMb = (snap?.nativeHeapAllocatedBytes ?: 0L) / (1024 * 1024)
-    val availBytes = com.remmi.browser.util.HangWatchdog.getAvailableMemBytes(context)
-    val availStr = if (availBytes != null) " availMem=${availBytes / (1024 * 1024)}MB" else ""
-    val memMsg = "[FORENSIC][MEMORY_SNAPSHOT] trigger=$trigger rss=${rssMb}MB pss=${pssMb}MB javaHeap=${javaUsedMb}/${javaMaxMb}MB nativeHeap=${nativeMb}MB$availStr"
+    val memMsg = "[FORENSIC][MEMORY_SNAPSHOT] trigger=$trigger rss=${rssMb}MB pss=${pssMb}MB javaHeap=${javaUsedMb}/${javaMaxMb}MB nativeHeap=${nativeMb}MB"
     if (com.remmi.browser.BuildConfig.DEBUG) {
       Log.d(TAG, memMsg)
     }
@@ -2972,26 +2995,11 @@ class GeckoEngineManager private constructor(private val context: Context) {
         val threadName = Thread.currentThread().name
         val now = android.os.SystemClock.elapsedRealtime()
         
-        val lastDispTime = lastDispatchedTimes[tabId] ?: 0L
-        val isScrolling = (now - lastDispTime) > 1000L && currentScrollPositions[tabId] != null
-        val isNavSuccess = navLoadingStates[tabId] == false
-        
-        val triggerClassification = if (isScrolling) "NORMAL_SCROLL" else "UNKNOWN"
-        val stackTrace = android.util.Log.getStackTraceString(Exception("CONTENT_KILL_CALLSITE"))
-        
-        val killMsg = "[FORENSIC][CONTENT_KILL] tabId=$tabId session=$sessId view=$viewId navId=$navId url=$currUrl gen=$gen isOpen=$isOpen thread=$threadName elapsedRealtime=$now\n[CONTENT_KILL_CALLSITE]\ntabId=$tabId\nsessionId=$sessId\nviewId=$viewId\nurl=$currUrl\ntrigger=onKill_callback\nreason=GECKO_KILL\n[RECOVERY_TRIGGER_CLASSIFICATION]\n$triggerClassification\n$stackTrace"
+        val killMsg = "[FORENSIC][CONTENT_KILL] tabId=$tabId session=$sessId view=$viewId navId=$navId url=$currUrl gen=$gen isOpen=$isOpen thread=$threadName elapsedRealtime=$now"
         Log.e(TAG, killMsg)
         com.remmi.browser.util.DebugLogManager.log(killMsg)
 
-        if (isNavSuccess && currUrl.startsWith("http") && isScrolling) {
-            // A2: SUCCESSFUL PAGE MUST NOT BE RECOVERED blindly. Verify responsiveness (iframe crash false alarm).
-            val suppressMsg = "[FORENSIC][CONTENT_KILL_SUPPRESSED] tabId=$tabId url=$currUrl reason=page_remains_responsive"
-            Log.i(TAG, suppressMsg)
-            com.remmi.browser.util.DebugLogManager.log(suppressMsg)
-            return
-        } else {
-            executeKillRecovery(tabId, session, currUrl)
-        }
+        executeKillRecovery(tabId, session, currUrl)
       }
 
       private fun executeKillRecovery(tabId: String, session: GeckoSession, currUrl: String) {
@@ -3274,9 +3282,9 @@ class GeckoEngineManager private constructor(private val context: Context) {
     }
 
     // 2. BACKGROUND / DETACHED TAB SAFETY
-    // Current code can receive onKill/onCrash while attachedViews[tabId] == null.
-    // Do NOT consume the single per-generation recovery attempt for a detached/background tab.
-    if (!isViewAttached(tabId)) {
+    // Current code can receive onKill/onCrash while attachedViews[tabId] == null or while the app is paused in background.
+    // Do NOT consume the single per-generation recovery attempt while backgrounded/detached.
+    if (!isViewAttached(tabId) || tabActiveStates[tabId] == false) {
       val navId = getActiveNavId(tabId)
       pendingContentRecoveries[tabId] = PendingContentRecovery(
         session = session,
@@ -3285,7 +3293,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
         navId = navId,
         terminationType = terminationType,
       )
-      transitionRecoveryState(tabId, RecoveryState.PENDING_DETACHED, navId, gen, "view_absent_deferred")
+      transitionRecoveryState(tabId, RecoveryState.PENDING_DETACHED, navId, gen, "view_absent_or_background_deferred")
       val defMsg = "[FORENSIC][CONTENT_RECOVERY_DEFERRED] tabId=$tabId session=$sessId view=$viewId navId=$navId url=$currUrl gen=$gen termination=$terminationType elapsedRealtime=$now"
       Log.i(TAG, defMsg)
       com.remmi.browser.util.DebugLogManager.log(defMsg)
@@ -3623,13 +3631,23 @@ class GeckoEngineManager private constructor(private val context: Context) {
       _viewAttachmentStates.getOrPut(entry.key) { MutableStateFlow(false) }.value = false
     }
 
+    tabActiveStates[tabId] = true
     val currentAttachedView = attachedViews[tabId]
     if (existingSession != null && currentAttachedView === geckoView && geckoView.session === existingSession) {
-      val viewId = "0x" + Integer.toHexString(System.identityHashCode(geckoView))
-      val skipMsg = "[FORENSIC] [GECKO_VIEW_ATTACH_RESUME] tabId=$tabId session=$existingSessId view=$viewId gen=$gen reason=idempotency_match elapsedRealtime=${android.os.SystemClock.elapsedRealtime()}"
-      Log.i(TAG, skipMsg)
-      com.remmi.browser.util.DebugLogManager.log(skipMsg)
-      return@withContext
+      sessionCallbacks[tabId] = callbacks
+      val isDeadRealSession = !existingSession.isOpen && existingSession !in pendingGeckoOpenSessions && uriLoaderForTest == null
+      if (!isDeadRealSession) {
+        try {
+          existingSession.setActive(true)
+        } catch (_: Exception) {}
+        val viewId = "0x" + Integer.toHexString(System.identityHashCode(geckoView))
+        val skipMsg = "[FORENSIC] [GECKO_VIEW_ATTACH_RESUME] tabId=$tabId session=$existingSessId view=$viewId gen=$gen reason=idempotency_match elapsedRealtime=${android.os.SystemClock.elapsedRealtime()}"
+        Log.i(TAG, skipMsg)
+        com.remmi.browser.util.DebugLogManager.log(skipMsg)
+        dispatchPendingNavigationIfReady(tabId)
+        resumePendingContentRecoveryIfAny(tabId)
+        return@withContext
+      }
     }
 
     val session = getOrCreateSessionInternal(tabId, profile, securityLevel, containerType, isDesktopMode, openSession = false)
@@ -3732,8 +3750,19 @@ class GeckoEngineManager private constructor(private val context: Context) {
 
   suspend fun setTabActive(tabId: String, active: Boolean) = withContext(Dispatchers.Main.immediate) {
     assertMainThread("SET_TAB_ACTIVE id=$tabId active=$active")
+    tabActiveStates[tabId] = active
     withSession(tabId, "SET_TAB_ACTIVE") { session ->
       try {
+        if (active) {
+          if (pendingContentRecoveries.containsKey(tabId) && isViewAttached(tabId)) {
+            resumePendingContentRecoveryIfAny(tabId)
+            return@withSession
+          }
+          if (!session.isOpen && session !in pendingGeckoOpenSessions && uriLoaderForTest == null && isViewAttached(tabId) && !hasActiveRecovery(tabId)) {
+            handleContentProcessTermination(tabId, session, "KILL")
+            return@withSession
+          }
+        }
         session.setActive(active)
       } catch (e: Exception) {
         Log.w(TAG, "[GECKO] setActive($active) notice: ${e.message}")
@@ -4296,6 +4325,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
     latestLocationUrls.remove(tabId)
     dispatchedNavigationsHistory.remove(tabId)
     currentScrollPositions.remove(tabId)
+    tabActiveStates.remove(tabId)
     val onionPrefix = "$tabId:"
     val onionKeysToRemove = onionHttpFallbackAttempts.keys.filter { it.startsWith(onionPrefix) }
     for (k in onionKeysToRemove) {

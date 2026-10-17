@@ -141,8 +141,9 @@ object NetworkHardening {
       "general.smoothScroll.msdPhysics.continuousMode" to false,
       "apz.overscroll.enabled" to true,
       "apz.allow_zooming" to true,
-      "apz.paint_skipping.enabled" to false,
-      "apz.peek_messages.enabled" to false,
+      "apz.paint_skipping.enabled" to true,
+      "apz.peek_messages.enabled" to true,
+      "browser.low_end_device_optimizations" to false,
       "apz.velocity_bias" to "1.0",
       "layout.css.touch_action.enabled" to true,
       "layout.css.scroll-behavior.enabled" to true,
@@ -155,7 +156,7 @@ object NetworkHardening {
       "browser.cache.memory.enable" to true,
       "browser.cache.memory.capacity" to 16384, // 16MB RAM cache in Ghost mode
       "browser.cache.memory.max_entry_size" to 4096,
-      "image.mem.surfacecache.max_size_kb" to 24576,
+      "image.mem.surfacecache.max_size_kb" to 65536,
       "image.mem.decode_bytes_at_a_time" to 32768,
     )
   }
@@ -220,8 +221,9 @@ object NetworkHardening {
       "general.smoothScroll.msdPhysics.continuousMode" to false,
       "apz.overscroll.enabled" to true,
       "apz.allow_zooming" to true,
-      "apz.paint_skipping.enabled" to false,
-      "apz.peek_messages.enabled" to false,
+      "apz.paint_skipping.enabled" to true,
+      "apz.peek_messages.enabled" to true,
+      "browser.low_end_device_optimizations" to false,
       "apz.velocity_bias" to "1.0",
       "layout.css.touch_action.enabled" to true,
       "layout.css.scroll-behavior.enabled" to true,

@@ -469,14 +469,14 @@ class PermissionSessionManager private constructor() {
       PermissionType.CAMERA -> {
         session.cameraAllowed = false
         session.isCameraActive = false
-        session.activeMediaCallback?.reject()
+        runCatching { session.activeMediaCallback?.reject() }
         session.activeMediaCallback = null
         logSecurity("MEDIA_STOP", "camera=true reason=USER_REVOKED originHash=$originHash tabId=$tabId")
       }
       PermissionType.MICROPHONE -> {
         session.microphoneAllowed = false
         session.isMicrophoneActive = false
-        session.activeMediaCallback?.reject()
+        runCatching { session.activeMediaCallback?.reject() }
         session.activeMediaCallback = null
         logSecurity("MEDIA_STOP", "microphone=true reason=USER_REVOKED originHash=$originHash tabId=$tabId")
       }
@@ -485,7 +485,7 @@ class PermissionSessionManager private constructor() {
         session.microphoneAllowed = false
         session.isCameraActive = false
         session.isMicrophoneActive = false
-        session.activeMediaCallback?.reject()
+        runCatching { session.activeMediaCallback?.reject() }
         session.activeMediaCallback = null
         logSecurity("MEDIA_STOP", "camera=true microphone=true reason=USER_REVOKED originHash=$originHash tabId=$tabId")
       }
