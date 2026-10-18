@@ -39,6 +39,15 @@ class TabThumbnailManagerTest {
     thumbnailManager.captureSkippedCounter.set(0)
   }
 
+  private suspend fun awaitCondition(timeoutMs: Long = 3000L, condition: () -> Boolean): Boolean {
+    val start = System.currentTimeMillis()
+    while (System.currentTimeMillis() - start < timeoutMs) {
+      if (condition()) return true
+      delay(20)
+    }
+    return condition()
+  }
+
   @Test
   fun test1_SaveAndGetThumbnail_MemoryAndDisk() = runBlocking {
     val tabId = "tab_test_1"
@@ -46,8 +55,8 @@ class TabThumbnailManagerTest {
 
     thumbnailManager.saveThumbnail(tabId, bitmap)
 
-    // Wait briefly for background IO save
-    delay(200)
+    val success = awaitCondition { thumbnailManager.getThumbnail(tabId) != null }
+    assertTrue("Loaded thumbnail must not be null within timeout", success)
 
     val loaded = thumbnailManager.getThumbnail(tabId)
     assertNotNull("Loaded thumbnail must not be null", loaded)
@@ -61,20 +70,20 @@ class TabThumbnailManagerTest {
     val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
 
     thumbnailManager.saveThumbnail(tabId, bitmap)
-    delay(200)
+    awaitCondition { thumbnailManager.getThumbnail(tabId) != null }
     assertNotNull(thumbnailManager.getThumbnail(tabId))
 
     thumbnailManager.removeThumbnail(tabId)
-    delay(100)
+    awaitCondition { thumbnailManager.getThumbnail(tabId) == null }
     assertNull(thumbnailManager.getThumbnail(tabId))
     assertFalse(thumbnailManager.thumbnailVersions.value.containsKey(tabId))
 
     // Clear all
     thumbnailManager.saveThumbnail("tab_a", bitmap)
     thumbnailManager.saveThumbnail("tab_b", bitmap)
-    delay(200)
+    awaitCondition { thumbnailManager.getThumbnail("tab_a") != null && thumbnailManager.getThumbnail("tab_b") != null }
     thumbnailManager.clearAll()
-    delay(100)
+    awaitCondition { thumbnailManager.getThumbnail("tab_a") == null && thumbnailManager.getThumbnail("tab_b") == null }
     assertNull(thumbnailManager.getThumbnail("tab_a"))
     assertNull(thumbnailManager.getThumbnail("tab_b"))
     assertTrue(thumbnailManager.thumbnailVersions.value.isEmpty())
