@@ -16,39 +16,32 @@ import org.robolectric.util.ReflectionHelpers
 @Config(sdk = [34])
 class AdblockFallbackTest {
 
+  private lateinit var bridge: AdblockBridge
+
   @Before
   fun setUp() {
-    val bridge = AdblockBridge.getInstance()
-    var attempts = 0
-    while (ReflectionHelpers.getField<AtomicBoolean>(bridge, "isInitializing").get() && attempts < 50) {
-      Thread.sleep(20)
-      attempts++
-    }
-    if (!bridge.isInitialized()) {
-      bridge.initEngine()
-    }
+    bridge = AdblockBridge()
     ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
   }
 
   @After
   fun tearDown() {
-    val bridge = AdblockBridge.getInstance()
-    ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
+    // Isolated instance, no teardown needed
   }
 
   @Test
   fun testHealthyNativeSkipsFallback() {
-    val bridge = AdblockBridge.getInstance()
+    val localBridge = AdblockBridge()
     // Simulate healthy native engine
-    ReflectionHelpers.setField(bridge, "isNativeLoaded", true)
+    ReflectionHelpers.setField(localBridge, "isNativeLoaded", true)
 
     val rules = """
       ||test-healthy-skip.com^
       ||google-analytics.com^
     """.trimIndent()
 
-    val compiledCount = bridge.compileRules(rules)
-    val fallbackEngine = ReflectionHelpers.getField<FallbackEngineSet>(bridge, "activeFallbackEngine")
+    val compiledCount = localBridge.compileRules(rules)
+    val fallbackEngine = ReflectionHelpers.getField<FallbackEngineSet>(localBridge, "activeFallbackEngine")
     
     // Default patterns + domains are always added, but the specific 'rules' string is skipped
     // because parseToFallback should return early when isNativeLoaded = true.
@@ -65,17 +58,17 @@ class AdblockFallbackTest {
 
   @Test
   fun testDegradedNativeBuildsFallback() {
-    val bridge = AdblockBridge.getInstance()
+    val localBridge = AdblockBridge()
     // Simulate degraded/unavailable native engine
-    ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
+    ReflectionHelpers.setField(localBridge, "isNativeLoaded", false)
 
     val rules = """
       ||test-degraded-build.com^
       ||google-analytics.com^
     """.trimIndent()
 
-    val compiledCount = bridge.compileRules(rules)
-    val fallbackEngine = ReflectionHelpers.getField<FallbackEngineSet>(bridge, "activeFallbackEngine")
+    val compiledCount = localBridge.compileRules(rules)
+    val fallbackEngine = ReflectionHelpers.getField<FallbackEngineSet>(localBridge, "activeFallbackEngine")
     
     var foundTestDomain = false
     for (netRule in fallbackEngine.fallbackNetworkRules) {
@@ -90,8 +83,8 @@ class AdblockFallbackTest {
 
   @Test
   fun testFallbackRuleOrderingIsIdentical() {
-    val bridge = AdblockBridge.getInstance()
-    ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
+    val localBridge = AdblockBridge()
+    ReflectionHelpers.setField(localBridge, "isNativeLoaded", false)
     
     val rules = """
       ||rule1.com^
@@ -99,8 +92,8 @@ class AdblockFallbackTest {
       ||rule3.com^
     """.trimIndent()
     
-    bridge.compileRules(rules)
-    val fallbackEngine = ReflectionHelpers.getField<FallbackEngineSet>(bridge, "activeFallbackEngine")
+    localBridge.compileRules(rules)
+    val fallbackEngine = ReflectionHelpers.getField<FallbackEngineSet>(localBridge, "activeFallbackEngine")
     
     // Check ordering in fallbackNetworkRules
     val parsedRules = fallbackEngine.fallbackNetworkRules.map { it.raw }

@@ -15,26 +15,22 @@ import org.robolectric.util.ReflectionHelpers
 @Config(sdk = [34])
 class EngineSeparationTest {
 
+    private lateinit var bridge: AdblockBridge
+
     @Before
     fun setUp() {
-        val bridge = AdblockBridge.getInstance()
-        if (!bridge.isInitialized()) {
-            bridge.initEngine()
-        }
+        bridge = AdblockBridge()
         bridge.diagnosticBypassForTesting = false
         ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
     }
 
     @After
     fun tearDown() {
-        val bridge = AdblockBridge.getInstance()
         bridge.diagnosticBypassForTesting = false
-        ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
     }
 
     @Test
     fun test1_defaultEngineNetworkBlock() {
-        val bridge = AdblockBridge.getInstance()
         bridge.compileRules("||default-block.com^", "")
         
         val res = bridge.evaluateDecision("https://default-block.com/ad.js")
@@ -43,7 +39,6 @@ class EngineSeparationTest {
 
     @Test
     fun test2_additionalEngineUnbreak() {
-        val bridge = AdblockBridge.getInstance()
         bridge.compileRules("||unbreak-me.com^", "@@||unbreak-me.com/safe^")
         
         val blockedRes = bridge.evaluateDecision("https://unbreak-me.com/ad.js")
@@ -55,7 +50,6 @@ class EngineSeparationTest {
 
     @Test
     fun test3_networkResultMerging() {
-        val bridge = AdblockBridge.getInstance()
         bridge.compileRules("||domain-a.com^", "||domain-b.com^")
         
         assertTrue(bridge.evaluateDecision("https://domain-a.com/").blocked)
@@ -64,7 +58,6 @@ class EngineSeparationTest {
 
     @Test
     fun test4_defaultCosmeticHideSelector() {
-        val bridge = AdblockBridge.getInstance()
         bridge.compileRules("##.default-hide", "")
         
         val res = bridge.getCosmeticResources("https://example.com/")
@@ -74,7 +67,6 @@ class EngineSeparationTest {
 
     @Test
     fun test5_additionalForceHideSelector() {
-        val bridge = AdblockBridge.getInstance()
         bridge.compileRules("", "##.additional-force-hide")
         
         val res = bridge.getCosmeticResources("https://example.com/")
@@ -83,7 +75,6 @@ class EngineSeparationTest {
 
     @Test
     fun test6_cosmeticExceptions() {
-        val bridge = AdblockBridge.getInstance()
         bridge.compileRules("##.global-ad\nexample.com#@#.global-ad", "")
         
         val res1 = bridge.getCosmeticResources("https://example.com/")
@@ -95,7 +86,6 @@ class EngineSeparationTest {
     
     @Test
     fun test7_shieldStandardVsAggressive() {
-        val bridge = AdblockBridge.getInstance()
         bridge.compileRules("example.com#$#log('test')", "")
         
         val resStandard = bridge.getCosmeticResources("https://example.com/", aggressive = false)

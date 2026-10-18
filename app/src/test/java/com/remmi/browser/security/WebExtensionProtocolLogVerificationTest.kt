@@ -23,7 +23,8 @@ class WebExtensionProtocolLogVerificationTest {
   @After
   fun tearDown() {
     val bridge = AdblockBridge.getInstance()
-    ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
+    val isNative = bridge.isNativeAvailable()
+    ReflectionHelpers.setField(bridge, "isNativeLoaded", isNative)
   }
 
   @Test

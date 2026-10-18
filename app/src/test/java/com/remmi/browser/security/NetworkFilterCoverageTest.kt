@@ -22,13 +22,13 @@ class NetworkFilterCoverageTest {
     @Before
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
-        bridge = AdblockBridge.getInstance()
+        bridge = AdblockBridge()
         ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
     }
 
     @After
     fun tearDown() {
-        ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
+        // Isolated instance, no teardown needed
     }
 
     @Test
