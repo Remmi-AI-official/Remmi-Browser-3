@@ -47,6 +47,12 @@ class ValidationBenchmarkTest {
     ReflectionHelpers.setField(mockSender, "webExtension", mockExtension)
   }
 
+  @org.junit.After
+  fun tearDown() {
+    bridge.loadDefaultTrackerRules(compileToNative = false)
+    ReflectionHelpers.setField(bridge, "isNativeLoaded", false)
+  }
+
   @Suppress("UNCHECKED_CAST")
   private fun extractResult(result: GeckoResult<Any>?): JSONObject? {
     if (result == null) return null
