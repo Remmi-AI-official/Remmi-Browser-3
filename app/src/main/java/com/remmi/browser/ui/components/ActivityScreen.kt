@@ -94,14 +94,14 @@ fun ActivityScreen(
 
     // Brand color & theme helpers
     val isLight = ThemeCyber.colors.isLight
-    val accentColor = if (isLight) Color(0xFF1A73E8) else Color(0xFF00E5FF)
-    val accentContainerColor = if (isLight) Color(0xFFE8F0FE) else Color(0x2600E5FF)
-    val surfaceCardColor = if (isLight) Color(0xFFFFFFFF) else Color(0xFF131722)
-    val surfaceBorderColor = if (isLight) Color(0xFFE2E8F0) else Color(0xFF222938)
-    val backgroundScreenColor = if (isLight) Color(0xFFF8FAFC) else Color(0xFF0A0D14)
-    val textPrimaryColor = if (isLight) Color(0xFF0F172A) else Color(0xFFF1F5F9)
-    val textSecondaryColor = if (isLight) Color(0xFF64748B) else Color(0xFF94A3B8)
-    val textMutedColor = if (isLight) Color(0xFF94A3B8) else Color(0xFF64748B)
+    val accentColor = ThemeCyber.colors.primary
+    val accentContainerColor = ThemeCyber.colors.primary.copy(alpha = 0.14f)
+    val surfaceCardColor = ThemeCyber.colors.surface
+    val surfaceBorderColor = ThemeCyber.colors.surfaceBorder
+    val backgroundScreenColor = ThemeCyber.colors.background
+    val textPrimaryColor = ThemeCyber.colors.textPrimary
+    val textSecondaryColor = ThemeCyber.colors.textSecondary
+    val textMutedColor = ThemeCyber.colors.textMuted
 
     Column(
         modifier = Modifier

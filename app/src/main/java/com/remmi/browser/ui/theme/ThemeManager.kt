@@ -1,7 +1,6 @@
 package com.remmi.browser.ui.theme
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -20,84 +19,88 @@ enum class CyberTheme(
 ) {
   NORMAL_DEFAULT(
     id = "NORMAL_DEFAULT",
-    displayName = "NORMAL DEFAULT",
-    subtitle = "Standard Light Chrome Browser",
-    primaryAccent = Color(0xFF1A73E8),
-    secondaryAccent = Color(0xFF1A73E8),
-    tertiaryAccent = Color(0xFF1A73E8),
-    glowColor = Color(0x00000000), // No glow
-    hexCode = "#1A73E8",
+    displayName = "Warm Sand Notes",
+    subtitle = "Warm paper notes & colorful pictorial icons",
+    primaryAccent = Color(0xFFD96B27),
+    secondaryAccent = Color(0xFF2E7D5B),
+    tertiaryAccent = Color(0xFF6E48AA),
+    glowColor = Color(0x00000000),
+    hexCode = "#D96B27",
     isLight = true,
     isNormalTheme = true,
   ),
   MINIMAL_DARK(
     id = "MINIMAL_DARK",
-    displayName = "NORMAL (DARK)",
-    subtitle = "Standard dark browser theme",
-    primaryAccent = Color(0xFF8AB4F8),
-    secondaryAccent = Color(0xFF8AB4F8),
-    tertiaryAccent = Color(0xFF8AB4F8),
-    glowColor = Color(0x00000000), // No glow
-    hexCode = "#8AB4F8",
+    displayName = "Charcoal Notes Dark",
+    subtitle = "Warm dark slate notes & vibrant badges",
+    primaryAccent = Color(0xFFF08C4B),
+    secondaryAccent = Color(0xFF4CC38A),
+    tertiaryAccent = Color(0xFFA78BFA),
+    glowColor = Color(0x00000000),
+    hexCode = "#F08C4B",
     isLight = false,
     isNormalTheme = true,
   ),
   JARVIS(
     id = "JARVIS",
-    displayName = "J.A.R.V.I.S",
-    subtitle = "Tactical Hologram & Neural Core",
-    primaryAccent = Color(0xFF00E5FF),
-    secondaryAccent = Color(0xFFFF007F),
-    tertiaryAccent = Color(0xFFFFE600),
-    glowColor = Color(0x4000E5FF),
-    hexCode = "#00E5FF",
-    isLight = false,
-    isNormalTheme = false,
+    displayName = "Ocean Note Blue",
+    subtitle = "Crisp cobalt ink & sky note cards",
+    primaryAccent = Color(0xFF2563EB),
+    secondaryAccent = Color(0xFF0D9488),
+    tertiaryAccent = Color(0xFF7C3AED),
+    glowColor = Color(0x00000000),
+    hexCode = "#2563EB",
+    isLight = true,
+    isNormalTheme = true,
   ),
   STARK_IND(
     id = "STARK_IND",
-    displayName = "STARK IND",
-    subtitle = "Arc Reactor Amber & High Voltage",
-    primaryAccent = Color(0xFFFFC400),
-    secondaryAccent = Color(0xFFFF3D00),
-    tertiaryAccent = Color(0xFF00E5FF),
-    glowColor = Color(0x40FFC400),
-    hexCode = "#FFC400",
-    isLight = false,
-    isNormalTheme = false,
+    displayName = "Amber Journal",
+    subtitle = "Golden honey notes & warm terracotta",
+    primaryAccent = Color(0xFFD97706),
+    secondaryAccent = Color(0xFFEA580C),
+    tertiaryAccent = Color(0xFF2E7D5B),
+    glowColor = Color(0x00000000),
+    hexCode = "#D97706",
+    isLight = true,
+    isNormalTheme = true,
   ),
   VERONICA(
     id = "VERONICA",
-    displayName = "VERONICA",
-    subtitle = "Hulkbuster Crimson & Orbital Defense",
-    primaryAccent = Color(0xFFFF1744),
-    secondaryAccent = Color(0xFFD500F9),
-    tertiaryAccent = Color(0xFFFFD600),
-    glowColor = Color(0x40FF1744),
-    hexCode = "#FF1744",
-    isLight = false,
-    isNormalTheme = false,
+    displayName = "Rose Berry Notes",
+    subtitle = "Soft coral rose & plum studio cards",
+    primaryAccent = Color(0xFFE11D48),
+    secondaryAccent = Color(0xFF9333EA),
+    tertiaryAccent = Color(0xFFD97706),
+    glowColor = Color(0x00000000),
+    hexCode = "#E11D48",
+    isLight = true,
+    isNormalTheme = true,
   ),
   CYBER_MATRIX(
     id = "CYBER_MATRIX",
-    displayName = "CYBER MATRIX",
-    subtitle = "Subroutine Emerald & Mainframe Feed",
-    primaryAccent = Color(0xFF00E676),
-    secondaryAccent = Color(0xFF00E5FF),
-    tertiaryAccent = Color(0xFF76FF03),
-    glowColor = Color(0x4000E676),
-    hexCode = "#00E676",
-    isLight = false,
-    isNormalTheme = false,
+    displayName = "Sage Mint Journal",
+    subtitle = "Botanical emerald & forest note cards",
+    primaryAccent = Color(0xFF16A34A),
+    secondaryAccent = Color(0xFF0D9488),
+    tertiaryAccent = Color(0xFF2563EB),
+    glowColor = Color(0x00000000),
+    hexCode = "#16A34A",
+    isLight = true,
+    isNormalTheme = true,
   );
 
   companion object {
+    val LIGHT_MINIMAL: CyberTheme get() = NORMAL_DEFAULT
+    val SOLAR_GOLD: CyberTheme get() = STARK_IND
+    val PASTEL_DREAM: CyberTheme get() = VERONICA
+
     fun fromId(id: String?): CyberTheme {
       return when (id?.uppercase()) {
-        "NORMAL_DEFAULT", "NORMAL DEFAULT", "MINIMAL_LIGHT", "NORMAL (LIGHT)", "DEFAULT", "LIGHT" -> NORMAL_DEFAULT
+        "NORMAL_DEFAULT", "NORMAL DEFAULT", "MINIMAL_LIGHT", "NORMAL (LIGHT)", "DEFAULT", "LIGHT", "LIGHT_MINIMAL" -> NORMAL_DEFAULT
         "MINIMAL_DARK", "NORMAL_DARK", "NORMAL (DARK)", "DARK" -> MINIMAL_DARK
-        "STARK_IND", "STARK" -> STARK_IND
-        "VERONICA" -> VERONICA
+        "STARK_IND", "STARK", "SOLAR_GOLD" -> STARK_IND
+        "VERONICA", "PASTEL_DREAM" -> VERONICA
         "CYBER_MATRIX", "MATRIX" -> CYBER_MATRIX
         "JARVIS" -> JARVIS
         else -> entries.firstOrNull { it.id.equals(id, ignoreCase = true) } ?: NORMAL_DEFAULT
@@ -119,13 +122,13 @@ data class CyberColorScheme(
   val textPrimary: Color,
   val textSecondary: Color,
   val textMuted: Color,
-  val neonCyan: Color = Color(0xFF00FFFF),
-  val dangerRed: Color = Color(0xFFD93025),
-  val successGreen: Color = Color(0xFF137333),
-  val warningYellow: Color = Color(0xFFE37400),
-  val torPurple: Color = Color(0xFF7B1FA2),
-  val successContainer: Color = Color(0xFFE6F4EA),
-  val dangerContainer: Color = Color(0xFFFCE8E6),
+  val neonCyan: Color = Color(0xFF0D9488),
+  val dangerRed: Color = Color(0xFFDC2626),
+  val successGreen: Color = Color(0xFF16A34A),
+  val warningYellow: Color = Color(0xFFD97706),
+  val torPurple: Color = Color(0xFF6E48AA),
+  val successContainer: Color = Color(0xFFDCFCE7),
+  val dangerContainer: Color = Color(0xFFFEE2E2),
   val isLight: Boolean = true,
   val isNormalTheme: Boolean = true,
 )
@@ -135,15 +138,15 @@ val LocalCyberColors = staticCompositionLocalOf {
     primary = CyberTheme.NORMAL_DEFAULT.primaryAccent,
     secondary = CyberTheme.NORMAL_DEFAULT.secondaryAccent,
     tertiary = CyberTheme.NORMAL_DEFAULT.tertiaryAccent,
-    background = Color(0xFFF8F9FA),
-    backgroundDarker = Color(0xFFFFFFFF),
-    surface = Color(0xFFFFFFFF),
-    surfaceLight = Color(0xFFF1F3F4),
-    surfaceBorder = Color(0xFFDADCE0),
+    background = Color(0xFFF7F3EB),
+    backgroundDarker = Color(0xFFEFE9DD),
+    surface = Color(0xFFFFFDF9),
+    surfaceLight = Color(0xFFF3EDE2),
+    surfaceBorder = Color(0xFFE5DEC9),
     glow = Color(0x00000000),
-    textPrimary = Color(0xFF202124),
-    textSecondary = Color(0xFF5F6368),
-    textMuted = Color(0xFF70757A),
+    textPrimary = Color(0xFF1F1C18),
+    textSecondary = Color(0xFF5C554C),
+    textMuted = Color(0xFF857D73),
     isLight = true,
     isNormalTheme = true,
   )

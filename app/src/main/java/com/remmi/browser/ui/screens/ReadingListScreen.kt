@@ -110,25 +110,14 @@ fun ReadingListScreen(
   val database = (dbState as? RemmiDatabase.DatabaseState.Ready)?.database
   val isLight = ThemeCyber.colors.isLight
 
-  // Theme Colors - Enhanced for punchy, rock-solid visibility ("visibility tagadi")
-  val bgColor = if (isLight) Color(0xFFF8FAFC) else Color(0xFF090D16)
-  val cardBg = if (isLight) Color.White else Color(0xFF131B26)
-  val borderColor = if (isLight) Color(0xFFE2E8F0) else Color(0xFF1E293B)
-  val textColor = if (isLight) Color(0xFF0F172A) else Color(0xFFF8FAFC)
-  val subtextColor = if (isLight) Color(0xFF475569) else Color(0xFF94A3B8)
-  val rawPrimary = ThemeCyber.colors.primary
-  // High contrast accent for text & interactive highlights
-  val accentColor = if (isLight) {
-    when {
-      rawPrimary == Color(0xFFFFC400) || rawPrimary == Color(0xFFFFE600) -> Color(0xFFD97706) // Deep Amber
-      rawPrimary == Color(0xFF00E5FF) || rawPrimary == Color(0xFF00FFFF) -> Color(0xFF0284C7) // Azure
-      rawPrimary == Color(0xFF00E676) || rawPrimary == Color(0xFF00FF66) -> Color(0xFF059669) // Deep Emerald
-      else -> Color(0xFF1D4ED8) // Deep Sapphire Blue
-    }
-  } else {
-    rawPrimary
-  }
-  val primaryCyan = if (isLight) Color(0xFF0284C7) else Color(0xFF00E5FF)
+  // Theme Colors - Warm Notes paper aesthetic
+  val bgColor = ThemeCyber.colors.background
+  val cardBg = ThemeCyber.colors.surface
+  val borderColor = ThemeCyber.colors.surfaceBorder
+  val textColor = ThemeCyber.colors.textPrimary
+  val subtextColor = ThemeCyber.colors.textSecondary
+  val accentColor = ThemeCyber.colors.primary
+  val primaryCyan = ThemeCyber.colors.secondary
 
   // Live Database Queries
   val allReadings by remember(database) {

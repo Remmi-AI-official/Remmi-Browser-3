@@ -33,6 +33,7 @@ import com.remmi.browser.security.TorCircuit
 import com.remmi.browser.security.TorManager
 import com.remmi.browser.storage.SettingsRepository
 import com.remmi.browser.ui.theme.CyberMonoFamily
+import com.remmi.browser.ui.theme.PictorialIconBadge
 import com.remmi.browser.ui.theme.ThemeCyber
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -688,16 +689,18 @@ private fun TrackerStatRow(
     horizontalArrangement = Arrangement.SpaceBetween
   ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-      Icon(
-        imageVector = icon,
-        contentDescription = null,
-        tint = tint,
-        modifier = Modifier.size(18.dp)
+      PictorialIconBadge(
+        icon = icon,
+        color = tint,
+        size = 30.dp,
+        iconSize = 15.dp,
+        cornerRadius = 9.dp
       )
       Spacer(modifier = Modifier.width(10.dp))
       Text(
         text = title,
         fontSize = 13.sp,
+        fontWeight = FontWeight.Medium,
         color = ThemeCyber.colors.textPrimary
       )
     }

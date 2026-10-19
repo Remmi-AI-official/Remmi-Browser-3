@@ -54,6 +54,7 @@ import com.remmi.browser.R
 import com.remmi.browser.util.DefaultBrowserHelper
 import com.remmi.browser.ui.components.GlitchText
 import com.remmi.browser.ui.theme.CyberMonoFamily
+import com.remmi.browser.ui.theme.PictorialIconBadge
 import com.remmi.browser.ui.theme.ThemeCyber
 
 @Composable
@@ -259,26 +260,19 @@ private fun FeatureRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clip(RoundedCornerShape(8.dp))
+      .clip(RoundedCornerShape(16.dp))
       .background(ThemeCyber.colors.surface)
-      .border(0.8.dp, color.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-      .padding(12.dp),
+      .border(1.dp, ThemeCyber.colors.surfaceBorder, RoundedCornerShape(16.dp))
+      .padding(14.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Box(
-      modifier = Modifier
-        .size(32.dp)
-        .clip(RoundedCornerShape(6.dp))
-        .background(color.copy(alpha = 0.15f)),
-      contentAlignment = Alignment.Center,
-    ) {
-      Icon(
-        imageVector = icon,
-        contentDescription = null,
-        tint = color,
-        modifier = Modifier.size(18.dp),
-      )
-    }
+    PictorialIconBadge(
+      icon = icon,
+      color = color,
+      size = 40.dp,
+      iconSize = 20.dp,
+      cornerRadius = 12.dp,
+    )
 
     Spacer(modifier = Modifier.width(12.dp))
 
@@ -287,7 +281,7 @@ private fun FeatureRow(
         text = title,
         color = ThemeCyber.colors.textPrimary,
         fontFamily = ThemeCyber.fontFamily,
-        fontSize = 12.sp,
+        fontSize = 13.sp,
         fontWeight = FontWeight.Bold,
       )
       Spacer(modifier = Modifier.height(2.dp))
@@ -295,8 +289,8 @@ private fun FeatureRow(
         text = desc,
         color = ThemeCyber.colors.textSecondary,
         fontFamily = ThemeCyber.fontFamily,
-        fontSize = 10.sp,
-        lineHeight = 14.sp,
+        fontSize = 11.sp,
+        lineHeight = 15.sp,
       )
     }
   }

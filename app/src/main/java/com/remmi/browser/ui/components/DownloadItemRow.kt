@@ -114,17 +114,7 @@ fun DownloadItemRow(
   val isCancelled = item.status == "CANCELLED"
   val isActive = isCurrentlyDownloading && !isPaused
 
-  // Pulsing animation for active downloads
-  val infiniteTransition = rememberInfiniteTransition(label = "download_pulse")
-  val pulseAlpha by infiniteTransition.animateFloat(
-    initialValue = 0.4f,
-    targetValue = 1f,
-    animationSpec = infiniteRepeatable(
-      animation = tween(800, easing = LinearEasing),
-      repeatMode = RepeatMode.Reverse
-    ),
-    label = "alpha_pulse"
-  )
+  val pulseAlpha = 0.85f
 
   val itemBorderColor = when {
     isActive -> effectiveColor.copy(alpha = pulseAlpha)

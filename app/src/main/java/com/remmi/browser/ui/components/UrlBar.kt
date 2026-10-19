@@ -70,6 +70,8 @@ import com.remmi.browser.storage.RemmiDatabase
 import com.remmi.browser.storage.SearchEngine
 import com.remmi.browser.storage.SettingsRepository
 import com.remmi.browser.ui.theme.CyberMonoFamily
+import com.remmi.browser.ui.theme.PictorialIconBadge
+import com.remmi.browser.ui.theme.PictorialPalette
 import com.remmi.browser.ui.theme.ThemeCyber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -216,25 +218,26 @@ fun TerminalUrlBar(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-      // Home Button
+      // Home Button with Pictorial Badge
       IconButton(
         onClick = onHomeClick,
         modifier = Modifier.size(36.dp)
       ) {
-        Icon(
-          imageVector = Icons.Outlined.Home,
-          contentDescription = "Home",
-          tint = ThemeCyber.colors.textPrimary,
-          modifier = Modifier.size(22.dp)
+        PictorialIconBadge(
+          icon = Icons.Outlined.Home,
+          color = PictorialPalette.Amber,
+          size = 30.dp,
+          iconSize = 17.dp,
+          cornerRadius = 9.dp
         )
       }
 
-      // Address Bar Pill Container
+      // Address Bar Note Card Container
       Surface(
-        shape = RoundedCornerShape(23.dp),
+        shape = RoundedCornerShape(16.dp),
         color = ThemeCyber.colors.surface,
         border = BorderStroke(1.1.dp, borderColor),
-        shadowElevation = if (isEditing) 6.dp else 2.dp,
+        shadowElevation = if (isEditing) 4.dp else 1.dp,
         modifier = Modifier
           .weight(1f)
           .fillMaxHeight()
@@ -242,15 +245,7 @@ fun TerminalUrlBar(
         Box(
           modifier = Modifier
             .fillMaxSize()
-            .background(
-              Brush.horizontalGradient(
-                colors = listOf(
-                  ThemeCyber.colors.surface,
-                  ThemeCyber.colors.surfaceLight.copy(alpha = 0.65f),
-                  ThemeCyber.colors.surface
-                )
-              )
-            )
+            .background(ThemeCyber.colors.surface)
         ) {
           Row(
             modifier = Modifier
@@ -761,11 +756,12 @@ private fun SuggestionRow(
       .padding(horizontal = 12.dp, vertical = 7.dp),
     verticalAlignment = Alignment.CenterVertically
   ) {
-    Icon(
-      imageVector = icon,
-      contentDescription = null,
-      tint = iconTint,
-      modifier = Modifier.size(18.dp)
+    PictorialIconBadge(
+      icon = icon,
+      color = iconTint,
+      size = 30.dp,
+      iconSize = 15.dp,
+      cornerRadius = 9.dp
     )
 
     Spacer(modifier = Modifier.width(10.dp))

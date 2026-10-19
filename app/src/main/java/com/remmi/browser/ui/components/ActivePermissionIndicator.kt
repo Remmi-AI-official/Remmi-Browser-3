@@ -65,16 +65,7 @@ fun ActivePermissionToolbarIndicator(
 
   var showInspectorDialog by remember { mutableStateOf(false) }
 
-  val infiniteTransition = rememberInfiniteTransition(label = "indicator_pulse")
-  val pulseAlpha by infiniteTransition.animateFloat(
-    initialValue = 0.4f,
-    targetValue = 1f,
-    animationSpec = infiniteRepeatable(
-      animation = tween(600, easing = LinearEasing),
-      repeatMode = RepeatMode.Reverse
-    ),
-    label = "pulse"
-  )
+  val pulseAlpha = 0.85f
 
   Surface(
     shape = RoundedCornerShape(12.dp),

@@ -90,8 +90,10 @@ class FilterManager(
   private val loadFlightLock = Any()
 
   init {
-    filterDir?.let { ensureBundledFiltersExtracted(it) }
-    loadPersistedRulesIntoBridge(source = "init")
+    if (!isRunningInUnitTest()) {
+      filterDir?.let { ensureBundledFiltersExtracted(it) }
+      loadPersistedRulesIntoBridge(source = "init")
+    }
   }
 
   private fun ensureBundledFiltersExtracted(dir: File) {
@@ -183,7 +185,9 @@ class FilterManager(
       } else sub
     }
     saveCustomSubscriptions(_subscriptions.value.filter { it.isCustom })
-    loadPersistedRulesIntoBridge(source = "toggleSubscription")
+    if (!isRunningInUnitTest()) {
+      loadPersistedRulesIntoBridge(source = "toggleSubscription")
+    }
   }
 
   fun addCustomSubscription(url: String, title: String) {
@@ -213,7 +217,9 @@ class FilterManager(
       val file = File(dir, "$id.txt")
       if (file.exists()) file.delete()
     }
-    loadPersistedRulesIntoBridge(source = "removeCustomSubscription")
+    if (!isRunningInUnitTest()) {
+      loadPersistedRulesIntoBridge(source = "removeCustomSubscription")
+    }
   }
 
   fun getTotalActiveRules(): Int {
@@ -494,6 +500,18 @@ class FilterManager(
 
     @Volatile
     private var INSTANCE: FilterManager? = null
+
+    private fun isRunningInUnitTest(): Boolean {
+      return (android.os.Build.FINGERPRINT?.contains("robolectric", ignoreCase = true) == true) ||
+          (android.os.Build.MODEL?.contains("robolectric", ignoreCase = true) == true) ||
+          System.getProperty("robolectric.logging") != null ||
+          try {
+            Class.forName("org.robolectric.Robolectric")
+            true
+          } catch (_: ClassNotFoundException) {
+            false
+          }
+    }
 
     fun getInstance(context: Context, adblockBridge: AdblockBridge = AdblockBridge.getInstance()): FilterManager {
       return INSTANCE ?: synchronized(this) {

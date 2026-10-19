@@ -17,9 +17,11 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -120,7 +122,9 @@ import com.remmi.browser.ui.components.BackgroundTypes
 import com.remmi.browser.ui.theme.BrowserFont
 import com.remmi.browser.ui.theme.CyberMonoFamily
 import com.remmi.browser.ui.theme.CyberTheme
+import com.remmi.browser.ui.theme.PictorialIconBadge
 import com.remmi.browser.ui.theme.ThemeCyber
+import com.remmi.browser.ui.theme.pictorialColorFor
 
 /**
  * Settings Categories for clean, modular browser configuration screens.
@@ -227,12 +231,12 @@ fun SettingsScreen(
   }
 
   val isLight = ThemeCyber.colors.isLight
-  val pageBg = if (isLight) Color(0xFFF8FAFC) else Color(0xFF070B13)
-  val cardBg = if (isLight) Color(0xFFFFFFFF) else Color(0xFF0E1726)
-  val cardBorder = if (isLight) Color(0xFFE2E8F0) else Color(0xFF1E293B)
-  val textPrimaryColor = if (isLight) Color(0xFF0F172A) else Color(0xFFF8FAFC)
-  val textSecondaryColor = if (isLight) Color(0xFF64748B) else Color(0xFF94A3B8)
-  val topBarTitleColor = if (isLight) Color(0xFF1E40AF) else Color(0xFFFFFFFF)
+  val pageBg = ThemeCyber.colors.background
+  val cardBg = ThemeCyber.colors.surface
+  val cardBorder = ThemeCyber.colors.surfaceBorder
+  val textPrimaryColor = ThemeCyber.colors.textPrimary
+  val textSecondaryColor = ThemeCyber.colors.textSecondary
+  val topBarTitleColor = ThemeCyber.colors.textPrimary
 
   var showPanicDialog by remember { mutableStateOf(false) }
   var showResetDefaultsDialog by remember { mutableStateOf(false) }
@@ -866,140 +870,138 @@ private fun SettingsHeroHeaderCard(
   textPrimary: Color,
   textSecondary: Color
 ) {
+  val primaryColor = ThemeCyber.colors.primary
+  val secondaryColor = ThemeCyber.colors.secondary
+
   Card(
-    shape = RoundedCornerShape(18.dp),
+    shape = RoundedCornerShape(20.dp),
     colors = CardDefaults.cardColors(containerColor = cardBg),
     modifier = Modifier
       .fillMaxWidth()
-      .border(0.8.dp, cardBorder, RoundedCornerShape(18.dp))
+      .border(1.dp, cardBorder, RoundedCornerShape(20.dp))
   ) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(5.dp)
+          .background(primaryColor)
+      )
       Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.weight(1f)
+        horizontalArrangement = Arrangement.SpaceBetween
       ) {
-        // Glowing Icon Badge
-        Box(
-          modifier = Modifier
-            .size(46.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (isLight) Color(0xFFEFF6FF) else Color(0xFF0C213B)),
-          contentAlignment = Alignment.Center
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.weight(1f)
         ) {
-          Icon(
-            imageVector = Icons.Default.Shield,
-            contentDescription = null,
-            tint = if (isLight) Color(0xFF2563EB) else Color(0xFF38BDF8),
-            modifier = Modifier.size(26.dp)
+          PictorialIconBadge(
+            icon = Icons.Default.Shield,
+            color = primaryColor,
+            size = 48.dp,
+            iconSize = 25.dp,
+            cornerRadius = 15.dp
           )
+
+          Spacer(modifier = Modifier.width(12.dp))
+
+          Column {
+            Text(
+              text = "Remmi Browser",
+              color = textPrimary,
+              fontSize = 16.sp,
+              fontWeight = FontWeight.ExtraBold
+            )
+            Spacer(modifier = Modifier.height(1.dp))
+            Text(
+              text = "Version 1.0.2 • Privacy Notes Edition",
+              color = textSecondary,
+              fontSize = 11.5.sp
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Surface(
+              shape = RoundedCornerShape(10.dp),
+              color = secondaryColor.copy(alpha = 0.14f)
+            ) {
+              Row(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                verticalAlignment = Alignment.CenterVertically
+              ) {
+                Icon(
+                  imageVector = Icons.Default.Shield,
+                  contentDescription = null,
+                  tint = secondaryColor,
+                  modifier = Modifier.size(11.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                  text = "Secure & Protected",
+                  color = secondaryColor,
+                  fontSize = 10.5.sp,
+                  fontWeight = FontWeight.Bold
+                )
+              }
+            }
+          }
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
-        Column {
-          Text(
-            text = "REMMI BROWSER",
-            color = if (isLight) Color(0xFF1D4ED8) else Color(0xFFFFFFFF),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.ExtraBold,
-            letterSpacing = 0.5.sp
-          )
-          Spacer(modifier = Modifier.height(1.dp))
-          Text(
-            text = "Version 1.0.2 • Cyber Matrix Core",
-            color = textSecondary,
-            fontSize = 11.sp
-          )
-          Spacer(modifier = Modifier.height(6.dp))
-          // Status Pill Badge
+        if (isDefaultBrowser) {
           Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = if (isLight) Color(0xFFDBEAFE) else Color(0xFF172554)
+            shape = RoundedCornerShape(10.dp),
+            color = secondaryColor.copy(alpha = 0.15f),
+            border = BorderStroke(1.dp, secondaryColor.copy(alpha = 0.4f))
           ) {
             Row(
-              modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-              verticalAlignment = Alignment.CenterVertically
+              modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
               Icon(
-                imageVector = Icons.Default.Shield,
+                imageVector = Icons.Default.Check,
                 contentDescription = null,
-                tint = if (isLight) Color(0xFF1D4ED8) else Color(0xFF60A5FA),
-                modifier = Modifier.size(11.dp)
+                tint = secondaryColor,
+                modifier = Modifier.size(12.dp)
               )
-              Spacer(modifier = Modifier.width(4.dp))
               Text(
-                text = "Secure & Protected",
-                color = if (isLight) Color(0xFF1D4ED8) else Color(0xFF60A5FA),
-                fontSize = 10.5.sp,
+                text = "DEFAULT",
+                color = secondaryColor,
+                fontSize = 10.sp,
                 fontWeight = FontWeight.Bold
               )
             }
           }
-        }
-      }
-
-      Spacer(modifier = Modifier.width(8.dp))
-
-      // "DEFAULT APP" status badge or trigger button
-      if (isDefaultBrowser) {
-        Surface(
-          shape = RoundedCornerShape(8.dp),
-          color = if (isLight) Color(0xFFDCFCE7) else Color(0xFF052E16),
-          border = BorderStroke(1.dp, Color(0xFF22C55E))
-        ) {
-          Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        } else {
+          Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = primaryColor.copy(alpha = 0.14f),
+            border = BorderStroke(1.dp, primaryColor.copy(alpha = 0.45f)),
+            modifier = Modifier
+              .clickable { onSetDefaultClick() }
+              .testTag("settings_hero_set_default_btn")
           ) {
-            Icon(
-              imageVector = Icons.Default.Check,
-              contentDescription = null,
-              tint = if (isLight) Color(0xFF16A34A) else Color(0xFF22C55E),
-              modifier = Modifier.size(12.dp)
-            )
-            Text(
-              text = "DEFAULT",
-              color = if (isLight) Color(0xFF16A34A) else Color(0xFF22C55E),
-              fontSize = 10.sp,
-              fontWeight = FontWeight.Bold,
-              fontFamily = CyberMonoFamily
-            )
-          }
-        }
-      } else {
-        Surface(
-          shape = RoundedCornerShape(8.dp),
-          color = if (isLight) Color(0xFFEFF6FF) else Color(0xFF1E3A8A).copy(alpha = 0.4f),
-          border = BorderStroke(1.dp, if (isLight) Color(0xFF2563EB) else Color(0xFF38BDF8)),
-          modifier = Modifier
-            .clickable { onSetDefaultClick() }
-            .testTag("settings_hero_set_default_btn")
-        ) {
-          Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-          ) {
-            Icon(
-              imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-              contentDescription = null,
-              tint = if (isLight) Color(0xFF1D4ED8) else Color(0xFF38BDF8),
-              modifier = Modifier.size(12.dp)
-            )
-            Text(
-              text = "SET DEFAULT",
-              color = if (isLight) Color(0xFF1D4ED8) else Color(0xFF38BDF8),
-              fontSize = 10.sp,
-              fontWeight = FontWeight.ExtraBold,
-              fontFamily = CyberMonoFamily
-            )
+            Row(
+              modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+              Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = primaryColor,
+                modifier = Modifier.size(12.dp)
+              )
+              Text(
+                text = "SET DEFAULT",
+                color = primaryColor,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.ExtraBold
+              )
+            }
           }
         }
       }
@@ -1007,11 +1009,6 @@ private fun SettingsHeroHeaderCard(
   }
 }
 
-/**
- * Category Item Card matching screenshot:
- * [ Icon in squircle ] Title                >
- *                      Subtitle (with bullets)
- */
 @Composable
 private fun SettingsCategoryItemCard(
   icon: ImageVector,
@@ -1031,85 +1028,105 @@ private fun SettingsCategoryItemCard(
     colors = CardDefaults.cardColors(containerColor = cardBg),
     modifier = modifier
       .fillMaxWidth()
-      .border(0.8.dp, cardBorder, RoundedCornerShape(18.dp))
+      .border(1.dp, cardBorder, RoundedCornerShape(18.dp))
       .clickable { onClick() }
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 14.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.SpaceBetween
+        .height(IntrinsicSize.Min),
+      verticalAlignment = Alignment.CenterVertically
     ) {
+      // Left colorful Note accent strip
+      Box(
+        modifier = Modifier
+          .width(4.5.dp)
+          .fillMaxHeight()
+          .background(iconTint.copy(alpha = 0.75f))
+      )
       Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 14.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.weight(1f)
+        horizontalArrangement = Arrangement.SpaceBetween
       ) {
-        // Squircle Icon Badge
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          modifier = Modifier.weight(1f)
+        ) {
+          PictorialIconBadge(
+            icon = icon,
+            color = iconTint,
+            size = 42.dp,
+            iconSize = 21.dp,
+            cornerRadius = 13.dp
+          )
+
+          Spacer(modifier = Modifier.width(13.dp))
+
+          Column(modifier = Modifier.weight(1f)) {
+            Text(
+              text = title,
+              color = textPrimary,
+              fontSize = 14.5.sp,
+              fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+              text = subtitle,
+              color = textSecondary,
+              fontSize = 11.5.sp,
+              maxLines = 1
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
         Box(
           modifier = Modifier
-            .size(42.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(badgeBg),
+            .size(26.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(iconTint.copy(alpha = 0.10f)),
           contentAlignment = Alignment.Center
         ) {
           Icon(
-            imageVector = icon,
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = null,
             tint = iconTint,
-            modifier = Modifier.size(22.dp)
-          )
-        }
-
-        Spacer(modifier = Modifier.width(14.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-          Text(
-            text = title,
-            color = textPrimary,
-            fontSize = 14.5.sp,
-            fontWeight = FontWeight.Bold
-          )
-          Spacer(modifier = Modifier.height(2.dp))
-          Text(
-            text = subtitle,
-            color = textSecondary,
-            fontSize = 11.5.sp,
-            maxLines = 1
+            modifier = Modifier.size(14.dp)
           )
         }
       }
-
-      Spacer(modifier = Modifier.width(8.dp))
-
-      Icon(
-        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-        contentDescription = null,
-        tint = textSecondary.copy(alpha = 0.6f),
-        modifier = Modifier.size(16.dp)
-      )
     }
   }
 }
 
-/**
- * Generic Sub-Screen Section Header
- */
 @Composable
 private fun SubSectionHeader(title: String, textSecondary: Color) {
-  Text(
-    text = title.uppercase(),
-    color = textSecondary,
-    fontSize = 11.5.sp,
-    fontWeight = FontWeight.Bold,
-    letterSpacing = 0.8.sp,
-    modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 2.dp)
-  )
+  val accentColor = remember(title) { pictorialColorFor(title) }
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(7.dp),
+    modifier = Modifier.padding(start = 4.dp, top = 10.dp, bottom = 3.dp)
+  ) {
+    Box(
+      modifier = Modifier
+        .size(7.dp)
+        .clip(CircleShape)
+        .background(accentColor)
+    )
+    Text(
+      text = title,
+      color = textSecondary,
+      fontSize = 11.5.sp,
+      fontWeight = FontWeight.Bold,
+      letterSpacing = 0.5.sp
+    )
+  }
 }
 
-/**
- * Generic Sub-Screen Toggle Card with Rounded Corners & Icon Badge
- */
 @Composable
 private fun SubScreenToggleCard(
   icon: ImageVector,
@@ -1125,65 +1142,72 @@ private fun SubScreenToggleCard(
   textSecondary: Color,
   modifier: Modifier = Modifier
 ) {
+  val distinctColor = remember(title) { pictorialColorFor(title) }
   Card(
     shape = RoundedCornerShape(18.dp),
     colors = CardDefaults.cardColors(containerColor = cardBg),
     modifier = modifier
       .fillMaxWidth()
-      .border(0.8.dp, cardBorder, RoundedCornerShape(18.dp))
+      .border(1.dp, cardBorder, RoundedCornerShape(18.dp))
       .clickable { onCheckedChange(!checked) }
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 14.dp, vertical = 13.dp),
+        .height(IntrinsicSize.Min),
       verticalAlignment = Alignment.CenterVertically
     ) {
       Box(
         modifier = Modifier
-          .size(38.dp)
-          .clip(RoundedCornerShape(11.dp))
-          .background(badgeBg),
-        contentAlignment = Alignment.Center
-      ) {
-        Icon(
-          imageVector = icon,
-          contentDescription = null,
-          tint = iconTint,
-          modifier = Modifier.size(20.dp)
-        )
-      }
-
-      Spacer(modifier = Modifier.width(13.dp))
-
-      Column(modifier = Modifier.weight(1f)) {
-        Text(
-          text = title,
-          color = textPrimary,
-          fontSize = 14.sp,
-          fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-          text = subtitle,
-          color = textSecondary,
-          fontSize = 11.sp,
-          lineHeight = 15.sp
-        )
-      }
-
-      Spacer(modifier = Modifier.width(10.dp))
-
-      Switch(
-        checked = checked,
-        onCheckedChange = onCheckedChange,
-        colors = SwitchDefaults.colors(
-          checkedThumbColor = Color.White,
-          checkedTrackColor = iconTint,
-          uncheckedThumbColor = textSecondary,
-          uncheckedTrackColor = cardBorder
-        )
+          .width(4.dp)
+          .fillMaxHeight()
+          .background(if (checked) distinctColor else cardBorder)
       )
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 14.dp, vertical = 13.dp),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        PictorialIconBadge(
+          icon = icon,
+          color = distinctColor,
+          size = 40.dp,
+          iconSize = 20.dp,
+          cornerRadius = 12.dp
+        )
+
+        Spacer(modifier = Modifier.width(13.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text = title,
+            color = textPrimary,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+          )
+          Spacer(modifier = Modifier.height(2.dp))
+          Text(
+            text = subtitle,
+            color = textSecondary,
+            fontSize = 11.5.sp,
+            lineHeight = 15.sp
+          )
+        }
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Switch(
+          checked = checked,
+          onCheckedChange = onCheckedChange,
+          colors = SwitchDefaults.colors(
+            checkedThumbColor = Color.White,
+            checkedTrackColor = distinctColor,
+            uncheckedThumbColor = textSecondary,
+            uncheckedTrackColor = cardBorder
+          )
+        )
+      }
     }
   }
 }
