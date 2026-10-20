@@ -98,7 +98,9 @@ object AntiFingerprint {
         "apz.paint_skipping.enabled" to true,
         "apz.peek_messages.enabled" to true,
         "browser.low_end_device_optimizations" to false,
-        "apz.velocity_bias" to "1.0",
+        "apz.velocity_bias" to "0.0",
+        "apz.y_skate_size_multiplier" to "3.5",
+        "apz.y_stationary_size_multiplier" to "3.5",
         "layout.css.touch_action.enabled" to true,
         "layout.css.scroll-behavior.enabled" to true,
       )
@@ -173,7 +175,9 @@ object AntiFingerprint {
         "apz.paint_skipping.enabled" to true,
         "apz.peek_messages.enabled" to true,
         "browser.low_end_device_optimizations" to false,
-        "apz.velocity_bias" to "1.0",
+        "apz.velocity_bias" to "0.0",
+        "apz.y_skate_size_multiplier" to "3.5",
+        "apz.y_stationary_size_multiplier" to "3.5",
         "layout.css.touch_action.enabled" to true,
         "layout.css.scroll-behavior.enabled" to true,
       )

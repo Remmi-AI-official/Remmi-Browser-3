@@ -24,11 +24,20 @@
   const pendingIdsSet = new Set();
   let domObserver = null;
 
+  let initialCosmeticsApplied = false;
+
   try {
-    window.addEventListener('scroll', function () {
+    const updateScrollTimestamp = function () {
       lastScrollTime = Date.now();
-    }, { passive: true, capture: true });
+    };
+    window.addEventListener('scroll', updateScrollTimestamp, { passive: true, capture: true });
+    window.addEventListener('touchmove', updateScrollTimestamp, { passive: true, capture: true });
+    window.addEventListener('wheel', updateScrollTimestamp, { passive: true, capture: true });
   } catch (_e) {}
+
+  function isActivelyScrolling() {
+    return lastScrollTime > 0 && (Date.now() - lastScrollTime) < 450;
+  }
 
   // Used to prevent extremely malformed selectors from crashing the style injection
   function isSafeCssSelector(selector) {
@@ -74,13 +83,14 @@
       return;
     }
 
-    // If user is actively scrolling after initial page load, defer style mutation until scroll settles
-    // to prevent mid-scroll CSSOM invalidation and fixed/sticky top menu flickering.
-    if (document.readyState === 'complete' && lastScrollTime > 0 && (Date.now() - lastScrollTime) < 220) {
-      batchInjectTimer = setTimeout(flushPendingInjections, 220);
+    // If user is actively scrolling after initial cosmetics are applied, defer style mutation until scroll settles
+    // to prevent mid-scroll CSSOM invalidation and fixed/sticky top section flickering (e.g. GitHub sticky header).
+    if (initialCosmeticsApplied && isActivelyScrolling()) {
+      batchInjectTimer = setTimeout(flushPendingInjections, 450);
       return;
     }
 
+    initialCosmeticsApplied = true;
     const chunk = PENDING_INJECTIONS.splice(0, PENDING_INJECTIONS.length);
     if (styleEl.sheet) {
       const GROUP_SIZE = 32;
@@ -210,12 +220,12 @@
     if (scanTimer) return;
     scanTimer = setTimeout(() => {
       scanTimer = null;
-      if (lastScrollTime > 0 && (Date.now() - lastScrollTime) < 220) {
+      if (isActivelyScrolling()) {
         scheduleScan();
         return;
       }
       flushDynamicSelectors();
-    }, 350);
+    }, 450);
   }
 
   function collectNode(node) {
@@ -269,6 +279,7 @@
     }
 
     domObserver = new MutationObserver((mutations) => {
+      const scrollingNow = isActivelyScrolling();
       let shouldScan = false;
       for (let i = 0; i < mutations.length; i++) {
         const m = mutations[i];
@@ -283,10 +294,13 @@
             }
           }
         } else if (m.type === 'attributes') {
+          // Ignore scroll-driven animation/sticky class toggles while user is actively scrolling
+          if (scrollingNow) {
+            continue;
+          }
           const targetEl = m.target;
           const tag = targetEl && targetEl.tagName;
-          // Ignore scroll-driven sticky header class toggles on root/navigation containers
-          if (tag === 'HEADER' || tag === 'NAV' || tag === 'BODY' || tag === 'HTML') {
+          if (tag === 'HEADER' || tag === 'NAV' || tag === 'BODY' || tag === 'HTML' || tag === 'SECTION') {
             continue;
           }
           if (collectNode(targetEl)) {

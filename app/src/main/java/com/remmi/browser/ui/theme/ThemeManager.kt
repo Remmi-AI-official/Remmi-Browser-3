@@ -19,8 +19,8 @@ enum class CyberTheme(
 ) {
   NORMAL_DEFAULT(
     id = "NORMAL_DEFAULT",
-    displayName = "Warm Sand Notes",
-    subtitle = "Warm paper notes & colorful pictorial icons",
+    displayName = "Warm Sand",
+    subtitle = "Warm paper tones & terracotta accents",
     primaryAccent = Color(0xFFD96B27),
     secondaryAccent = Color(0xFF2E7D5B),
     tertiaryAccent = Color(0xFF6E48AA),
@@ -31,8 +31,8 @@ enum class CyberTheme(
   ),
   MINIMAL_DARK(
     id = "MINIMAL_DARK",
-    displayName = "Charcoal Notes Dark",
-    subtitle = "Warm dark slate notes & vibrant badges",
+    displayName = "Charcoal Dark",
+    subtitle = "Warm dark slate & amber accents",
     primaryAccent = Color(0xFFF08C4B),
     secondaryAccent = Color(0xFF4CC38A),
     tertiaryAccent = Color(0xFFA78BFA),
@@ -43,8 +43,8 @@ enum class CyberTheme(
   ),
   JARVIS(
     id = "JARVIS",
-    displayName = "Ocean Note Blue",
-    subtitle = "Crisp cobalt ink & sky note cards",
+    displayName = "Ocean Blue",
+    subtitle = "Crisp cobalt ink & cyan accents",
     primaryAccent = Color(0xFF2563EB),
     secondaryAccent = Color(0xFF0D9488),
     tertiaryAccent = Color(0xFF7C3AED),
@@ -55,8 +55,8 @@ enum class CyberTheme(
   ),
   STARK_IND(
     id = "STARK_IND",
-    displayName = "Amber Journal",
-    subtitle = "Golden honey notes & warm terracotta",
+    displayName = "Amber Gold",
+    subtitle = "Golden honey & warm terracotta",
     primaryAccent = Color(0xFFD97706),
     secondaryAccent = Color(0xFFEA580C),
     tertiaryAccent = Color(0xFF2E7D5B),
@@ -67,8 +67,8 @@ enum class CyberTheme(
   ),
   VERONICA(
     id = "VERONICA",
-    displayName = "Rose Berry Notes",
-    subtitle = "Soft coral rose & plum studio cards",
+    displayName = "Rose Berry",
+    subtitle = "Soft coral rose & plum accents",
     primaryAccent = Color(0xFFE11D48),
     secondaryAccent = Color(0xFF9333EA),
     tertiaryAccent = Color(0xFFD97706),
@@ -79,8 +79,8 @@ enum class CyberTheme(
   ),
   CYBER_MATRIX(
     id = "CYBER_MATRIX",
-    displayName = "Sage Mint Journal",
-    subtitle = "Botanical emerald & forest note cards",
+    displayName = "Sage Mint",
+    subtitle = "Botanical emerald & forest green",
     primaryAccent = Color(0xFF16A34A),
     secondaryAccent = Color(0xFF0D9488),
     tertiaryAccent = Color(0xFF2563EB),

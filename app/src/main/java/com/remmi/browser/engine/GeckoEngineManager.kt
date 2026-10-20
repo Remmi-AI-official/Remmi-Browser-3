@@ -1915,7 +1915,23 @@ class GeckoEngineManager private constructor(private val context: Context) {
             com.remmi.browser.security.NavigationDecision.SANITIZE_AND_LOAD,
             com.remmi.browser.security.NavigationDecision.REDIRECT_SEARCH -> {
                 if (check.sanitizedUrl != null && check.sanitizedUrl != url) {
-                    session.loadUri(check.sanitizedUrl)
+                    val sanitized = check.sanitizedUrl
+                    if (request.target != GeckoSession.NavigationDelegate.TARGET_WINDOW_NEW) {
+                        lastDispatchedUrls[tabId] = sanitized
+                        inFlightUrls[tabId] = sanitized
+                        presentationTargetUrls[tabId] = sanitized
+                        lastDispatchedTimes[tabId] = now
+                        if (!inFlightNavigations.containsKey(tabId)) {
+                            allocateNavigationGeneration(tabId, "SANITIZE_AND_LOAD", sanitized)
+                        } else {
+                            updatePresentationState(tabId, PresentationState.REAL_NAVIGATION_IN_PROGRESS)
+                        }
+                        navLoadingStates[tabId] = true
+                        TabManager.getInstance().updateTab(tabId) {
+                            it.copy(url = sanitized, isLoading = true, isReaderMode = false, readerArticle = null)
+                        }
+                    }
+                    session.loadUri(sanitized)
                     return GeckoResult.fromValue(AllowOrDeny.DENY)
                 }
             }
@@ -1984,6 +2000,10 @@ class GeckoEngineManager private constructor(private val context: Context) {
         request: GeckoSession.NavigationDelegate.LoadRequest,
         now: Long
       ) {
+        if (request.target == GeckoSession.NavigationDelegate.TARGET_WINDOW_NEW) {
+          // Do not mutate parent tab URL or loading state when opening a link in a new tab (target="_blank")
+          return
+        }
         val activeRecovery = activeRecoveries[tabId]
         if (activeRecovery != null && 
             activeRecovery.session === session && 
@@ -2756,24 +2776,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
         Log.i(TAG, stopMsg)
         com.remmi.browser.util.DebugLogManager.log(stopMsg)
 
-        inFlightNavigations.remove(tabId)
-        inFlightUrls.remove(tabId)
         getMemoryForensicSnapshot("NAV_STOP")
-
-        if (success) {
-          lastSuccessfulNavigations[tabId] = SuccessfulNavRecord(
-            navId = navId,
-            url = currUrl,
-            gen = gen,
-            timestampElapsed = now,
-          )
-          if (com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(currUrl)) {
-            val host = com.remmi.browser.security.NetworkRouteAuthority.extractHostname(currUrl) ?: ""
-            if (host.isNotEmpty()) {
-              resetOnionFallbackState(tabId, host)
-            }
-          }
-        }
 
         val activeRecovery = activeRecoveries[tabId]
         val latestLoc = latestLocationUrls[tabId]
@@ -2809,6 +2812,28 @@ class GeckoEngineManager private constructor(private val context: Context) {
             logRecoveryUrlState(tabId, navId, gen, currUrl, true, activeRecovery.targetUrl, "TRANSIENT_RECOVERY_BLANK", "SUPPRESS_PAGE_STOP")
             return
           }
+        }
+
+        inFlightNavigations.remove(tabId)
+        inFlightUrls.remove(tabId)
+
+        if (success) {
+          lastSuccessfulNavigations[tabId] = SuccessfulNavRecord(
+            navId = navId,
+            url = currUrl,
+            gen = gen,
+            timestampElapsed = now,
+          )
+          if (com.remmi.browser.security.NetworkRouteAuthority.isOnionDestination(currUrl)) {
+            val host = com.remmi.browser.security.NetworkRouteAuthority.extractHostname(currUrl) ?: ""
+            if (host.isNotEmpty()) {
+              resetOnionFallbackState(tabId, host)
+            }
+          }
+        }
+
+        if (isRecoveryActive) {
+          val targetMatches = !isAboutBlank && isRecoveryTargetOrRedirect(currUrl, activeRecovery!!)
 
           if (success && targetMatches) {
             activeRecovery.timeoutRunnable?.let { mainHandler.removeCallbacks(it) }

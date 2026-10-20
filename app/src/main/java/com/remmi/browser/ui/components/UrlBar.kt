@@ -70,8 +70,6 @@ import com.remmi.browser.storage.RemmiDatabase
 import com.remmi.browser.storage.SearchEngine
 import com.remmi.browser.storage.SettingsRepository
 import com.remmi.browser.ui.theme.CyberMonoFamily
-import com.remmi.browser.ui.theme.PictorialIconBadge
-import com.remmi.browser.ui.theme.PictorialPalette
 import com.remmi.browser.ui.theme.ThemeCyber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -218,26 +216,24 @@ fun TerminalUrlBar(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-      // Home Button with Pictorial Badge
+      // Home Button
       IconButton(
         onClick = onHomeClick,
-        modifier = Modifier.size(36.dp)
+        modifier = Modifier.size(34.dp)
       ) {
-        PictorialIconBadge(
-          icon = Icons.Outlined.Home,
-          color = PictorialPalette.Amber,
-          size = 30.dp,
-          iconSize = 17.dp,
-          cornerRadius = 9.dp
+        Icon(
+          imageVector = Icons.Outlined.Home,
+          contentDescription = "Home",
+          tint = accentColor,
+          modifier = Modifier.size(20.dp)
         )
       }
 
-      // Address Bar Note Card Container
+      // Address Bar Container
       Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(10.dp),
         color = ThemeCyber.colors.surface,
-        border = BorderStroke(1.1.dp, borderColor),
-        shadowElevation = if (isEditing) 4.dp else 1.dp,
+        border = BorderStroke(1.dp, borderColor),
         modifier = Modifier
           .weight(1f)
           .fillMaxHeight()
@@ -271,7 +267,7 @@ fun TerminalUrlBar(
               Icons.Default.Warning
             }
             Surface(
-              shape = RoundedCornerShape(12.dp),
+              shape = RoundedCornerShape(6.dp),
               color = badgeColor.copy(alpha = 0.12f),
               border = BorderStroke(0.7.dp, badgeColor.copy(alpha = 0.35f)),
               modifier = Modifier
@@ -756,12 +752,11 @@ private fun SuggestionRow(
       .padding(horizontal = 12.dp, vertical = 7.dp),
     verticalAlignment = Alignment.CenterVertically
   ) {
-    PictorialIconBadge(
-      icon = icon,
-      color = iconTint,
-      size = 30.dp,
-      iconSize = 15.dp,
-      cornerRadius = 9.dp
+    Icon(
+      imageVector = icon,
+      contentDescription = null,
+      tint = iconTint,
+      modifier = Modifier.size(18.dp)
     )
 
     Spacer(modifier = Modifier.width(10.dp))

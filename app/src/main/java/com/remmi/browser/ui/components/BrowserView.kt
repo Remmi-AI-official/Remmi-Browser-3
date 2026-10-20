@@ -378,26 +378,27 @@ fun BrowserView(
   val swipeSchemeColor3 = remember { android.graphics.Color.parseColor("#7C4DFF") }
   val darkSurfaceColor = remember { android.graphics.Color.parseColor("#121824") }
   val darkProgressBgColor = remember { android.graphics.Color.parseColor("#1E2430") }
-  val surfaceColor = if (ThemeCyber.colors.isLight) android.graphics.Color.WHITE else darkSurfaceColor
+  val warmLightSurfaceColor = remember { android.graphics.Color.parseColor("#FAF5EE") }
+  val surfaceColor = if (ThemeCyber.colors.isLight) warmLightSurfaceColor else darkSurfaceColor
   val primaryColorInt = android.graphics.Color.argb(
     (ThemeCyber.colors.primary.alpha * 255).toInt(),
     (ThemeCyber.colors.primary.red * 255).toInt(),
     (ThemeCyber.colors.primary.green * 255).toInt(),
     (ThemeCyber.colors.primary.blue * 255).toInt()
   )
-  val progressBgColor = if (ThemeCyber.colors.isLight) android.graphics.Color.WHITE else darkProgressBgColor
+  val progressBgColor = if (ThemeCyber.colors.isLight) warmLightSurfaceColor else darkProgressBgColor
   val isRealWebPage = !tab.isReaderMode && tab.url.isNotBlank() && tab.url != "about:blank" && tab.url != "remmi://newtab" && tab.url != "about:home"
 
   Box(
     modifier = modifier
       .fillMaxSize()
-      .background(ThemeCyber.colors.surface)
+      .background(ThemeCyber.colors.background)
   ) {
     AndroidView<WebSwipeRefreshLayout>(
       modifier = Modifier
         .fillMaxSize()
         .alpha(1f)
-        .background(ThemeCyber.colors.surface)
+        .background(ThemeCyber.colors.background)
         .testTag("gecko_browser_view"),
       factory = { ctx ->
         val swipeLayout = WebSwipeRefreshLayout(ctx).apply {
@@ -429,7 +430,7 @@ fun BrowserView(
         }
         swipeLayout.canScrollUpCallback = {
           val scrollY = geckoEngine.getScrollY(tab.id)
-          if (scrollY > 5) {
+          if (scrollY > 0) {
             true
           } else {
             gv.canScrollVertically(-1)
@@ -517,7 +518,7 @@ fun BrowserView(
         }
         swipeLayout.canScrollUpCallback = {
           val scrollY = geckoEngine.getScrollY(tab.id)
-          if (scrollY > 5) {
+          if (scrollY > 0) {
             true
           } else {
             geckoView.canScrollVertically(-1)

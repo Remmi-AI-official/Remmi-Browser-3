@@ -60,7 +60,7 @@ fun pictorialColorFor(key: String): Color {
 }
 
 /**
- * Reusable colorful pictorial icon badge with duotone gradient squircle and corner accent dot.
+ * Clean icon container using the active theme palette (Old UI style with current warm colors).
  */
 @Composable
 fun PictorialIconBadge(
@@ -69,45 +69,24 @@ fun PictorialIconBadge(
   modifier: Modifier = Modifier,
   size: Dp = 40.dp,
   iconSize: Dp = 20.dp,
-  cornerRadius: Dp = 13.dp,
+  cornerRadius: Dp = 8.dp,
   contentDescription: String? = null,
 ) {
-  val secondaryTone = PictorialPalette[((color.hashCode() and 0x7FFFFFFF) + 3) % PictorialPalette.size]
-  Surface(
-    shape = RoundedCornerShape(cornerRadius),
-    color = Color.Transparent,
-    border = BorderStroke(0.9.dp, color.copy(alpha = 0.30f)),
-    modifier = modifier.size(size)
+  val effectiveTint = when (color) {
+    PictorialPalette.Rose -> ThemeCyber.colors.dangerRed
+    PictorialPalette.Purple -> ThemeCyber.colors.torPurple
+    else -> ThemeCyber.colors.primary
+  }
+  Box(
+    modifier = modifier.size(size),
+    contentAlignment = Alignment.Center
   ) {
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(
-          Brush.linearGradient(
-            colors = listOf(
-              color.copy(alpha = 0.20f),
-              secondaryTone.copy(alpha = 0.12f)
-            )
-          )
-        ),
-      contentAlignment = Alignment.Center
-    ) {
-      // Pictorial corner sparkle dot
-      Box(
-        modifier = Modifier
-          .align(Alignment.TopEnd)
-          .offset(x = (-5).dp, y = 5.dp)
-          .size(5.dp)
-          .clip(CircleShape)
-          .background(color.copy(alpha = 0.55f))
-      )
-      Icon(
-        imageVector = icon,
-        contentDescription = contentDescription,
-        tint = color,
-        modifier = Modifier.size(iconSize)
-      )
-    }
+    Icon(
+      imageVector = icon,
+      contentDescription = contentDescription,
+      tint = effectiveTint,
+      modifier = Modifier.size(iconSize)
+    )
   }
 }
 

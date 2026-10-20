@@ -181,8 +181,6 @@ import com.remmi.browser.security.ClickTargetCandidate
 import com.remmi.browser.security.GhostRoutePhase
 import com.remmi.browser.engine.BrowserActions
 import com.remmi.browser.ui.theme.CyberMonoFamily
-import com.remmi.browser.ui.theme.PictorialIconBadge
-import com.remmi.browser.ui.theme.PictorialPalette
 import com.remmi.browser.ui.theme.ThemeCyber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -1677,12 +1675,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = if (isFullScreenMode) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
-                    color = PictorialPalette.Sky,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = if (isFullScreenMode) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -1704,21 +1701,12 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  Box(
-                    modifier = Modifier
-                      .size(28.dp)
-                      .clip(RoundedCornerShape(8.dp))
-                      .background(PictorialPalette.Purple.copy(alpha = 0.16f))
-                      .border(1.dp, PictorialPalette.Purple.copy(alpha = 0.35f), RoundedCornerShape(8.dp)),
-                    contentAlignment = Alignment.Center
-                  ) {
-                    Icon(
-                      painter = painterResource(R.drawable.ic_tor),
-                      contentDescription = null,
-                      tint = PictorialPalette.Purple,
-                      modifier = Modifier.size(15.dp)
-                    )
-                  }
+                  Icon(
+                    painter = painterResource(R.drawable.ic_tor),
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.torPurple,
+                    modifier = Modifier.size(20.dp)
+                  )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
                 modifier = Modifier.testTag("menu_new_ghost_tab"),
@@ -1740,12 +1728,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = if (activeTab.isDesktopMode) Icons.Default.DesktopWindows else Icons.Default.Smartphone,
-                    color = PictorialPalette.Indigo,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = if (activeTab.isDesktopMode) Icons.Default.DesktopWindows else Icons.Default.Smartphone,
+                    contentDescription = null,
+                    tint = if (activeTab.isDesktopMode) ThemeCyber.colors.primary else ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 trailingIcon = {
@@ -1779,12 +1766,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.MenuBook,
-                    color = PictorialPalette.Amber,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.MenuBook,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -1805,12 +1791,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Bookmark,
-                    color = PictorialPalette.Coral,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Bookmark,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -1837,12 +1822,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Share,
-                    color = PictorialPalette.Teal,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -1863,12 +1847,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.FindInPage,
-                    color = PictorialPalette.Blue,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.FindInPage,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -1892,12 +1875,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Devices,
-                    color = PictorialPalette.Emerald,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Devices,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -1924,12 +1906,11 @@ fun BrowserScreen(
                     )
                   },
                   leadingIcon = {
-                    PictorialIconBadge(
-                      icon = Icons.Default.Code,
-                      color = PictorialPalette.Indigo,
-                      size = 28.dp,
-                      iconSize = 15.dp,
-                      cornerRadius = 8.dp
+                    Icon(
+                      imageVector = Icons.Default.Code,
+                      contentDescription = null,
+                      tint = ThemeCyber.colors.textPrimary,
+                      modifier = Modifier.size(20.dp)
                     )
                   },
                   contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -1952,12 +1933,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Print,
-                    color = PictorialPalette.Sky,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Print,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -1986,12 +1966,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.PictureAsPdf,
-                    color = PictorialPalette.Rose,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.PictureAsPdf,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -2026,12 +2005,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Bookmark,
-                    color = PictorialPalette.Amber,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Bookmark,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -2053,12 +2031,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.History,
-                    color = PictorialPalette.Sky,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.History,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -2080,12 +2057,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Download,
-                    color = PictorialPalette.Emerald,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Download,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -2106,12 +2082,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Public,
-                    color = PictorialPalette.Teal,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Public,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -2138,12 +2113,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Shield,
-                    color = PictorialPalette.Emerald,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -2165,12 +2139,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.VpnKey,
-                    color = PictorialPalette.Purple,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.VpnKey,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.primary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -2192,12 +2165,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Settings,
-                    color = PictorialPalette.Amber,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.textPrimary,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
@@ -2219,12 +2191,11 @@ fun BrowserScreen(
                   )
                 },
                 leadingIcon = {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Warning,
-                    color = PictorialPalette.Rose,
-                    size = 28.dp,
-                    iconSize = 15.dp,
-                    cornerRadius = 8.dp
+                  Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = ThemeCyber.colors.dangerRed,
+                    modifier = Modifier.size(20.dp)
                   )
                 },
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),

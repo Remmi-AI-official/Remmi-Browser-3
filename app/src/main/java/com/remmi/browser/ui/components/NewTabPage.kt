@@ -72,10 +72,7 @@ import com.remmi.browser.storage.SearchEngine
 import com.remmi.browser.storage.SpeedDialItem
 import com.remmi.browser.ui.theme.CyberMonoFamily
 import com.remmi.browser.ui.theme.CyberTheme
-import com.remmi.browser.ui.theme.PictorialIconBadge
-import com.remmi.browser.ui.theme.PictorialPalette
 import com.remmi.browser.ui.theme.ThemeCyber
-import com.remmi.browser.ui.theme.pictorialColorFor
 import com.remmi.browser.util.DefaultBrowserHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -363,63 +360,51 @@ fun NewTabPage(
         }
 
         Row(
-          horizontalArrangement = Arrangement.spacedBy(10.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
           verticalAlignment = Alignment.CenterVertically
         ) {
-          // Colorful Pictorial Theme Button
           Surface(
-            shape = RoundedCornerShape(13.dp),
+            shape = RoundedCornerShape(12.dp),
             color = cardBg,
             border = BorderStroke(1.dp, cardBorder),
             modifier = Modifier
-              .size(40.dp)
-              .clip(RoundedCornerShape(13.dp))
+              .size(38.dp)
+              .clip(RoundedCornerShape(12.dp))
               .clickable(
                 role = androidx.compose.ui.semantics.Role.Button,
                 onClick = { showThemeDialog = true }
               )
               .testTag("home_theme_toggle_button")
           ) {
-            Box(
-              modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFD96B27).copy(alpha = 0.12f)),
-              contentAlignment = Alignment.Center
-            ) {
+            Box(contentAlignment = Alignment.Center) {
               Icon(
                 imageVector = Icons.Default.Palette,
                 contentDescription = "Switch Theme",
-                tint = Color(0xFFD96B27),
-                modifier = Modifier.size(20.dp)
+                tint = textPrimary,
+                modifier = Modifier.size(19.dp)
               )
             }
           }
 
-          // Colorful Pictorial Settings Button
           Surface(
-            shape = RoundedCornerShape(13.dp),
+            shape = RoundedCornerShape(12.dp),
             color = cardBg,
             border = BorderStroke(1.dp, cardBorder),
             modifier = Modifier
-              .size(40.dp)
-              .clip(RoundedCornerShape(13.dp))
+              .size(38.dp)
+              .clip(RoundedCornerShape(12.dp))
               .clickable(
                 role = androidx.compose.ui.semantics.Role.Button,
                 onClick = onOpenSettings
               )
               .testTag("home_settings_button")
           ) {
-            Box(
-              modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF2563EB).copy(alpha = 0.12f)),
-              contentAlignment = Alignment.Center
-            ) {
+            Box(contentAlignment = Alignment.Center) {
               Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = "Settings",
-                tint = Color(0xFF2563EB),
-                modifier = Modifier.size(20.dp)
+                tint = textPrimary,
+                modifier = Modifier.size(19.dp)
               )
             }
           }
@@ -427,7 +412,7 @@ fun NewTabPage(
       }
 
       // ==========================================
-      // 2. SCROLLABLE NOTES-STYLE HOME CONTENT
+      // 2. SCROLLABLE HOME CONTENT
       // ==========================================
       Column(
         modifier = Modifier
@@ -437,15 +422,15 @@ fun NewTabPage(
           .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
-        // Default Browser Prompt Note Card
+        // Default Browser Prompt Card
         if (!isDefaultBrowser && !isDefaultPromptDismissed) {
           Surface(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(14.dp),
             color = cardBg,
             border = BorderStroke(1.dp, cardBorder),
             modifier = Modifier
               .fillMaxWidth()
-              .padding(bottom = 10.dp)
+              .padding(bottom = 12.dp)
               .testTag("home_set_default_browser_card")
           ) {
             Row(
@@ -460,13 +445,20 @@ fun NewTabPage(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
               ) {
-                PictorialIconBadge(
-                  icon = Icons.Default.Language,
-                  color = Color(0xFF2563EB),
-                  size = 34.dp,
-                  iconSize = 18.dp,
-                  cornerRadius = 10.dp
-                )
+                Box(
+                  modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(colors.primary.copy(alpha = 0.14f)),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.Language,
+                    contentDescription = null,
+                    tint = colors.primary,
+                    modifier = Modifier.size(18.dp)
+                  )
+                }
                 Column(modifier = Modifier.weight(1f)) {
                   Text(
                     text = "Set Remmi as default browser",
@@ -477,7 +469,7 @@ fun NewTabPage(
                     overflow = TextOverflow.Ellipsis
                   )
                   Text(
-                    text = "Open all web links with private note protection",
+                    text = "Fast, private browsing by default",
                     color = textSecondary,
                     fontSize = 10.5.sp,
                     maxLines = 1,
@@ -497,7 +489,7 @@ fun NewTabPage(
                       DefaultBrowserHelper.requestSetDefaultBrowser(activity, defaultBrowserLauncher)
                     }
                   },
-                  shape = RoundedCornerShape(10.dp),
+                  shape = RoundedCornerShape(8.dp),
                   colors = ButtonDefaults.buttonColors(
                     containerColor = colors.primary,
                     contentColor = Color.White
@@ -531,92 +523,70 @@ fun NewTabPage(
         }
 
         // ==========================================
-        // 3. HERO WELCOME NOTE CARD
+        // 3. HERO WELCOME CARD
         // ==========================================
         Surface(
-          shape = RoundedCornerShape(22.dp),
+          shape = RoundedCornerShape(18.dp),
           color = cardBg,
           border = BorderStroke(1.dp, cardBorder),
           modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 14.dp)
         ) {
-          Column(modifier = Modifier.fillMaxWidth()) {
-            // Warm top Note accent bar
-            Box(
-              modifier = Modifier
-                .fillMaxWidth()
-                .height(5.dp)
-                .background(
-                  Brush.horizontalGradient(
-                    colors = listOf(
-                      colors.primary,
-                      colors.secondary,
-                      colors.torPurple
-                    )
-                  )
-                )
-            )
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 14.dp),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 18.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Column(
+              modifier = Modifier.weight(1f),
+              verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-              Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+              Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = colors.primary.copy(alpha = 0.12f)
               ) {
-                Surface(
-                  shape = RoundedCornerShape(8.dp),
-                  color = colors.primary.copy(alpha = 0.12f)
-                ) {
-                  Text(
-                    text = "$greetingText $greetingIcon",
-                    color = colors.primary,
-                    fontSize = 11.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                  )
-                }
-
                 Text(
-                  text = "Remmi Browser",
-                  color = textPrimary,
-                  fontSize = 22.sp,
-                  fontWeight = FontWeight.ExtraBold,
-                  letterSpacing = (-0.3).sp
-                )
-
-                Text(
-                  text = buildAnnotatedString {
-                    append("Explore the web ")
-                    withStyle(SpanStyle(color = colors.primary, fontWeight = FontWeight.Bold)) {
-                      append("privately & smoothly")
-                    }
-                  },
-                  color = textSecondary,
-                  fontSize = 13.sp
+                  text = "$greetingText $greetingIcon",
+                  color = colors.primary,
+                  fontSize = 11.5.sp,
+                  fontWeight = FontWeight.Bold,
+                  modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                 )
               }
 
-              PandaMascotArt(
-                size = 82.dp,
-                isDarkTheme = !isLight,
-                isGhost = isGhostMode,
-                accentColor = colors.primary,
-                modifier = Modifier.padding(start = 8.dp)
+              Text(
+                text = "Remmi Browser",
+                color = textPrimary,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = (-0.3).sp
+              )
+
+              Text(
+                text = "Private. Fast. Yours.",
+                color = textSecondary,
+                fontSize = 13.sp
               )
             }
+
+            PandaMascotArt(
+              size = 80.dp,
+              isDarkTheme = !isLight,
+              isGhost = isGhostMode,
+              accentColor = colors.primary,
+              modifier = Modifier.padding(start = 8.dp)
+            )
           }
         }
 
         // ==========================================
-        // 4. NOTE-STYLE SEARCH / ADDRESS BAR
+        // 4. SEARCH / ADDRESS BAR
         // ==========================================
         Surface(
-          shape = RoundedCornerShape(20.dp),
+          shape = RoundedCornerShape(16.dp),
           color = cardBg,
           border = BorderStroke(
             width = if (isSearchFocused) 1.5.dp else 1.dp,
@@ -625,8 +595,8 @@ fun NewTabPage(
           modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 14.dp)
-            .height(58.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .height(54.dp)
+            .clip(RoundedCornerShape(16.dp))
             .testTag("home_search_bar_surface")
         ) {
           Row(
@@ -635,15 +605,9 @@ fun NewTabPage(
               .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
           ) {
-            // Colorful Pictorial Search Engine Button
-            Box(
-              modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(colors.primary.copy(alpha = 0.14f))
-                .border(0.8.dp, colors.primary.copy(alpha = 0.30f), RoundedCornerShape(12.dp))
-                .clickable { showSearchEngineMenu = true },
-              contentAlignment = Alignment.Center
+            IconButton(
+              onClick = { showSearchEngineMenu = true },
+              modifier = Modifier.size(32.dp)
             ) {
               Icon(
                 imageVector = Icons.Default.Search,
@@ -653,7 +617,7 @@ fun NewTabPage(
               )
             }
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             Box(
               modifier = Modifier
@@ -665,7 +629,7 @@ fun NewTabPage(
                 Text(
                   text = "Search ${searchEngine.displayName} or type URL...",
                   color = colors.textMuted,
-                  fontSize = 14.5.sp,
+                  fontSize = 14.sp,
                   maxLines = 1,
                   overflow = TextOverflow.Ellipsis
                 )
@@ -676,7 +640,7 @@ fun NewTabPage(
                 onValueChange = { searchQuery = it },
                 textStyle = TextStyle(
                   color = textPrimary,
-                  fontSize = 14.5.sp,
+                  fontSize = 14.sp,
                   fontWeight = FontWeight.Medium
                 ),
                 cursorBrush = SolidColor(colors.primary),
@@ -701,66 +665,54 @@ fun NewTabPage(
             if (searchQuery.isNotEmpty()) {
               IconButton(
                 onClick = { searchQuery = "" },
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(30.dp)
               ) {
                 Icon(
                   imageVector = Icons.Default.Close,
                   contentDescription = "Clear search",
                   tint = textSecondary,
-                  modifier = Modifier.size(18.dp)
+                  modifier = Modifier.size(16.dp)
                 )
               }
             } else {
-              // Colorful Paste Badge
-              Box(
-                modifier = Modifier
-                  .size(34.dp)
-                  .clip(RoundedCornerShape(10.dp))
-                  .background(Color(0xFF2E7D5B).copy(alpha = 0.13f))
-                  .clickable {
-                    val clip = clipboard.getCopiedUrl()
-                    if (!clip.isNullOrBlank()) {
-                      searchQuery = clip
-                      Toast.makeText(context, "Pasted from clipboard", Toast.LENGTH_SHORT).show()
-                    } else {
-                      Toast.makeText(context, "Clipboard is empty", Toast.LENGTH_SHORT).show()
-                    }
-                  },
-                contentAlignment = Alignment.Center
+              IconButton(
+                onClick = {
+                  val clip = clipboard.getCopiedUrl()
+                  if (!clip.isNullOrBlank()) {
+                    searchQuery = clip
+                    Toast.makeText(context, "Pasted from clipboard", Toast.LENGTH_SHORT).show()
+                  } else {
+                    Toast.makeText(context, "Clipboard is empty", Toast.LENGTH_SHORT).show()
+                  }
+                },
+                modifier = Modifier.size(30.dp)
               ) {
                 Icon(
                   imageVector = Icons.Default.ContentPaste,
                   contentDescription = "Paste URL from Clipboard",
-                  tint = Color(0xFF2E7D5B),
+                  tint = textSecondary,
                   modifier = Modifier.size(17.dp)
                 )
               }
 
-              Spacer(modifier = Modifier.width(6.dp))
-
-              // Colorful Voice Search Badge
-              Box(
-                modifier = Modifier
-                  .size(34.dp)
-                  .clip(RoundedCornerShape(10.dp))
-                  .background(Color(0xFF6E48AA).copy(alpha = 0.13f))
-                  .clickable {
-                    try {
-                      val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-                        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                        putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to search...")
-                      }
-                      voiceSearchLauncher.launch(intent)
-                    } catch (_: Exception) {
-                      Toast.makeText(context, "Voice search unavailable", Toast.LENGTH_SHORT).show()
+              IconButton(
+                onClick = {
+                  try {
+                    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                      putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                      putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to search...")
                     }
-                  },
-                contentAlignment = Alignment.Center
+                    voiceSearchLauncher.launch(intent)
+                  } catch (_: Exception) {
+                    Toast.makeText(context, "Voice search unavailable", Toast.LENGTH_SHORT).show()
+                  }
+                },
+                modifier = Modifier.size(30.dp)
               ) {
                 Icon(
                   imageVector = Icons.Default.Mic,
                   contentDescription = "Voice Search",
-                  tint = Color(0xFF6E48AA),
+                  tint = textSecondary,
                   modifier = Modifier.size(18.dp)
                 )
               }
@@ -768,22 +720,22 @@ fun NewTabPage(
           }
         }
 
-        // Live Suggestions Note Card
+        // Live Suggestions Card
         if (searchQuery.trim().isNotEmpty() && (historySuggestions.isNotEmpty() || bookmarkSuggestions.isNotEmpty())) {
           Surface(
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(16.dp),
             color = cardBg,
             border = BorderStroke(1.dp, cardBorder),
             modifier = Modifier
               .fillMaxWidth()
               .padding(bottom = 14.dp)
           ) {
-            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
               bookmarkSuggestions.forEach { item ->
                 Row(
                   modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(8.dp))
                     .clickable {
                       focusManager.clearFocus()
                       onNavigate(item.url)
@@ -791,12 +743,11 @@ fun NewTabPage(
                     .padding(horizontal = 10.dp, vertical = 8.dp),
                   verticalAlignment = Alignment.CenterVertically
                 ) {
-                  PictorialIconBadge(
-                    icon = Icons.Default.Star,
-                    color = Color(0xFFD97706),
-                    size = 32.dp,
-                    iconSize = 16.dp,
-                    cornerRadius = 9.dp
+                  Icon(
+                    imageVector = Icons.Default.Star,
+                    contentDescription = null,
+                    tint = colors.warningYellow,
+                    modifier = Modifier.size(18.dp)
                   )
                   Spacer(modifier = Modifier.width(10.dp))
                   Column(modifier = Modifier.weight(1f)) {
@@ -823,7 +774,7 @@ fun NewTabPage(
                 Row(
                   modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(8.dp))
                     .clickable {
                       focusManager.clearFocus()
                       onNavigate(item.url)
@@ -831,12 +782,11 @@ fun NewTabPage(
                     .padding(horizontal = 10.dp, vertical = 8.dp),
                   verticalAlignment = Alignment.CenterVertically
                 ) {
-                  PictorialIconBadge(
-                    icon = Icons.Default.History,
-                    color = Color(0xFF6E48AA),
-                    size = 32.dp,
-                    iconSize = 16.dp,
-                    cornerRadius = 9.dp
+                  Icon(
+                    imageVector = Icons.Default.History,
+                    contentDescription = null,
+                    tint = colors.primary,
+                    modifier = Modifier.size(18.dp)
                   )
                   Spacer(modifier = Modifier.width(10.dp))
                   Column(modifier = Modifier.weight(1f)) {
@@ -862,12 +812,12 @@ fun NewTabPage(
           }
         }
 
-        // Copied Link Note Banner
+        // Copied Link Banner
         copiedUrlPrompt?.let { url ->
           Surface(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(14.dp),
             color = cardBg,
-            border = BorderStroke(1.dp, colors.secondary.copy(alpha = 0.45f)),
+            border = BorderStroke(1.dp, colors.primary.copy(alpha = 0.45f)),
             modifier = Modifier
               .fillMaxWidth()
               .padding(bottom = 12.dp)
@@ -884,17 +834,16 @@ fun NewTabPage(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
               ) {
-                PictorialIconBadge(
-                  icon = Icons.Default.ContentPaste,
-                  color = colors.secondary,
-                  size = 34.dp,
-                  iconSize = 17.dp,
-                  cornerRadius = 10.dp
+                Icon(
+                  imageVector = Icons.Default.ContentPaste,
+                  contentDescription = null,
+                  tint = colors.primary,
+                  modifier = Modifier.size(20.dp)
                 )
                 Column {
                   Text(
                     text = "Link in clipboard",
-                    color = colors.secondary,
+                    color = colors.primary,
                     fontSize = 11.5.sp,
                     fontWeight = FontWeight.Bold
                   )
@@ -915,7 +864,7 @@ fun NewTabPage(
                     onNavigate(url)
                   }
                 ) {
-                  Text("Open", color = colors.secondary, fontWeight = FontWeight.Bold)
+                  Text("Open", color = colors.primary, fontWeight = FontWeight.Bold)
                 }
                 IconButton(
                   onClick = {
@@ -937,10 +886,10 @@ fun NewTabPage(
         }
 
         // ==========================================
-        // 5. QUICK TOOLS NOTE CARD (Pictorial Icons)
+        // 5. QUICK TOOLS CARD
         // ==========================================
         Surface(
-          shape = RoundedCornerShape(20.dp),
+          shape = RoundedCornerShape(18.dp),
           color = cardBg,
           border = BorderStroke(1.dp, cardBorder),
           modifier = Modifier
@@ -951,29 +900,21 @@ fun NewTabPage(
           Column(
             modifier = Modifier
               .fillMaxWidth()
-              .padding(vertical = 14.dp, horizontal = 10.dp)
+              .padding(vertical = 12.dp, horizontal = 8.dp)
           ) {
             Row(
               modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 2.dp),
+                .padding(horizontal = 8.dp, vertical = 2.dp),
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically
             ) {
-              Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Box(
-                  modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(colors.primary)
-                )
-                Text(
-                  text = "Workspace Notes & Tools",
-                  color = textPrimary,
-                  fontSize = 13.5.sp,
-                  fontWeight = FontWeight.Bold
-                )
-              }
+              Text(
+                text = "Quick Tools",
+                color = textPrimary,
+                fontSize = 13.5.sp,
+                fontWeight = FontWeight.Bold
+              )
               Text(
                 text = if (isGhostMode) "Ghost Profile" else "Shield Profile",
                 color = pillAccent,
@@ -982,7 +923,7 @@ fun NewTabPage(
               )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
               modifier = Modifier.fillMaxWidth(),
@@ -993,35 +934,35 @@ fun NewTabPage(
                 icon = Icons.Default.Bookmark,
                 label = "Bookmarks",
                 textPrimary = textPrimary,
-                accentColor = Color(0xFF2563EB),
+                accentColor = colors.primary,
                 onClick = onOpenBookmarks
               )
               QuickActionItem(
                 icon = Icons.Default.History,
                 label = "History",
                 textPrimary = textPrimary,
-                accentColor = Color(0xFF6E48AA),
+                accentColor = colors.primary,
                 onClick = onOpenHistory
               )
               QuickActionItem(
                 icon = Icons.Default.Download,
                 label = "Downloads",
                 textPrimary = textPrimary,
-                accentColor = Color(0xFF2E7D5B),
+                accentColor = colors.primary,
                 onClick = onOpenDownloads
               )
               QuickActionItem(
                 icon = Icons.Default.MenuBook,
                 label = "Reading List",
                 textPrimary = textPrimary,
-                accentColor = Color(0xFFD96B27),
+                accentColor = colors.primary,
                 onClick = onOpenReadingList
               )
               QuickActionItem(
                 painter = painterResource(R.drawable.ic_tor),
                 label = "Tor Mode",
                 textPrimary = textPrimary,
-                accentColor = Color(0xFF9333EA),
+                accentColor = colors.torPurple,
                 onClick = onToggleGhost
               )
             }
@@ -1029,10 +970,10 @@ fun NewTabPage(
         }
 
         // ==========================================
-        // 6. PINNED QUICK LINKS NOTE CARD
+        // 6. PINNED QUICK LINKS CARD
         // ==========================================
         Surface(
-          shape = RoundedCornerShape(20.dp),
+          shape = RoundedCornerShape(18.dp),
           color = cardBg,
           border = BorderStroke(1.dp, cardBorder),
           modifier = Modifier
@@ -1042,7 +983,7 @@ fun NewTabPage(
           Column(
             modifier = Modifier
               .fillMaxWidth()
-              .padding(horizontal = 12.dp, vertical = 14.dp)
+              .padding(horizontal = 12.dp, vertical = 12.dp)
           ) {
             Row(
               modifier = Modifier
@@ -1055,16 +996,10 @@ fun NewTabPage(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
               ) {
-                Box(
-                  modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(colors.secondary)
-                )
                 Text(
-                  text = "Pinned Quick Links",
+                  text = "Favorites",
                   color = textPrimary,
-                  fontSize = 14.5.sp,
+                  fontSize = 14.sp,
                   fontWeight = FontWeight.Bold
                 )
                 IconButton(
@@ -1073,7 +1008,7 @@ fun NewTabPage(
                 ) {
                   Icon(
                     imageVector = if (isFavoritesEditMode) Icons.Default.Check else Icons.Default.Edit,
-                    contentDescription = "Edit Quick Links",
+                    contentDescription = "Edit Favorites",
                     tint = if (isFavoritesEditMode) colors.primary else textSecondary,
                     modifier = Modifier.size(15.dp)
                   )
@@ -1118,7 +1053,7 @@ fun NewTabPage(
                 rowItems.forEach { item ->
                   FavoriteTile(
                     item = item,
-                    cardBg = colors.background,
+                    cardBg = colors.surface,
                     cardBorder = cardBorder,
                     textPrimary = textPrimary,
                     isEditMode = isFavoritesEditMode,
@@ -1137,7 +1072,7 @@ fun NewTabPage(
                 val emptySlots = 5 - rowItems.size
                 if (emptySlots > 0 && rowItems == chunkedFavorites.last()) {
                   FavoriteAddTile(
-                    cardBg = colors.background,
+                    cardBg = colors.surface,
                     cardBorder = cardBorder,
                     textSecondary = textSecondary,
                     onClick = { showAddDialog = true },
@@ -1162,7 +1097,7 @@ fun NewTabPage(
                 horizontalArrangement = Arrangement.Start
               ) {
                 FavoriteAddTile(
-                  cardBg = colors.background,
+                  cardBg = colors.surface,
                   cardBorder = cardBorder,
                   textSecondary = textSecondary,
                   onClick = { showAddDialog = true },
@@ -1174,10 +1109,10 @@ fun NewTabPage(
         }
 
         // ==========================================
-        // 7. PRIVACY SUMMARY STICKY NOTE CARD
+        // 7. PRIVACY SUMMARY CARD
         // ==========================================
         Surface(
-          shape = RoundedCornerShape(18.dp),
+          shape = RoundedCornerShape(16.dp),
           color = cardBg,
           border = BorderStroke(1.dp, cardBorder),
           modifier = Modifier
@@ -1196,34 +1131,41 @@ fun NewTabPage(
               horizontalArrangement = Arrangement.spacedBy(12.dp),
               modifier = Modifier.weight(1f)
             ) {
-              PictorialIconBadge(
-                icon = Icons.Default.VerifiedUser,
-                color = Color(0xFF2E7D5B),
-                size = 40.dp,
-                iconSize = 20.dp,
-                cornerRadius = 12.dp
-              )
+              Box(
+                modifier = Modifier
+                  .size(36.dp)
+                  .clip(RoundedCornerShape(10.dp))
+                  .background(colors.secondary.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+              ) {
+                Icon(
+                  imageVector = Icons.Default.VerifiedUser,
+                  contentDescription = null,
+                  tint = colors.secondary,
+                  modifier = Modifier.size(20.dp)
+                )
+              }
               Column {
                 Text(
-                  text = "Privacy Shield Note",
+                  text = "Privacy Shield",
                   color = textPrimary,
                   fontSize = 13.5.sp,
                   fontWeight = FontWeight.Bold
                 )
                 Text(
-                  text = "$blockedTrackersCount trackers neutralized • Zero telemetry",
+                  text = "$blockedTrackersCount trackers blocked • Zero telemetry",
                   color = textSecondary,
                   fontSize = 11.5.sp
                 )
               }
             }
             Surface(
-              shape = RoundedCornerShape(10.dp),
-              color = Color(0xFF2E7D5B).copy(alpha = 0.14f)
+              shape = RoundedCornerShape(8.dp),
+              color = colors.secondary.copy(alpha = 0.14f)
             ) {
               Text(
                 text = "ACTIVE",
-                color = Color(0xFF2E7D5B),
+                color = colors.secondary,
                 fontSize = 10.5.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -1409,28 +1351,26 @@ private fun FavoriteTile(
   onDelete: () -> Unit,
   modifier: Modifier = Modifier
 ) {
-  val tileAccent = remember(item.title) { pictorialColorFor(item.title) }
-
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = modifier
-      .padding(horizontal = 3.dp)
+      .padding(horizontal = 4.dp)
       .combinedClickable(
         onClick = onClick,
         onLongClick = onLongClick
       )
   ) {
     Box(
-      modifier = Modifier.size(54.dp),
+      modifier = Modifier.size(50.dp),
       contentAlignment = Alignment.Center
     ) {
       Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = tileAccent.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, tileAccent.copy(alpha = 0.28f)),
+        shape = RoundedCornerShape(14.dp),
+        color = cardBg,
+        border = BorderStroke(1.dp, cardBorder),
         modifier = Modifier
           .fillMaxSize()
-          .clip(RoundedCornerShape(16.dp))
+          .clip(RoundedCornerShape(14.dp))
       ) {
         Box(
           modifier = Modifier.fillMaxSize(),
@@ -1440,7 +1380,7 @@ private fun FavoriteTile(
             url = item.url,
             iconKey = item.iconKey,
             title = item.title,
-            size = 30.dp
+            size = 28.dp
           )
         }
       }
@@ -1450,7 +1390,7 @@ private fun FavoriteTile(
           modifier = Modifier
             .align(Alignment.TopEnd)
             .offset(x = 4.dp, y = (-4).dp)
-            .size(20.dp)
+            .size(18.dp)
             .clip(CircleShape)
             .background(Color(0xFFDC2626))
             .clickable(onClick = onDelete),
@@ -1460,7 +1400,7 @@ private fun FavoriteTile(
             imageVector = Icons.Default.Close,
             contentDescription = "Delete",
             tint = Color.White,
-            modifier = Modifier.size(12.dp)
+            modifier = Modifier.size(11.dp)
           )
         }
       }
@@ -1493,17 +1433,17 @@ private fun FavoriteAddTile(
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = modifier
-      .padding(horizontal = 3.dp)
-      .clip(RoundedCornerShape(16.dp))
+      .padding(horizontal = 4.dp)
+      .clip(RoundedCornerShape(14.dp))
       .clickable(onClick = onClick)
   ) {
     Surface(
-      shape = RoundedCornerShape(16.dp),
-      color = accent.copy(alpha = 0.10f),
-      border = BorderStroke(1.dp, accent.copy(alpha = 0.30f)),
+      shape = RoundedCornerShape(14.dp),
+      color = cardBg,
+      border = BorderStroke(1.dp, cardBorder),
       modifier = Modifier
-        .size(54.dp)
-        .clip(RoundedCornerShape(16.dp))
+        .size(50.dp)
+        .clip(RoundedCornerShape(14.dp))
     ) {
       Box(
         modifier = Modifier.fillMaxSize(),
@@ -1513,7 +1453,7 @@ private fun FavoriteAddTile(
           imageVector = Icons.Default.Add,
           contentDescription = "Add Favorite",
           tint = accent,
-          modifier = Modifier.size(24.dp)
+          modifier = Modifier.size(22.dp)
         )
       }
     }
@@ -1521,7 +1461,7 @@ private fun FavoriteAddTile(
     Spacer(modifier = Modifier.height(4.dp))
 
     Text(
-      text = "Add Note",
+      text = "Add",
       color = textSecondary,
       fontSize = 11.sp,
       fontWeight = FontWeight.Medium,
@@ -1559,7 +1499,7 @@ private fun ThemeSelectorDialog(
 
   Dialog(onDismissRequest = onDismiss) {
     Surface(
-      shape = RoundedCornerShape(22.dp),
+      shape = RoundedCornerShape(20.dp),
       color = colors.surface,
       border = BorderStroke(1.dp, colors.surfaceBorder),
       modifier = Modifier
@@ -1578,15 +1518,22 @@ private fun ThemeSelectorDialog(
           verticalAlignment = Alignment.CenterVertically
         ) {
           Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            PictorialIconBadge(
-              icon = Icons.Default.Palette,
-              color = accentColor,
-              size = 34.dp,
-              iconSize = 18.dp,
-              cornerRadius = 10.dp
-            )
+            Box(
+              modifier = Modifier
+                .size(34.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(accentColor.copy(alpha = 0.15f)),
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                imageVector = Icons.Default.Palette,
+                contentDescription = null,
+                tint = accentColor,
+                modifier = Modifier.size(18.dp)
+              )
+            }
             Text(
-              text = "Notes Theme & Paper",
+              text = "Theme & Wallpaper",
               fontWeight = FontWeight.Bold,
               fontSize = 17.sp,
               color = colors.textPrimary
@@ -1612,7 +1559,7 @@ private fun ThemeSelectorDialog(
               .padding(3.dp),
             horizontalArrangement = Arrangement.SpaceBetween
           ) {
-            val tabs = listOf("🎨 Note Palettes", "🖼️ Wallpaper")
+            val tabs = listOf("Color Palettes", "Wallpaper")
             tabs.forEachIndexed { index, title ->
               val isSelected = selectedTab == index
               Surface(
@@ -1643,7 +1590,7 @@ private fun ThemeSelectorDialog(
           0 -> {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
               Text(
-                text = "Select Note Color Palette:",
+                text = "Select Theme Palette:",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = colors.textSecondary
@@ -1657,13 +1604,13 @@ private fun ThemeSelectorDialog(
               ) {
                 items(themes) { theme ->
                   Surface(
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(12.dp),
                     color = colors.background,
-                    border = BorderStroke(1.4.dp, theme.primaryAccent),
+                    border = BorderStroke(1.2.dp, theme.primaryAccent),
                     modifier = Modifier
                       .fillMaxWidth()
-                      .height(64.dp)
-                      .clip(RoundedCornerShape(14.dp))
+                      .height(60.dp)
+                      .clip(RoundedCornerShape(12.dp))
                       .clickable { onSelectTheme(theme) }
                   ) {
                     Row(
@@ -1675,8 +1622,8 @@ private fun ThemeSelectorDialog(
                     ) {
                       Box(
                         modifier = Modifier
-                          .size(22.dp)
-                          .clip(RoundedCornerShape(7.dp))
+                          .size(20.dp)
+                          .clip(RoundedCornerShape(6.dp))
                           .background(theme.primaryAccent)
                       )
                       Column {
@@ -1688,7 +1635,7 @@ private fun ThemeSelectorDialog(
                           maxLines = 1
                         )
                         Text(
-                          text = if (theme.isLight) "Warm Paper" else "Dark Slate",
+                          text = if (theme.isLight) "Light" else "Dark",
                           fontSize = 10.sp,
                           color = colors.textSecondary
                         )
@@ -1788,7 +1735,7 @@ private fun SearchEngineSelectorDialog(
 
   Dialog(onDismissRequest = onDismiss) {
     Surface(
-      shape = RoundedCornerShape(20.dp),
+      shape = RoundedCornerShape(18.dp),
       color = colors.surface,
       border = BorderStroke(1.dp, colors.surfaceBorder),
       modifier = Modifier
@@ -1808,17 +1755,17 @@ private fun SearchEngineSelectorDialog(
 
         engines.forEach { engine ->
           val isSelected = engine == currentEngine
-          val engineColor = pictorialColorFor(engine.displayName)
+          val engineColor = colors.primary
           Surface(
-            shape = RoundedCornerShape(14.dp),
-            color = if (isSelected) engineColor.copy(alpha = 0.14f) else colors.background,
+            shape = RoundedCornerShape(12.dp),
+            color = if (isSelected) engineColor.copy(alpha = 0.12f) else colors.background,
             border = BorderStroke(
               1.dp,
               if (isSelected) engineColor else colors.surfaceBorder
             ),
             modifier = Modifier
               .fillMaxWidth()
-              .clip(RoundedCornerShape(14.dp))
+              .clip(RoundedCornerShape(12.dp))
               .clickable { onSelect(engine) }
           ) {
             Row(
@@ -1833,13 +1780,20 @@ private fun SearchEngineSelectorDialog(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.weight(1f)
               ) {
-                PictorialIconBadge(
-                  icon = Icons.Default.Search,
-                  color = engineColor,
-                  size = 34.dp,
-                  iconSize = 17.dp,
-                  cornerRadius = 10.dp
-                )
+                Box(
+                  modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(engineColor.copy(alpha = 0.14f)),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = engineColor,
+                    modifier = Modifier.size(18.dp)
+                  )
+                }
                 Column {
                   Text(
                     text = engine.displayName,
@@ -1881,7 +1835,7 @@ private fun AddFavoriteDialog(
 
   Dialog(onDismissRequest = onDismiss) {
     Surface(
-      shape = RoundedCornerShape(20.dp),
+      shape = RoundedCornerShape(18.dp),
       color = colors.surface,
       border = BorderStroke(1.dp, colors.surfaceBorder),
       modifier = Modifier
@@ -1893,7 +1847,7 @@ private fun AddFavoriteDialog(
         verticalArrangement = Arrangement.spacedBy(14.dp)
       ) {
         Text(
-          text = "Add Quick Note Link",
+          text = "Add to Favorites",
           fontWeight = FontWeight.Bold,
           fontSize = 18.sp,
           color = colors.textPrimary

@@ -122,9 +122,7 @@ import com.remmi.browser.ui.components.BackgroundTypes
 import com.remmi.browser.ui.theme.BrowserFont
 import com.remmi.browser.ui.theme.CyberMonoFamily
 import com.remmi.browser.ui.theme.CyberTheme
-import com.remmi.browser.ui.theme.PictorialIconBadge
 import com.remmi.browser.ui.theme.ThemeCyber
-import com.remmi.browser.ui.theme.pictorialColorFor
 
 /**
  * Settings Categories for clean, modular browser configuration screens.
@@ -898,13 +896,20 @@ private fun SettingsHeroHeaderCard(
           verticalAlignment = Alignment.CenterVertically,
           modifier = Modifier.weight(1f)
         ) {
-          PictorialIconBadge(
-            icon = Icons.Default.Shield,
-            color = primaryColor,
-            size = 48.dp,
-            iconSize = 25.dp,
-            cornerRadius = 15.dp
-          )
+          Box(
+            modifier = Modifier
+              .size(44.dp)
+              .clip(RoundedCornerShape(12.dp))
+              .background(primaryColor.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(
+              imageVector = Icons.Default.Shield,
+              contentDescription = null,
+              tint = primaryColor,
+              modifier = Modifier.size(24.dp)
+            )
+          }
 
           Spacer(modifier = Modifier.width(12.dp))
 
@@ -917,7 +922,7 @@ private fun SettingsHeroHeaderCard(
             )
             Spacer(modifier = Modifier.height(1.dp))
             Text(
-              text = "Version 1.0.2 • Privacy Notes Edition",
+              text = "Version 1.0.2 • Privacy Edition",
               color = textSecondary,
               fontSize = 11.5.sp
             )
@@ -1024,107 +1029,80 @@ private fun SettingsCategoryItemCard(
   modifier: Modifier = Modifier
 ) {
   Card(
-    shape = RoundedCornerShape(18.dp),
+    shape = RoundedCornerShape(14.dp),
     colors = CardDefaults.cardColors(containerColor = cardBg),
+    border = BorderStroke(1.dp, cardBorder),
     modifier = modifier
       .fillMaxWidth()
-      .border(1.dp, cardBorder, RoundedCornerShape(18.dp))
       .clickable { onClick() }
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .height(IntrinsicSize.Min),
-      verticalAlignment = Alignment.CenterVertically
+        .padding(horizontal = 14.dp, vertical = 12.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.SpaceBetween
     ) {
-      // Left colorful Note accent strip
-      Box(
-        modifier = Modifier
-          .width(4.5.dp)
-          .fillMaxHeight()
-          .background(iconTint.copy(alpha = 0.75f))
-      )
       Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 14.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.weight(1f)
       ) {
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          modifier = Modifier.weight(1f)
-        ) {
-          PictorialIconBadge(
-            icon = icon,
-            color = iconTint,
-            size = 42.dp,
-            iconSize = 21.dp,
-            cornerRadius = 13.dp
-          )
-
-          Spacer(modifier = Modifier.width(13.dp))
-
-          Column(modifier = Modifier.weight(1f)) {
-            Text(
-              text = title,
-              color = textPrimary,
-              fontSize = 14.5.sp,
-              fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-              text = subtitle,
-              color = textSecondary,
-              fontSize = 11.5.sp,
-              maxLines = 1
-            )
-          }
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
         Box(
           modifier = Modifier
-            .size(26.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(iconTint.copy(alpha = 0.10f)),
+            .size(38.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(iconTint.copy(alpha = 0.12f)),
           contentAlignment = Alignment.Center
         ) {
           Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            imageVector = icon,
             contentDescription = null,
             tint = iconTint,
-            modifier = Modifier.size(14.dp)
+            modifier = Modifier.size(20.dp)
+          )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text = title,
+            color = textPrimary,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold
+          )
+          Spacer(modifier = Modifier.height(1.dp))
+          Text(
+            text = subtitle,
+            color = textSecondary,
+            fontSize = 11.5.sp,
+            maxLines = 1
           )
         }
       }
+
+      Spacer(modifier = Modifier.width(8.dp))
+
+      Icon(
+        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+        contentDescription = null,
+        tint = textSecondary.copy(alpha = 0.7f),
+        modifier = Modifier.size(16.dp)
+      )
     }
   }
 }
 
 @Composable
 private fun SubSectionHeader(title: String, textSecondary: Color) {
-  val accentColor = remember(title) { pictorialColorFor(title) }
-  Row(
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(7.dp),
-    modifier = Modifier.padding(start = 4.dp, top = 10.dp, bottom = 3.dp)
-  ) {
-    Box(
-      modifier = Modifier
-        .size(7.dp)
-        .clip(CircleShape)
-        .background(accentColor)
-    )
-    Text(
-      text = title,
-      color = textSecondary,
-      fontSize = 11.5.sp,
-      fontWeight = FontWeight.Bold,
-      letterSpacing = 0.5.sp
-    )
-  }
+  Text(
+    text = title,
+    color = textSecondary,
+    fontSize = 12.sp,
+    fontWeight = FontWeight.Bold,
+    letterSpacing = 0.5.sp,
+    modifier = Modifier.padding(start = 4.dp, top = 10.dp, bottom = 4.dp)
+  )
 }
 
 @Composable
@@ -1142,72 +1120,65 @@ private fun SubScreenToggleCard(
   textSecondary: Color,
   modifier: Modifier = Modifier
 ) {
-  val distinctColor = remember(title) { pictorialColorFor(title) }
   Card(
-    shape = RoundedCornerShape(18.dp),
+    shape = RoundedCornerShape(14.dp),
     colors = CardDefaults.cardColors(containerColor = cardBg),
+    border = BorderStroke(1.dp, cardBorder),
     modifier = modifier
       .fillMaxWidth()
-      .border(1.dp, cardBorder, RoundedCornerShape(18.dp))
       .clickable { onCheckedChange(!checked) }
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .height(IntrinsicSize.Min),
+        .padding(horizontal = 14.dp, vertical = 12.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {
       Box(
         modifier = Modifier
-          .width(4.dp)
-          .fillMaxHeight()
-          .background(if (checked) distinctColor else cardBorder)
-      )
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 14.dp, vertical = 13.dp),
-        verticalAlignment = Alignment.CenterVertically
+          .size(36.dp)
+          .clip(RoundedCornerShape(10.dp))
+          .background(iconTint.copy(alpha = 0.12f)),
+        contentAlignment = Alignment.Center
       ) {
-        PictorialIconBadge(
-          icon = icon,
-          color = distinctColor,
-          size = 40.dp,
-          iconSize = 20.dp,
-          cornerRadius = 12.dp
-        )
-
-        Spacer(modifier = Modifier.width(13.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-          Text(
-            text = title,
-            color = textPrimary,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-          )
-          Spacer(modifier = Modifier.height(2.dp))
-          Text(
-            text = subtitle,
-            color = textSecondary,
-            fontSize = 11.5.sp,
-            lineHeight = 15.sp
-          )
-        }
-
-        Spacer(modifier = Modifier.width(10.dp))
-
-        Switch(
-          checked = checked,
-          onCheckedChange = onCheckedChange,
-          colors = SwitchDefaults.colors(
-            checkedThumbColor = Color.White,
-            checkedTrackColor = distinctColor,
-            uncheckedThumbColor = textSecondary,
-            uncheckedTrackColor = cardBorder
-          )
+        Icon(
+          imageVector = icon,
+          contentDescription = null,
+          tint = iconTint,
+          modifier = Modifier.size(18.dp)
         )
       }
+
+      Spacer(modifier = Modifier.width(12.dp))
+
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+          text = title,
+          color = textPrimary,
+          fontSize = 13.5.sp,
+          fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(1.dp))
+        Text(
+          text = subtitle,
+          color = textSecondary,
+          fontSize = 11.sp,
+          lineHeight = 14.sp
+        )
+      }
+
+      Spacer(modifier = Modifier.width(8.dp))
+
+      Switch(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        colors = SwitchDefaults.colors(
+          checkedThumbColor = Color.White,
+          checkedTrackColor = iconTint,
+          uncheckedThumbColor = textSecondary,
+          uncheckedTrackColor = cardBorder
+        )
+      )
     }
   }
 }

@@ -54,7 +54,6 @@ import com.remmi.browser.R
 import com.remmi.browser.util.DefaultBrowserHelper
 import com.remmi.browser.ui.components.GlitchText
 import com.remmi.browser.ui.theme.CyberMonoFamily
-import com.remmi.browser.ui.theme.PictorialIconBadge
 import com.remmi.browser.ui.theme.ThemeCyber
 
 @Composable
@@ -260,19 +259,26 @@ private fun FeatureRow(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .clip(RoundedCornerShape(16.dp))
+      .clip(RoundedCornerShape(12.dp))
       .background(ThemeCyber.colors.surface)
-      .border(1.dp, ThemeCyber.colors.surfaceBorder, RoundedCornerShape(16.dp))
-      .padding(14.dp),
+      .border(1.dp, ThemeCyber.colors.surfaceBorder, RoundedCornerShape(12.dp))
+      .padding(12.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    PictorialIconBadge(
-      icon = icon,
-      color = color,
-      size = 40.dp,
-      iconSize = 20.dp,
-      cornerRadius = 12.dp,
-    )
+    Box(
+      modifier = Modifier
+        .size(36.dp)
+        .clip(RoundedCornerShape(10.dp))
+        .background(color.copy(alpha = 0.15f)),
+      contentAlignment = Alignment.Center
+    ) {
+      Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = color,
+        modifier = Modifier.size(18.dp)
+      )
+    }
 
     Spacer(modifier = Modifier.width(12.dp))
 
