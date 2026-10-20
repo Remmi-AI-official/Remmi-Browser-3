@@ -1,0 +1,1525 @@
+2026-10-20T02:53:51.0574754Z Current runner version: '2.337.0'
+2026-10-20T02:53:51.0628356Z ##[group]Runner Image Provisioner
+2026-10-20T02:53:51.0629555Z Hosted Compute Agent
+2026-10-20T02:53:51.0630476Z Version: 20261012.601
+2026-10-20T02:53:51.0631458Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-20T02:53:51.0632470Z Build Date: 2026-10-12T17:48:21Z
+2026-10-20T02:53:51.0633422Z Worker ID: {2902e876-904f-407c-ba1f-0b60ded4e8a3}
+2026-10-20T02:53:51.0634539Z Region: eastus
+2026-10-20T02:53:51.0635244Z Cloud: Azure
+2026-10-20T02:53:51.0636030Z ##[endgroup]
+2026-10-20T02:53:51.0637577Z ##[group]Operating System
+2026-10-20T02:53:51.0638439Z Ubuntu
+2026-10-20T02:53:51.0639186Z 24.04.5
+2026-10-20T02:53:51.0639868Z LTS
+2026-10-20T02:53:51.0640775Z ##[endgroup]
+2026-10-20T02:53:51.0641530Z ##[group]Runner Image
+2026-10-20T02:53:51.0642506Z Image: ubuntu-24.04
+2026-10-20T02:53:51.0643227Z Version: 20261012.334.1
+2026-10-20T02:53:51.0644896Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-20T02:53:51.0646955Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-20T02:53:51.0648415Z ##[endgroup]
+2026-10-20T02:53:51.0649795Z ##[group]GITHUB_TOKEN Permissions
+2026-10-20T02:53:51.0652402Z Contents: write
+2026-10-20T02:53:51.0653196Z Metadata: read
+2026-10-20T02:53:51.0654023Z ##[endgroup]
+2026-10-20T02:53:51.0656587Z Secret source: Actions
+2026-10-20T02:53:51.0657885Z Cache mode: write
+2026-10-20T02:53:51.0659038Z Prepare workflow directory
+2026-10-20T02:53:51.1013205Z Prepare all required actions
+2026-10-20T02:53:51.1068301Z Getting action download info
+2026-10-20T02:53:51.2845647Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-20T02:53:51.6358779Z Download action repository 'actions/setup-java@v6' (SHA:b843ebf9b913146b38da2eaa7aeddf76074ae1ad)
+2026-10-20T02:53:51.9582301Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-20T02:53:52.1726383Z Download action repository 'softprops/action-gh-release@v2' (SHA:3bb12739c298aeb8a4eeaf626c5b8d85266b0e65)
+2026-10-20T02:53:52.3886865Z Complete job name: build-release
+2026-10-20T02:53:52.4718288Z ##[group]Run actions/checkout@v7
+2026-10-20T02:53:52.4719329Z with:
+2026-10-20T02:53:52.4720060Z   repository: Remmi-AI-official/Remmi-Browser-3
+2026-10-20T02:53:52.4726346Z   token: ***
+2026-10-20T02:53:52.4727016Z   ssh-strict: true
+2026-10-20T02:53:52.4727677Z   ssh-user: git
+2026-10-20T02:53:52.4728352Z   persist-credentials: true
+2026-10-20T02:53:52.4729093Z   clean: true
+2026-10-20T02:53:52.4729781Z   sparse-checkout-cone-mode: true
+2026-10-20T02:53:52.4730685Z   fetch-depth: 1
+2026-10-20T02:53:52.4731357Z   fetch-tags: false
+2026-10-20T02:53:52.4732056Z   show-progress: true
+2026-10-20T02:53:52.4732735Z   lfs: false
+2026-10-20T02:53:52.4733369Z   submodules: false
+2026-10-20T02:53:52.4734062Z   set-safe-directory: true
+2026-10-20T02:53:52.4734853Z   allow-unsafe-pr-checkout: false
+2026-10-20T02:53:52.4735885Z ##[endgroup]
+2026-10-20T02:53:52.5537661Z Syncing repository: Remmi-AI-official/Remmi-Browser-3
+2026-10-20T02:53:52.5540854Z ##[group]Getting Git version info
+2026-10-20T02:53:52.5542653Z Working directory is '/home/runner/work/Remmi-Browser-3/Remmi-Browser-3'
+2026-10-20T02:53:52.5544615Z [command]/usr/bin/git version
+2026-10-20T02:53:52.5617333Z git version 2.55.0
+2026-10-20T02:53:52.5627850Z ##[endgroup]
+2026-10-20T02:53:52.5642516Z Temporarily overriding HOME='/home/runner/work/_temp/317b56b4-6ae1-4c51-aaf0-0b53f3fef64a' before making global git config changes
+2026-10-20T02:53:52.5645859Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T02:53:52.5648873Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Remmi-Browser-3/Remmi-Browser-3
+2026-10-20T02:53:52.5692768Z Deleting the contents of '/home/runner/work/Remmi-Browser-3/Remmi-Browser-3'
+2026-10-20T02:53:52.5695700Z ##[group]Determining repository object format
+2026-10-20T02:53:52.5698035Z ##[endgroup]
+2026-10-20T02:53:52.5699753Z ##[group]Initializing the repository
+2026-10-20T02:53:52.5701778Z [command]/usr/bin/git init /home/runner/work/Remmi-Browser-3/Remmi-Browser-3
+2026-10-20T02:53:52.5784317Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-20T02:53:52.5785866Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-20T02:53:52.5787281Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-20T02:53:52.5788413Z hint: call:
+2026-10-20T02:53:52.5789047Z hint:
+2026-10-20T02:53:52.5789850Z hint: 	git config --global init.defaultBranch <name>
+2026-10-20T02:53:52.5790974Z hint:
+2026-10-20T02:53:52.5791871Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-20T02:53:52.5793284Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-20T02:53:52.5794437Z hint:
+2026-10-20T02:53:52.5795121Z hint: 	git branch -m <name>
+2026-10-20T02:53:52.5795871Z hint:
+2026-10-20T02:53:52.5800996Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-20T02:53:52.5803604Z Initialized empty Git repository in /home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git/
+2026-10-20T02:53:52.5810438Z [command]/usr/bin/git remote add origin https://github.com/Remmi-AI-official/Remmi-Browser-3
+2026-10-20T02:53:52.5857746Z ##[endgroup]
+2026-10-20T02:53:52.5859227Z ##[group]Disabling automatic garbage collection
+2026-10-20T02:53:52.5861705Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-20T02:53:52.5897462Z ##[endgroup]
+2026-10-20T02:53:52.5899413Z ##[group]Setting up auth
+2026-10-20T02:53:52.5900985Z Removing SSH command configuration
+2026-10-20T02:53:52.5902930Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T02:53:52.5934164Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T02:53:52.6259745Z Removing HTTP extra header
+2026-10-20T02:53:52.6265966Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T02:53:52.6298188Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T02:53:52.6481483Z Removing includeIf entries pointing to credentials config files
+2026-10-20T02:53:52.6484942Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-20T02:53:52.6521163Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-20T02:53:52.6709471Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-20T02:53:52.6742745Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git.path /home/runner/work/_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config
+2026-10-20T02:53:52.6771366Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config
+2026-10-20T02:53:52.6809633Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config
+2026-10-20T02:53:52.6839303Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config
+2026-10-20T02:53:52.6866787Z ##[endgroup]
+2026-10-20T02:53:52.6868190Z ##[group]Fetching the repository
+2026-10-20T02:53:52.6872371Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +dc1237d04b92a31e9ad17b383195a83bd779ab97:refs/remotes/origin/main
+2026-10-20T02:53:53.3479056Z From https://github.com/Remmi-AI-official/Remmi-Browser-3
+2026-10-20T02:53:53.3480706Z  * [new ref]         dc1237d04b92a31e9ad17b383195a83bd779ab97 -> origin/main
+2026-10-20T02:53:53.3489927Z [command]/usr/bin/git branch --list --remote origin/main
+2026-10-20T02:53:53.3518855Z   origin/main
+2026-10-20T02:53:53.3529078Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+2026-10-20T02:53:53.3552173Z dc1237d04b92a31e9ad17b383195a83bd779ab97
+2026-10-20T02:53:53.3556167Z ##[endgroup]
+2026-10-20T02:53:53.3557540Z ##[group]Determining the checkout info
+2026-10-20T02:53:53.3558945Z ##[endgroup]
+2026-10-20T02:53:53.3560605Z [command]/usr/bin/git sparse-checkout disable
+2026-10-20T02:53:53.3625270Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-20T02:53:53.3657971Z ##[group]Checking out the ref
+2026-10-20T02:53:53.3661419Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-10-20T02:53:53.4491153Z Switched to a new branch 'main'
+2026-10-20T02:53:53.4494000Z branch 'main' set up to track 'origin/main'.
+2026-10-20T02:53:53.4504621Z ##[endgroup]
+2026-10-20T02:53:53.4548931Z [command]/usr/bin/git log -1 --format=%H
+2026-10-20T02:53:53.4573575Z dc1237d04b92a31e9ad17b383195a83bd779ab97
+2026-10-20T02:53:53.4967505Z ##[group]Run actions/setup-java@v6
+2026-10-20T02:53:53.4968421Z with:
+2026-10-20T02:53:53.4969099Z   distribution: temurin
+2026-10-20T02:53:53.4969858Z   java-version: 17
+2026-10-20T02:53:53.4970669Z   cache: gradle
+2026-10-20T02:53:53.4971373Z   java-package: jdk
+2026-10-20T02:53:53.4972097Z   check-latest: false
+2026-10-20T02:53:53.4972857Z   force-download: false
+2026-10-20T02:53:53.4973605Z   set-default: true
+2026-10-20T02:53:53.4974314Z   server-id: github
+2026-10-20T02:53:53.4975098Z   mvn-repositories-include-central: true
+2026-10-20T02:53:53.4976124Z   mvn-repositories-prioritize-central: true
+2026-10-20T02:53:53.4977069Z   overwrite-settings: true
+2026-10-20T02:53:53.4977866Z   cache-read-only: false
+2026-10-20T02:53:53.4978627Z   job-status: success
+2026-10-20T02:53:53.4984466Z   token: ***
+2026-10-20T02:53:53.4985197Z   show-download-progress: false
+2026-10-20T02:53:53.4986028Z   problem-matcher: true
+2026-10-20T02:53:53.4986778Z ##[endgroup]
+2026-10-20T02:53:53.5709304Z ##[group]Installed distributions
+2026-10-20T02:53:53.6358021Z Resolved Java 17.0.20+1 from tool-cache
+2026-10-20T02:53:53.6359432Z Setting Java 17.0.20+1 as the default
+2026-10-20T02:53:53.6364827Z 
+2026-10-20T02:53:53.6365422Z Java configuration:
+2026-10-20T02:53:53.6366493Z   Distribution: temurin
+2026-10-20T02:53:53.6367522Z   Version: 17.0.20+1
+2026-10-20T02:53:53.6369099Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:53:53.6370610Z 
+2026-10-20T02:53:53.6417598Z ##[endgroup]
+2026-10-20T02:53:53.6468471Z Creating settings.xml with server-id: github
+2026-10-20T02:53:53.6471565Z Creating toolchains.xml for JDK version 17 from temurin
+2026-10-20T02:53:53.6485515Z Writing to /home/runner/.m2/settings.xml
+2026-10-20T02:53:53.6490237Z Writing to /home/runner/.m2/toolchains.xml
+2026-10-20T02:53:53.6497985Z Configured MAVEN_ARGS to include -ntp to suppress Maven transfer progress logs. Set 'show-download-progress: true' to keep the download progress output.
+2026-10-20T02:53:53.7912796Z Cache hit for: setup-java-Linux-x64-gradle-7a087685558c50f7d225ef64bb2739a558a9defb0897c12fd2016096579fff88
+2026-10-20T02:53:53.8123031Z Cache hit for: setup-java-Linux-x64-gradle-wrapper-499d967a5970215b4834c36fba960be3bfba551c927f4b4785ef83bab02dcfac
+2026-10-20T02:53:54.8543303Z Received 251658240 of 1526206686 (16.5%), 238.3 MBs/sec
+2026-10-20T02:53:54.8672901Z Received 113246208 of 136380696 (83.0%), 107.9 MBs/sec
+2026-10-20T02:53:55.4274333Z Received 136380696 of 136380696 (100.0%), 83.1 MBs/sec
+2026-10-20T02:53:55.4275500Z Cache Size: ~130 MB (136380696 B)
+2026-10-20T02:53:55.4453160Z [command]/usr/bin/tar -xf /home/runner/work/_temp/087382db-993c-4085-8c7d-992d2b190a8e/cache.tzst -P -C /home/runner/work/Remmi-Browser-3/Remmi-Browser-3 --use-compress-program unzstd
+2026-10-20T02:53:55.7450901Z Cache restored successfully
+2026-10-20T02:53:55.8561806Z Received 536870912 of 1526206686 (35.2%), 255.0 MBs/sec
+2026-10-20T02:53:55.9674654Z gradle-wrapper cache restored from key: setup-java-Linux-x64-gradle-wrapper-499d967a5970215b4834c36fba960be3bfba551c927f4b4785ef83bab02dcfac
+2026-10-20T02:53:56.8581686Z Received 859832320 of 1526206686 (56.3%), 272.6 MBs/sec
+2026-10-20T02:53:57.8565427Z Received 1203765248 of 1526206686 (78.9%), 286.4 MBs/sec
+2026-10-20T02:53:58.8571437Z Received 1476395008 of 1526206686 (96.7%), 281.1 MBs/sec
+2026-10-20T02:53:59.0120947Z Received 1526206686 of 1526206686 (100.0%), 281.9 MBs/sec
+2026-10-20T02:53:59.0121727Z Cache Size: ~1456 MB (1526206686 B)
+2026-10-20T02:53:59.0252915Z [command]/usr/bin/tar -xf /home/runner/work/_temp/c99c8042-0aa9-40ae-8eed-40fc6adb66c8/cache.tzst -P -C /home/runner/work/Remmi-Browser-3/Remmi-Browser-3 --use-compress-program unzstd
+2026-10-20T02:54:12.8241912Z Cache restored successfully
+2026-10-20T02:54:12.9912539Z Cache restored from key: setup-java-Linux-x64-gradle-7a087685558c50f7d225ef64bb2739a558a9defb0897c12fd2016096579fff88
+2026-10-20T02:54:13.1175788Z ##[group]Run chmod +x ./gradlew
+2026-10-20T02:54:13.1176130Z [36;1mchmod +x ./gradlew[0m
+2026-10-20T02:54:13.6313422Z shell: /usr/bin/bash -e {0}
+2026-10-20T02:54:13.6335924Z env:
+2026-10-20T02:54:13.6336245Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:13.6336667Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:13.6336995Z   MAVEN_ARGS: -ntp
+2026-10-20T02:54:13.6337190Z ##[endgroup]
+2026-10-20T02:54:13.6656203Z ##[group]Run set -euo pipefail
+2026-10-20T02:54:13.6656536Z [36;1mset -euo pipefail[0m
+2026-10-20T02:54:13.6656802Z [36;1mecho "Verifying JDK version..."[0m
+2026-10-20T02:54:13.6657064Z [36;1mjava -version[0m
+2026-10-20T02:54:13.6657388Z [36;1mJAVA_VER=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | cut -d'.' -f1)[0m
+2026-10-20T02:54:13.6657790Z [36;1mif [ "$JAVA_VER" != "17" ]; then[0m
+2026-10-20T02:54:13.6658143Z [36;1m  echo "::error::JDK version must be 17, but detected '$JAVA_VER'"[0m
+2026-10-20T02:54:13.6658438Z [36;1m  exit 1[0m
+2026-10-20T02:54:13.6658630Z [36;1mfi[0m
+2026-10-20T02:54:13.6658802Z [36;1m[0m
+2026-10-20T02:54:13.6659003Z [36;1mecho "Verifying Gradle toolchain..."[0m
+2026-10-20T02:54:13.6659256Z [36;1mfor i in 1 2 3; do[0m
+2026-10-20T02:54:13.6659532Z [36;1m  if ./gradlew --version > /tmp/gradle_ver_out.txt 2>&1; then[0m
+2026-10-20T02:54:13.6659843Z [36;1m    cat /tmp/gradle_ver_out.txt[0m
+2026-10-20T02:54:13.6660307Z [36;1m    break[0m
+2026-10-20T02:54:13.6660498Z [36;1m  fi[0m
+2026-10-20T02:54:13.6660832Z [36;1m  echo "Attempt $i failed. Attempting resilient download from Gradle distribution mirrors..."[0m
+2026-10-20T02:54:13.6661208Z [36;1m  [0m
+2026-10-20T02:54:13.6661438Z [36;1m  # Find or trigger wrapper dist directory creation[0m
+2026-10-20T02:54:13.6661765Z [36;1m  ./gradlew --version >/dev/null 2>&1 || true[0m
+2026-10-20T02:54:13.6662272Z [36;1m  DIST_HASH_DIR=$(find "$HOME/.gradle/wrapper/dists/gradle-9.3.1-bin" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | head -n1 || true)[0m
+2026-10-20T02:54:13.6662774Z [36;1m  if [ -n "$DIST_HASH_DIR" ]; then[0m
+2026-10-20T02:54:13.6663083Z [36;1m    echo "Downloading directly into $DIST_HASH_DIR..."[0m
+2026-10-20T02:54:13.6663534Z [36;1m    curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 -o "$DIST_HASH_DIR/gradle-9.3.1-bin.zip" \[0m
+2026-10-20T02:54:13.6664048Z [36;1m      "https://services.gradle.org/distributions/gradle-9.3.1-bin.zip" || \[0m
+2026-10-20T02:54:13.6664546Z [36;1m    curl -fSL --retry 5 --retry-delay 3 --connect-timeout 30 -o "$DIST_HASH_DIR/gradle-9.3.1-bin.zip" \[0m
+2026-10-20T02:54:13.6665207Z [36;1m      "https://downloads.gradle.org/distributions/gradle-9.3.1-bin.zip" || true[0m
+2026-10-20T02:54:13.6665548Z [36;1m  fi[0m
+2026-10-20T02:54:13.6665733Z [36;1m  sleep 3[0m
+2026-10-20T02:54:13.6665918Z [36;1mdone[0m
+2026-10-20T02:54:13.6666101Z [36;1m[0m
+2026-10-20T02:54:13.6666371Z [36;1mGRADLE_VER=$(cat /tmp/gradle_ver_out.txt | awk '/^Gradle / {print $2}')[0m
+2026-10-20T02:54:13.6666707Z [36;1mif [ "$GRADLE_VER" != "9.3.1" ]; then[0m
+2026-10-20T02:54:13.6667040Z [36;1m  echo "::error::Gradle version must be 9.3.1, but detected '$GRADLE_VER'"[0m
+2026-10-20T02:54:13.6667348Z [36;1m  exit 1[0m
+2026-10-20T02:54:13.6667526Z [36;1mfi[0m
+2026-10-20T02:54:13.6723152Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-20T02:54:13.6723468Z env:
+2026-10-20T02:54:13.6723758Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:13.6724162Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:13.6724500Z   MAVEN_ARGS: -ntp
+2026-10-20T02:54:13.6724697Z ##[endgroup]
+2026-10-20T02:54:13.6847193Z Verifying JDK version...
+2026-10-20T02:54:14.1680352Z openjdk version "17.0.20.1" 2026-08-18
+2026-10-20T02:54:14.1680940Z OpenJDK Runtime Environment Temurin-17.0.20.1+1 (build 17.0.20.1+1)
+2026-10-20T02:54:14.1681834Z OpenJDK 64-Bit Server VM Temurin-17.0.20.1+1 (build 17.0.20.1+1, mixed mode, sharing)
+2026-10-20T02:54:14.3240947Z Verifying Gradle toolchain...
+2026-10-20T02:54:16.5244996Z 
+2026-10-20T02:54:16.5245511Z Welcome to Gradle 9.3.1!
+2026-10-20T02:54:16.5245791Z 
+2026-10-20T02:54:16.5245958Z Here are the highlights of this release:
+2026-10-20T02:54:16.5246361Z  - Test reporting improvements
+2026-10-20T02:54:16.5246702Z  - Error and warning improvements
+2026-10-20T02:54:16.5247076Z  - Build authoring improvements
+2026-10-20T02:54:16.5247758Z 
+2026-10-20T02:54:16.5248231Z For more details see https://docs.gradle.org/9.3.1/release-notes.html
+2026-10-20T02:54:16.5248476Z 
+2026-10-20T02:54:16.5248497Z 
+2026-10-20T02:54:16.5248621Z ------------------------------------------------------------
+2026-10-20T02:54:16.5248897Z Gradle 9.3.1
+2026-10-20T02:54:16.5249123Z ------------------------------------------------------------
+2026-10-20T02:54:16.5249305Z 
+2026-10-20T02:54:16.5249411Z Build time:    2026-01-29 14:15:01 UTC
+2026-10-20T02:54:16.5249686Z Revision:      44f4e8d3122ee6e7cbf5a248d7e20b4ca666bda3
+2026-10-20T02:54:16.5249948Z 
+2026-10-20T02:54:16.5250069Z Kotlin:        2.2.21
+2026-10-20T02:54:16.5250469Z Groovy:        4.0.29
+2026-10-20T02:54:16.5250849Z Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+2026-10-20T02:54:16.5251351Z Launcher JVM:  17.0.20.1 (Eclipse Adoptium 17.0.20.1+1)
+2026-10-20T02:54:16.5251993Z Daemon JVM:    /usr/lib/jvm/temurin-17-jdk-amd64 (no Daemon JVM specified, using current Java home)
+2026-10-20T02:54:16.5252624Z OS:            Linux 6.17.0-1022-azure amd64
+2026-10-20T02:54:16.5252873Z 
+2026-10-20T02:54:16.5745995Z ##[group]Run set -euo pipefail
+2026-10-20T02:54:16.5746470Z [36;1mset -euo pipefail[0m
+2026-10-20T02:54:16.5746853Z [36;1mif [ "$EVENT_NAME" = "workflow_dispatch" ]; then[0m
+2026-10-20T02:54:16.5747347Z [36;1m  if ! [[ "$INPUT_V_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then[0m
+2026-10-20T02:54:16.5748049Z [36;1m    echo "::error::Invalid versionName '$INPUT_V_NAME'. Must match pattern: ^[0-9]+\.[0-9]+\.[0-9]+$"[0m
+2026-10-20T02:54:16.5748634Z [36;1m    exit 1[0m
+2026-10-20T02:54:16.5748920Z [36;1m  fi[0m
+2026-10-20T02:54:16.5749240Z [36;1m  if ! [[ "$INPUT_V_CODE" =~ ^[1-9][0-9]*$ ]]; then[0m
+2026-10-20T02:54:16.5749810Z [36;1m    echo "::error::Invalid versionCode '$INPUT_V_CODE'. Must be a positive integer."[0m
+2026-10-20T02:54:16.5750468Z [36;1m    exit 1[0m
+2026-10-20T02:54:16.5750735Z [36;1m  fi[0m
+2026-10-20T02:54:16.5750992Z [36;1m[0m
+2026-10-20T02:54:16.5751264Z [36;1m  RELEASE_TAG="v${INPUT_V_NAME}"[0m
+2026-10-20T02:54:16.5751690Z [36;1m  VERSION_NAME="$INPUT_V_NAME"[0m
+2026-10-20T02:54:16.5752156Z [36;1m  VERSION_CODE="$INPUT_V_CODE"[0m
+2026-10-20T02:54:16.5752489Z [36;1m  RELEASE_TITLE="${INPUT_TITLE:-Remmi Browser Release} (v${VERSION_NAME})"[0m
+2026-10-20T02:54:16.5752823Z [36;1melse[0m
+2026-10-20T02:54:16.5753056Z [36;1m  if ! [[ "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then[0m
+2026-10-20T02:54:16.5753469Z [36;1m    echo "::error::Push tag '$REF_NAME' is invalid. Must match pattern: ^v[0-9]+\.[0-9]+\.[0-9]+$"[0m
+2026-10-20T02:54:16.5753839Z [36;1m    exit 1[0m
+2026-10-20T02:54:16.5754040Z [36;1m  fi[0m
+2026-10-20T02:54:16.5754221Z [36;1m[0m
+2026-10-20T02:54:16.5754430Z [36;1m  test -f release-version.properties[0m
+2026-10-20T02:54:16.5754690Z [36;1m[0m
+2026-10-20T02:54:16.5754998Z [36;1m  VERSION_NAME="$(grep '^versionName=' release-version.properties | cut -d'=' -f2-)"[0m
+2026-10-20T02:54:16.5755508Z [36;1m  VERSION_CODE="$(grep '^versionCode=' release-version.properties | cut -d'=' -f2-)"[0m
+2026-10-20T02:54:16.5755863Z [36;1m[0m
+2026-10-20T02:54:16.5756078Z [36;1m  if ! [[ "$VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then[0m
+2026-10-20T02:54:16.5756481Z [36;1m    echo "::error::Invalid versionCode '$VERSION_CODE' in release-version.properties"[0m
+2026-10-20T02:54:16.5756845Z [36;1m    exit 1[0m
+2026-10-20T02:54:16.5757040Z [36;1m  fi[0m
+2026-10-20T02:54:16.5757225Z [36;1m[0m
+2026-10-20T02:54:16.5757412Z [36;1m  RELEASE_TAG="$REF_NAME"[0m
+2026-10-20T02:54:16.5757690Z [36;1m  RELEASE_TITLE="Remmi Browser ${RELEASE_TAG}"[0m
+2026-10-20T02:54:16.5757955Z [36;1mfi[0m
+2026-10-20T02:54:16.5758130Z [36;1m[0m
+2026-10-20T02:54:16.5758382Z [36;1m# Consistency check: tag must match versionName[0m
+2026-10-20T02:54:16.5758661Z [36;1mEXPECTED_TAG="v${VERSION_NAME}"[0m
+2026-10-20T02:54:16.5758928Z [36;1mif [ "$RELEASE_TAG" != "$EXPECTED_TAG" ]; then[0m
+2026-10-20T02:54:16.5759445Z [36;1m  echo "::error::Release version mismatch: tag '$RELEASE_TAG' does not correspond to versionName '$VERSION_NAME' (expected '$EXPECTED_TAG')"[0m
+2026-10-20T02:54:16.5759914Z [36;1m  exit 1[0m
+2026-10-20T02:54:16.5760205Z [36;1mfi[0m
+2026-10-20T02:54:16.5760379Z [36;1m[0m
+2026-10-20T02:54:16.5760608Z [36;1mecho "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"[0m
+2026-10-20T02:54:16.5760936Z [36;1mecho "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"[0m
+2026-10-20T02:54:16.5761254Z [36;1mecho "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"[0m
+2026-10-20T02:54:16.5761594Z [36;1mecho "release_title=$RELEASE_TITLE" >> "$GITHUB_OUTPUT"[0m
+2026-10-20T02:54:16.5817755Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-20T02:54:16.5818049Z env:
+2026-10-20T02:54:16.5818317Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:16.5818725Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:16.5819038Z   MAVEN_ARGS: -ntp
+2026-10-20T02:54:16.5819253Z   EVENT_NAME: workflow_dispatch
+2026-10-20T02:54:16.5819476Z   REF_NAME: main
+2026-10-20T02:54:16.5819825Z   INPUT_V_NAME: 1.1.1
+2026-10-20T02:54:16.5820031Z   INPUT_V_CODE: 4
+2026-10-20T02:54:16.5820337Z   INPUT_TITLE: Remmi Browser Release
+2026-10-20T02:54:16.5820576Z ##[endgroup]
+2026-10-20T02:54:16.6028609Z ##[group]Run set -euo pipefail
+2026-10-20T02:54:16.6028889Z [36;1mset -euo pipefail[0m
+2026-10-20T02:54:16.6029211Z [36;1mif [ "$EVENT_NAME" = "workflow_dispatch" ] && [ -n "$INPUT_NOTES" ]; then[0m
+2026-10-20T02:54:16.6029585Z [36;1m  printf '%s\n' "$INPUT_NOTES" > release-notes.md[0m
+2026-10-20T02:54:16.6029848Z [36;1melse[0m
+2026-10-20T02:54:16.6030372Z [36;1m  printf 'Automated production release for %s\n' "$REF_NAME" > release-notes.md[0m
+2026-10-20T02:54:16.6030835Z [36;1mfi[0m
+2026-10-20T02:54:16.6079646Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-20T02:54:16.6079991Z env:
+2026-10-20T02:54:16.6080364Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:16.6080787Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:16.6081266Z   MAVEN_ARGS: -ntp
+2026-10-20T02:54:16.6081473Z   EVENT_NAME: workflow_dispatch
+2026-10-20T02:54:16.6081695Z   REF_NAME: main
+2026-10-20T02:54:16.6081952Z   INPUT_NOTES: Bug fixes and performance improvements.
+2026-10-20T02:54:16.6082223Z ##[endgroup]
+2026-10-20T02:54:16.6730028Z ##[group]Run set -euo pipefail
+2026-10-20T02:54:16.6730567Z [36;1mset -euo pipefail[0m
+2026-10-20T02:54:16.6730799Z [36;1m[0m
+2026-10-20T02:54:16.6731034Z [36;1mif [ -z "${KEYSTORE_BASE64:-}" ] || \[0m
+2026-10-20T02:54:16.6731341Z [36;1m   [ -z "${STORE_PASSWORD:-}" ] || \[0m
+2026-10-20T02:54:16.6731607Z [36;1m   [ -z "${KEY_ALIAS:-}" ] || \[0m
+2026-10-20T02:54:16.6731891Z [36;1m   [ -z "${KEY_PASSWORD:-}" ]; then[0m
+2026-10-20T02:54:16.6732118Z [36;1m[0m
+2026-10-20T02:54:16.6732400Z [36;1m    echo "::error::Required Remmi production signing secrets are missing."[0m
+2026-10-20T02:54:16.6732747Z [36;1m    echo "Expected:"[0m
+2026-10-20T02:54:16.6732991Z [36;1m    echo "REMMI_RELEASE_KEYSTORE_B64"[0m
+2026-10-20T02:54:16.6733284Z [36;1m    echo "REMMI_RELEASE_STORE_PASSWORD"[0m
+2026-10-20T02:54:16.6733544Z [36;1m    echo "REMMI_RELEASE_KEY_ALIAS"[0m
+2026-10-20T02:54:16.6733803Z [36;1m    echo "REMMI_RELEASE_KEY_PASSWORD"[0m
+2026-10-20T02:54:16.6734061Z [36;1m[0m
+2026-10-20T02:54:16.6734236Z [36;1m    exit 1[0m
+2026-10-20T02:54:16.6734431Z [36;1mfi[0m
+2026-10-20T02:54:16.6788708Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-20T02:54:16.6789038Z env:
+2026-10-20T02:54:16.6789393Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:16.6789949Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:16.6790482Z   MAVEN_ARGS: -ntp
+2026-10-20T02:54:16.6802972Z   KEYSTORE_BASE64: ***
+2026-10-20T02:54:16.6803253Z   STORE_PASSWORD: ***
+2026-10-20T02:54:16.6803456Z   KEY_ALIAS: ***
+2026-10-20T02:54:16.6803676Z   KEY_PASSWORD: ***
+2026-10-20T02:54:16.6803882Z ##[endgroup]
+2026-10-20T02:54:16.9264569Z ##[group]Run set -euo pipefail
+2026-10-20T02:54:16.9265033Z [36;1mset -euo pipefail[0m
+2026-10-20T02:54:16.9265338Z [36;1m[0m
+2026-10-20T02:54:16.9265751Z [36;1mclean_store_pass="$(printf '%s' "$STORE_PASSWORD" | tr -d '\r\n')"[0m
+2026-10-20T02:54:16.9266312Z [36;1mclean_alias="$(printf '%s' "$KEY_ALIAS" | tr -d '\r\n ')"[0m
+2026-10-20T02:54:16.9266847Z [36;1mclean_key_pass="$(printf '%s' "$KEY_PASSWORD" | tr -d '\r\n')"[0m
+2026-10-20T02:54:16.9267266Z [36;1m[0m
+2026-10-20T02:54:16.9267569Z [36;1mrm -f "${WORKSPACE_PATH}/release.keystore"[0m
+2026-10-20T02:54:16.9268000Z [36;1mpython3 .github/scripts/decode_keystore.py[0m
+2026-10-20T02:54:16.9268430Z [36;1mchmod 600 "${WORKSPACE_PATH}/release.keystore"[0m
+2026-10-20T02:54:16.9268810Z [36;1m[0m
+2026-10-20T02:54:16.9269150Z [36;1mif [ ! -s "${WORKSPACE_PATH}/release.keystore" ]; then[0m
+2026-10-20T02:54:16.9269648Z [36;1m  echo "::error::Failed to decode REMMI_RELEASE_KEYSTORE_B64."[0m
+2026-10-20T02:54:16.9270316Z [36;1m  exit 1[0m
+2026-10-20T02:54:16.9270582Z [36;1mfi[0m
+2026-10-20T02:54:16.9270823Z [36;1m[0m
+2026-10-20T02:54:16.9271340Z [36;1mif ! keytool -list -keystore "${WORKSPACE_PATH}/release.keystore" -storepass "$clean_store_pass" >/dev/null 2>&1; then[0m
+2026-10-20T02:54:16.9271885Z [36;1m  echo "::error::Could not unlock keystore with REMMI_RELEASE_STORE_PASSWORD."[0m
+2026-10-20T02:54:16.9272223Z [36;1m  exit 1[0m
+2026-10-20T02:54:16.9272405Z [36;1mfi[0m
+2026-10-20T02:54:16.9272582Z [36;1m[0m
+2026-10-20T02:54:16.9273004Z [36;1mif ! keytool -list -keystore "${WORKSPACE_PATH}/release.keystore" -storepass "$clean_store_pass" -alias "$clean_alias" >/dev/null 2>&1; then[0m
+2026-10-20T02:54:16.9273564Z [36;1m  echo "::error::Key alias '${clean_alias}' not found in keystore."[0m
+2026-10-20T02:54:16.9273870Z [36;1m  exit 1[0m
+2026-10-20T02:54:16.9274053Z [36;1mfi[0m
+2026-10-20T02:54:16.9274234Z [36;1m[0m
+2026-10-20T02:54:16.9274793Z [36;1mif ! keytool -certreq -keystore "${WORKSPACE_PATH}/release.keystore" -storepass "$clean_store_pass" -alias "$clean_alias" -keypass "$clean_key_pass" -file /dev/null >/dev/null 2>&1; then[0m
+2026-10-20T02:54:16.9275688Z [36;1m  echo "::error::Could not decrypt key entry '${clean_alias}' with REMMI_RELEASE_KEY_PASSWORD."[0m
+2026-10-20T02:54:16.9276063Z [36;1m  exit 1[0m
+2026-10-20T02:54:16.9276254Z [36;1mfi[0m
+2026-10-20T02:54:16.9276425Z [36;1m[0m
+2026-10-20T02:54:16.9276671Z [36;1mecho "Keystore and signing keys verified successfully."[0m
+2026-10-20T02:54:16.9277059Z [36;1mecho "KEYSTORE_PATH=${WORKSPACE_PATH}/release.keystore" >> "$GITHUB_ENV"[0m
+2026-10-20T02:54:16.9277449Z [36;1mecho "STORE_PASSWORD=${clean_store_pass}" >> "$GITHUB_ENV"[0m
+2026-10-20T02:54:16.9277780Z [36;1mecho "KEY_ALIAS=${clean_alias}" >> "$GITHUB_ENV"[0m
+2026-10-20T02:54:16.9278091Z [36;1mecho "KEY_PASSWORD=${clean_key_pass}" >> "$GITHUB_ENV"[0m
+2026-10-20T02:54:16.9334470Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-20T02:54:16.9334775Z env:
+2026-10-20T02:54:16.9335048Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:16.9335477Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:16.9335797Z   MAVEN_ARGS: -ntp
+2026-10-20T02:54:16.9347518Z   KEYSTORE_BASE64: ***
+2026-10-20T02:54:16.9347765Z   STORE_PASSWORD: ***
+2026-10-20T02:54:16.9348018Z   KEY_ALIAS: ***
+2026-10-20T02:54:16.9348237Z   KEY_PASSWORD: ***
+2026-10-20T02:54:16.9348511Z   WORKSPACE_PATH: /home/runner/work/Remmi-Browser-3/Remmi-Browser-3
+2026-10-20T02:54:16.9348809Z ##[endgroup]
+2026-10-20T02:54:18.4522593Z Keystore and signing keys verified successfully.
+2026-10-20T02:54:18.4554400Z ##[group]Run ./gradlew \
+2026-10-20T02:54:18.4554649Z [36;1m./gradlew \[0m
+2026-10-20T02:54:18.4554873Z [36;1m  -PversionName="$V_NAME" \[0m
+2026-10-20T02:54:18.4555124Z [36;1m  -PversionCode="$V_CODE" \[0m
+2026-10-20T02:54:18.4555364Z [36;1m  :app:testDebugUnitTest \[0m
+2026-10-20T02:54:18.4555603Z [36;1m  :app:lintRelease[0m
+2026-10-20T02:54:18.4611574Z shell: /usr/bin/bash -e {0}
+2026-10-20T02:54:18.4611803Z env:
+2026-10-20T02:54:18.4612068Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:18.4612483Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-20T02:54:18.4612802Z   MAVEN_ARGS: -ntp
+2026-10-20T02:54:18.4613110Z   KEYSTORE_PATH: /home/runner/work/Remmi-Browser-3/Remmi-Browser-3/release.keystore
+2026-10-20T02:54:18.4613613Z   STORE_PASSWORD: ***
+2026-10-20T02:54:18.4613835Z   KEY_ALIAS: ***
+2026-10-20T02:54:18.4614061Z   KEY_PASSWORD: ***
+2026-10-20T02:54:18.4614253Z   V_NAME: 1.1.1
+2026-10-20T02:54:18.4614473Z   V_CODE: 4
+2026-10-20T02:54:18.4614650Z ##[endgroup]
+2026-10-20T02:54:19.3553282Z Starting a Gradle Daemon (subsequent builds will be faster)
+2026-10-20T02:54:31.5584681Z > Task :app:preBuild UP-TO-DATE
+2026-10-20T02:54:31.5601401Z > Task :app:preDebugBuild UP-TO-DATE
+2026-10-20T02:54:31.7567261Z > Task :app:generateDebugBuildConfig
+2026-10-20T02:54:31.7591018Z > Task :app:generateDebugResources FROM-CACHE
+2026-10-20T02:54:31.7604556Z > Task :app:packageDebugResources FROM-CACHE
+2026-10-20T02:54:33.1547730Z > Task :app:processDebugNavigationResources FROM-CACHE
+2026-10-20T02:54:34.2556585Z > Task :app:parseDebugLocalResources FROM-CACHE
+2026-10-20T02:54:34.2565247Z > Task :app:generateDebugRFile FROM-CACHE
+2026-10-20T02:54:34.8591257Z > Task :app:javaPreCompileDebug FROM-CACHE
+2026-10-20T02:54:34.8621970Z > Task :app:checkDebugAarMetadata SKIPPED
+2026-10-20T02:54:34.8626842Z > Task :app:mapDebugSourceSetPaths
+2026-10-20T02:54:34.8627487Z > Task :app:compileDebugNavigationResources FROM-CACHE
+2026-10-20T02:54:35.1547824Z > Task :app:mergeDebugResources FROM-CACHE
+2026-10-20T02:54:35.1560881Z > Task :app:createDebugCompatibleScreenManifests
+2026-10-20T02:54:35.2550603Z > Task :app:extractDeepLinksDebug FROM-CACHE
+2026-10-20T02:54:35.7561740Z > Task :app:processDebugMainManifest
+2026-10-20T02:54:35.9556974Z > Task :app:processDebugManifest
+2026-10-20T02:54:35.9581044Z > Task :app:preDebugUnitTestBuild UP-TO-DATE
+2026-10-20T02:54:35.9610869Z > Task :app:javaPreCompileDebugUnitTest FROM-CACHE
+2026-10-20T02:54:35.9640638Z > Task :app:generateDebugAssets UP-TO-DATE
+2026-10-20T02:54:36.0561314Z > Task :app:mergeDebugAssets
+2026-10-20T02:54:36.1552900Z > Task :app:processDebugManifestForPackage
+2026-10-20T02:54:36.7548048Z > Task :app:processDebugUnitTestManifest
+2026-10-20T02:54:36.7641764Z > Task :app:preReleaseBuild UP-TO-DATE
+2026-10-20T02:54:36.7682675Z > Task :app:generateReleaseBuildConfig
+2026-10-20T02:54:36.7718122Z > Task :app:generateReleaseResources FROM-CACHE
+2026-10-20T02:54:36.7730608Z > Task :app:packageReleaseResources FROM-CACHE
+2026-10-20T02:54:36.8565880Z > Task :app:processReleaseNavigationResources FROM-CACHE
+2026-10-20T02:54:36.8620800Z > Task :app:parseReleaseLocalResources FROM-CACHE
+2026-10-20T02:54:36.8650599Z > Task :app:generateReleaseRFile FROM-CACHE
+2026-10-20T02:54:37.2547493Z > Task :app:javaPreCompileRelease FROM-CACHE
+2026-10-20T02:54:37.2580793Z > Task :app:extractProguardFiles
+2026-10-20T02:54:37.2581548Z > Task :app:extractDeepLinksRelease FROM-CACHE
+2026-10-20T02:54:37.4552675Z > Task :app:processDebugResources
+2026-10-20T02:54:37.4570743Z > Task :app:processReleaseMainManifest
+2026-10-20T02:54:37.9561295Z > Task :app:packageDebugUnitTestForUnitTest
+2026-10-20T02:54:37.9600642Z > Task :app:generateDebugUnitTestConfig
+2026-10-20T02:54:48.4564515Z 
+2026-10-20T02:54:48.4565285Z > Task :app:kspDebugKotlin
+2026-10-20T02:54:48.4568096Z w: [ksp] /home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/storage/RemmiDatabase.kt:340: Schema export directory was not provided to the annotation processor so Room cannot export the schema. You can either provide `room.schemaLocation` annotation processor argument by applying the Room Gradle plugin (id 'androidx.room') OR set exportSchema to false.
+2026-10-20T02:54:49.1548302Z 
+2026-10-20T02:54:49.1574138Z > Task :app:kspReleaseKotlin
+2026-10-20T02:54:49.1584877Z w: [ksp] /home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/storage/RemmiDatabase.kt:340: Schema export directory was not provided to the annotation processor so Room cannot export the schema. You can either provide `room.schemaLocation` annotation processor argument by applying the Room Gradle plugin (id 'androidx.room') OR set exportSchema to false.
+2026-10-20T02:55:19.1550778Z 
+2026-10-20T02:55:19.1581145Z > Task :app:compileDebugKotlin
+2026-10-20T02:55:19.5551189Z > Task :app:compileReleaseKotlin
+2026-10-20T02:56:02.9660942Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/adblock/AdblockBridge.kt:216:132 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:02.9662885Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/adblock/AdblockBridge.kt:819:95 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:02.9698077Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/adblock/AdblockBridge.kt:872:115 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:02.9705053Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/adblock/AdblockBridge.kt:1021:36 Condition is always 'true'.
+2026-10-20T02:56:02.9720622Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/MainActivity.kt:77:21 Elvis operator (?:) always returns the left operand of non-nullable type 'List<Uri>'.
+2026-10-20T02:56:02.9749432Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/downloads/DownloadFileType.kt:28:26 'val Icons.Filled.InsertDriveFile: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.InsertDriveFile.
+2026-10-20T02:56:02.9751768Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/downloads/DownloadFileType.kt:92:26 'val Icons.Filled.InsertDriveFile: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.InsertDriveFile.
+2026-10-20T02:56:02.9799013Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:929:81 Condition is always 'true'.
+2026-10-20T02:56:02.9821535Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:1009:114 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.SuccessfulNavRecord'.
+2026-10-20T02:56:02.9881550Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:1044:113 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.SuccessfulNavRecord'.
+2026-10-20T02:56:02.9910685Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:1052:114 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.SuccessfulNavRecord'.
+2026-10-20T02:56:02.9941458Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:1813:31 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:02.9967240Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2322:89 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:02.9982280Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2327:79 Unnecessary non-null assertion (!!) on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0020575Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2340:87 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0031946Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2806:98 Unnecessary non-null assertion (!!) on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0034295Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2836:98 Unnecessary non-null assertion (!!) on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0036725Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:3580:75 Condition is always 'true'.
+2026-10-20T02:56:03.0038629Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:4568:56 'static field TRIM_MEMORY_RUNNING_CRITICAL: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0040812Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:4569:56 'static field TRIM_MEMORY_COMPLETE: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0042964Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:4588:54 'static field TRIM_MEMORY_COMPLETE: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0045247Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoPreferenceController.kt:13:8 Annotation 'org.mozilla.geckoview.ExperimentalGeckoViewApi' is not annotated with '@RequiresOptIn'. '@OptIn' has no effect.
+2026-10-20T02:56:03.0047598Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:78:54 'static field TRIM_MEMORY_RUNNING_CRITICAL: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0049534Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:79:54 'static field TRIM_MEMORY_COMPLETE: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0052038Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:83:61 'static field TRIM_MEMORY_RUNNING_LOW: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0054041Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:84:61 'static field TRIM_MEMORY_MODERATE: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0055850Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:230:11 Condition is always 'true'.
+2026-10-20T02:56:03.0057702Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/extensions/ExtensionManager.kt:121:34 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0059840Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/extensions/ExtensionManager.kt:195:34 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0062194Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/NavigationSecurityAuthority.kt:150:31 'static field IP_ADDRESS: Pattern!' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0064656Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/PasswordManagerRepository.kt:906:65 Elvis operator (?:) always returns the left operand of non-nullable type 'PasswordEntryEntity'.
+2026-10-20T02:56:03.0066899Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/RedirectInspector.kt:672:35 'static field IP_ADDRESS: Pattern!' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0068698Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/TorManager.kt:559:63 Condition is always 'true'.
+2026-10-20T02:56:03.0070453Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/TorManager.kt:680:37 Condition is always 'true'.
+2026-10-20T02:56:03.0072428Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:63:31 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0074741Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:65:35 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0077051Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:66:35 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0079340Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:81:31 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0081763Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:88:35 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0084159Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:89:35 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0086232Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/PasswordAutofillCoordinator.kt:96:25 Condition is always 'true'.
+2026-10-20T02:56:03.0088485Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/PasswordAutofillCoordinator.kt:97:85 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0090867Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/PasswordAutofillCoordinator.kt:97:108 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0092950Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:70:9 Condition is always 'false'.
+2026-10-20T02:56:03.0095071Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:103:30 Unnecessary safe call on a non-null receiver of type 'Array<(out) Autocomplete.LoginSaveOption!>'.
+2026-10-20T02:56:03.0097450Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:116:28 Unnecessary safe call on a non-null receiver of type 'Autocomplete.LoginEntry'.
+2026-10-20T02:56:03.0099698Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:117:30 Unnecessary safe call on a non-null receiver of type 'Autocomplete.LoginEntry'.
+2026-10-20T02:56:03.0102371Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:118:30 Unnecessary safe call on a non-null receiver of type 'Autocomplete.LoginEntry'.
+2026-10-20T02:56:03.0105090Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/storage/RemmiDatabase.kt:469:11 'fun fallbackToDestructiveMigration(): RoomDatabase.Builder<RemmiDatabase>' is deprecated. Replace by overloaded version with parameter to indicate if all tables should be dropped or not.
+2026-10-20T02:56:03.0108731Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ActivityScreen.kt:1025:5 'fun TabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryTabRow and SecondaryTabRow.
+2026-10-20T02:56:03.0113057Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ActivityScreen.kt:1032:26 'fun Modifier.tabIndicatorOffset(currentTabPosition: TabPosition): Modifier' is deprecated. Solely for use alongside deprecated TabRowDefaults.Indicator method. For recommended PrimaryIndicator and SecondaryIndicator methods, please use TabIndicatorScope.tabIndicatorOffset method.
+2026-10-20T02:56:03.0116545Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ActivityScreen.kt:1716:64 'val Icons.Filled.DriveFileMove: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.DriveFileMove.
+2026-10-20T02:56:03.0119465Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ActivityViewModel.kt:164:7 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+2026-10-20T02:56:03.0122419Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/DownloadStartedBanner.kt:231:43 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+2026-10-20T02:56:03.0125080Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/DownloadsDrawer.kt:496:43 'val Icons.Filled.InsertDriveFile: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.InsertDriveFile.
+2026-10-20T02:56:03.0127376Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/HudOverlay.kt:72:21 No cast needed.
+2026-10-20T02:56:03.0129378Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ImagePreviewDialog.kt:121:34 'val Icons.Filled.OpenInNew: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.OpenInNew.
+2026-10-20T02:56:03.0131990Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/LinkInspectorSheet.kt:217:30 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0134467Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/NewTabPage.kt:955:38 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0136920Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/PagePreviewSheet.kt:248:30 'val Icons.Filled.OpenInNew: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.OpenInNew.
+2026-10-20T02:56:03.0139546Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ReaderView.kt:307:47 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0142184Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ReaderView.kt:485:45 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0144215Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ReaderView.kt:553:43 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0146612Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/RedirectChainSheet.kt:88:41 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0149161Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/RedirectInspectorSheet.kt:586:36 'val Icons.Filled.Launch: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Launch.
+2026-10-20T02:56:03.0151878Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/TabStrip.kt:970:34 'val Icons.Filled.DriveFileMove: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.DriveFileMove.
+2026-10-20T02:56:03.0154347Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/TabStrip.kt:2294:30 'val Icons.Filled.Launch: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Launch.
+2026-10-20T02:56:03.0156702Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/UrlBar.kt:492:42 'val Icons.Outlined.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Outlined.MenuBook.
+2026-10-20T02:56:03.0159188Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/UrlSecuritySheet.kt:242:30 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0162571Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/WebContextMenuSheet.kt:108:26 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
+2026-10-20T02:56:03.0165137Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/WebContextMenuSheet.kt:459:37 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+2026-10-20T02:56:03.0167463Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/WebContextMenuSheet.kt:513:38 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0169954Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/WebContextMenuSheet.kt:667:38 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0173728Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/passwords/BackupRestoreSheet.kt:258:9 'fun TabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryTabRow and SecondaryTabRow.
+2026-10-20T02:56:03.0177731Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/passwords/BackupRestoreSheet.kt:264:35 'fun Modifier.tabIndicatorOffset(currentTabPosition: TabPosition): Modifier' is deprecated. Solely for use alongside deprecated TabRowDefaults.Indicator method. For recommended PrimaryIndicator and SecondaryIndicator methods, please use TabIndicatorScope.tabIndicatorOffset method.
+2026-10-20T02:56:03.0181079Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/BrowserScreen.kt:1770:49 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0183355Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/BrowserScreen.kt:1919:110 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ReaderArticle'.
+2026-10-20T02:56:03.0185372Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/BrowserScreen.kt:3010:35 Unnecessary safe call on a non-null receiver of type 'Autocomplete.LoginEntry'.
+2026-10-20T02:56:03.0187587Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:276:47 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0189943Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:378:49 'val Icons.Filled.Sort: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Sort.
+2026-10-20T02:56:03.0192654Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:652:45 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0195044Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:1365:54 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0197474Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:1389:54 'val Icons.Filled.DriveFileMove: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.DriveFileMove.
+2026-10-20T02:56:03.0200059Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:168:26 'val Icons.Filled.Help: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Help.
+2026-10-20T02:56:03.0202511Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:586:38 'val Icons.Filled.Help: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Help.
+2026-10-20T02:56:03.0204915Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:1438:11 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-10-20T02:56:03.0207112Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:1755:7 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-10-20T02:56:03.0209344Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:2553:11 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-10-20T02:56:03.0211658Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:2869:11 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-10-20T02:56:03.0213684Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/theme/Theme.kt:225:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0215353Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/theme/Theme.kt:226:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0217624Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/webapp/WebAppActivity.kt:166:36 The corresponding parameter in the supertype 'GeckoTabCallbacks' is named 'isLoading'. This may cause problems when calling this function with named arguments.
+2026-10-20T02:56:03.0220482Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/webapp/WebAppActivity.kt:179:37 The corresponding parameter in the supertype 'GeckoTabCallbacks' is named 'isSecure'. This may cause problems when calling this function with named arguments.
+2026-10-20T02:56:03.0223227Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/webapp/WebAppActivity.kt:181:37 The corresponding parameter in the supertype 'GeckoTabCallbacks' is named 'canGoBack'. This may cause problems when calling this function with named arguments.
+2026-10-20T02:56:03.0226052Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/webapp/WebAppActivity.kt:181:55 The corresponding parameter in the supertype 'GeckoTabCallbacks' is named 'canGoForward'. This may cause problems when calling this function with named arguments.
+2026-10-20T02:56:03.0228365Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/CrashHandlerHelper.kt:792:60 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0230218Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/DebugLogManager.kt:85:87 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0231881Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/HangWatchdog.kt:71:118 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0233711Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/HangWatchdog.kt:112:119 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0235352Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/HangWatchdog.kt:170:134 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0236286Z 
+2026-10-20T02:56:03.0236570Z > Task :app:compileDebugKotlin
+2026-10-20T02:56:03.0237633Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/adblock/AdblockBridge.kt:216:132 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0239264Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/adblock/AdblockBridge.kt:819:95 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0241021Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/adblock/AdblockBridge.kt:872:115 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0242544Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/adblock/AdblockBridge.kt:1021:36 Condition is always 'true'.
+2026-10-20T02:56:03.0244288Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/MainActivity.kt:77:21 Elvis operator (?:) always returns the left operand of non-nullable type 'List<Uri>'.
+2026-10-20T02:56:03.0246555Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/downloads/DownloadFileType.kt:28:26 'val Icons.Filled.InsertDriveFile: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.InsertDriveFile.
+2026-10-20T02:56:03.0249174Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/downloads/DownloadFileType.kt:92:26 'val Icons.Filled.InsertDriveFile: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.InsertDriveFile.
+2026-10-20T02:56:03.0251450Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:929:81 Condition is always 'true'.
+2026-10-20T02:56:03.0253382Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:1009:114 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.SuccessfulNavRecord'.
+2026-10-20T02:56:03.0255624Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:1044:113 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.SuccessfulNavRecord'.
+2026-10-20T02:56:03.0257858Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:1052:114 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.SuccessfulNavRecord'.
+2026-10-20T02:56:03.0259969Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:1813:31 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0262102Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2322:89 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0264254Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2327:79 Unnecessary non-null assertion (!!) on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0266404Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2340:87 Unnecessary safe call on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0268764Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2806:98 Unnecessary non-null assertion (!!) on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0271099Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:2836:98 Unnecessary non-null assertion (!!) on a non-null receiver of type 'GeckoEngineManager.ActiveRecovery'.
+2026-10-20T02:56:03.0272967Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:3580:75 Condition is always 'true'.
+2026-10-20T02:56:03.0274761Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:4568:56 'static field TRIM_MEMORY_RUNNING_CRITICAL: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0276725Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:4569:56 'static field TRIM_MEMORY_COMPLETE: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0278631Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoEngineManager.kt:4588:54 'static field TRIM_MEMORY_COMPLETE: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0281096Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/GeckoPreferenceController.kt:13:8 Annotation 'org.mozilla.geckoview.ExperimentalGeckoViewApi' is not annotated with '@RequiresOptIn'. '@OptIn' has no effect.
+2026-10-20T02:56:03.0283454Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:78:54 'static field TRIM_MEMORY_RUNNING_CRITICAL: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0285407Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:79:54 'static field TRIM_MEMORY_COMPLETE: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0287320Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:83:61 'static field TRIM_MEMORY_RUNNING_LOW: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0289280Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:84:61 'static field TRIM_MEMORY_MODERATE: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0291189Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/engine/TabThumbnailManager.kt:230:11 Condition is always 'true'.
+2026-10-20T02:56:03.0292895Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/extensions/ExtensionManager.kt:121:34 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0294928Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/extensions/ExtensionManager.kt:195:34 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0296969Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/NavigationSecurityAuthority.kt:150:31 'static field IP_ADDRESS: Pattern!' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0299093Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/PasswordManagerRepository.kt:906:65 Elvis operator (?:) always returns the left operand of non-nullable type 'PasswordEntryEntity'.
+2026-10-20T02:56:03.0301327Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/RedirectInspector.kt:672:35 'static field IP_ADDRESS: Pattern!' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0303291Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/TorManager.kt:559:63 Condition is always 'true'.
+2026-10-20T02:56:03.0304850Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/TorManager.kt:680:37 Condition is always 'true'.
+2026-10-20T02:56:03.0306704Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:63:31 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0308853Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:65:35 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0311250Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:66:35 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0313455Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:81:31 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0315864Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:88:35 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0318142Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/GeckoPasswordStorageDelegate.kt:89:35 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0320305Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/PasswordAutofillCoordinator.kt:96:25 Condition is always 'true'.
+2026-10-20T02:56:03.0322398Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/PasswordAutofillCoordinator.kt:97:85 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0324755Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/autofill/PasswordAutofillCoordinator.kt:97:108 Elvis operator (?:) always returns the left operand of non-nullable type 'String'.
+2026-10-20T02:56:03.0326721Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:70:9 Condition is always 'false'.
+2026-10-20T02:56:03.0328747Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:103:30 Unnecessary safe call on a non-null receiver of type 'Array<(out) Autocomplete.LoginSaveOption!>'.
+2026-10-20T02:56:03.0331055Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:116:28 Unnecessary safe call on a non-null receiver of type 'Autocomplete.LoginEntry'.
+2026-10-20T02:56:03.0333239Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:117:30 Unnecessary safe call on a non-null receiver of type 'Autocomplete.LoginEntry'.
+2026-10-20T02:56:03.0335396Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/security/permissions/RemmiPromptDelegate.kt:118:30 Unnecessary safe call on a non-null receiver of type 'Autocomplete.LoginEntry'.
+2026-10-20T02:56:03.0337501Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/storage/RemmiDatabase.kt:469:11 'fun fallbackToDestructiveMigration(): RoomDatabase.Builder<RemmiDatabase>' is deprecated. Replace by overloaded version with parameter to indicate if all tables should be dropped or not.
+2026-10-20T02:56:03.0341260Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ActivityScreen.kt:1025:5 'fun TabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryTabRow and SecondaryTabRow.
+2026-10-20T02:56:03.0345387Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ActivityScreen.kt:1032:26 'fun Modifier.tabIndicatorOffset(currentTabPosition: TabPosition): Modifier' is deprecated. Solely for use alongside deprecated TabRowDefaults.Indicator method. For recommended PrimaryIndicator and SecondaryIndicator methods, please use TabIndicatorScope.tabIndicatorOffset method.
+2026-10-20T02:56:03.0348730Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ActivityScreen.kt:1716:64 'val Icons.Filled.DriveFileMove: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.DriveFileMove.
+2026-10-20T02:56:03.0351981Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ActivityViewModel.kt:164:7 This declaration needs opt-in. Its usage should be marked with '@kotlinx.coroutines.ExperimentalCoroutinesApi' or '@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)'
+2026-10-20T02:56:03.0354765Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/DownloadStartedBanner.kt:231:43 'val Icons.Filled.ArrowForward: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.ArrowForward.
+2026-10-20T02:56:03.0357384Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/DownloadsDrawer.kt:496:43 'val Icons.Filled.InsertDriveFile: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.InsertDriveFile.
+2026-10-20T02:56:03.0359512Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/HudOverlay.kt:72:21 No cast needed.
+2026-10-20T02:56:03.0361771Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ImagePreviewDialog.kt:121:34 'val Icons.Filled.OpenInNew: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.OpenInNew.
+2026-10-20T02:56:03.0364347Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/LinkInspectorSheet.kt:217:30 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0366772Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/NewTabPage.kt:955:38 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0369230Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/PagePreviewSheet.kt:248:30 'val Icons.Filled.OpenInNew: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.OpenInNew.
+2026-10-20T02:56:03.0371815Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ReaderView.kt:307:47 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0374204Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ReaderView.kt:485:45 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0376828Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/ReaderView.kt:553:43 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0379268Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/RedirectChainSheet.kt:88:41 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0381878Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/RedirectInspectorSheet.kt:586:36 'val Icons.Filled.Launch: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Launch.
+2026-10-20T02:56:03.0384651Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/TabStrip.kt:970:34 'val Icons.Filled.DriveFileMove: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.DriveFileMove.
+2026-10-20T02:56:03.0387004Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/TabStrip.kt:2294:30 'val Icons.Filled.Launch: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Launch.
+2026-10-20T02:56:03.0389462Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/UrlBar.kt:492:42 'val Icons.Outlined.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Outlined.MenuBook.
+2026-10-20T02:56:03.0391900Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/UrlSecuritySheet.kt:242:30 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0394254Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/WebContextMenuSheet.kt:108:26 'val LocalClipboardManager: ProvidableCompositionLocal<ClipboardManager>' is deprecated. Use LocalClipboard instead which supports suspend functions.
+2026-10-20T02:56:03.0396716Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/WebContextMenuSheet.kt:459:37 Unnecessary non-null assertion (!!) on a non-null receiver of type 'String'.
+2026-10-20T02:56:03.0399048Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/WebContextMenuSheet.kt:513:38 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0401738Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/components/WebContextMenuSheet.kt:667:38 'val Icons.Filled.AltRoute: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.AltRoute.
+2026-10-20T02:56:03.0405213Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/passwords/BackupRestoreSheet.kt:258:9 'fun TabRow(selectedTabIndex: Int, modifier: Modifier = ..., containerColor: Color = ..., contentColor: Color = ..., indicator: ComposableFunction1<List<TabPosition>, Unit> = ..., divider: ComposableFunction0<Unit> = ..., tabs: ComposableFunction0<Unit>): Unit' is deprecated. Replaced with PrimaryTabRow and SecondaryTabRow.
+2026-10-20T02:56:03.0409378Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/passwords/BackupRestoreSheet.kt:264:35 'fun Modifier.tabIndicatorOffset(currentTabPosition: TabPosition): Modifier' is deprecated. Solely for use alongside deprecated TabRowDefaults.Indicator method. For recommended PrimaryIndicator and SecondaryIndicator methods, please use TabIndicatorScope.tabIndicatorOffset method.
+2026-10-20T02:56:03.0412886Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/BrowserScreen.kt:1770:49 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0415200Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/BrowserScreen.kt:1919:110 Unnecessary non-null assertion (!!) on a non-null receiver of type 'ReaderArticle'.
+2026-10-20T02:56:03.0417284Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/BrowserScreen.kt:3010:35 Unnecessary safe call on a non-null receiver of type 'Autocomplete.LoginEntry'.
+2026-10-20T02:56:03.0419506Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:276:47 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0422040Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:378:49 'val Icons.Filled.Sort: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Sort.
+2026-10-20T02:56:03.0424719Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:652:45 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0427183Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:1365:54 'val Icons.Filled.MenuBook: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.MenuBook.
+2026-10-20T02:56:03.0429651Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/ReadingListScreen.kt:1389:54 'val Icons.Filled.DriveFileMove: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.DriveFileMove.
+2026-10-20T02:56:03.0432436Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:168:26 'val Icons.Filled.Help: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Help.
+2026-10-20T02:56:03.0434854Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:586:38 'val Icons.Filled.Help: ImageVector' is deprecated. Use the AutoMirrored version at Icons.AutoMirrored.Filled.Help.
+2026-10-20T02:56:03.0437266Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:1438:11 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-10-20T02:56:03.0439639Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:1755:7 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-10-20T02:56:03.0442102Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:2553:11 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-10-20T02:56:03.0444405Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/screens/SettingsScreen.kt:2869:11 'fun Divider(modifier: Modifier = ..., thickness: Dp = ..., color: Color = ...): Unit' is deprecated. Renamed to HorizontalDivider.
+2026-10-20T02:56:03.0446689Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/theme/Theme.kt:225:16 'var statusBarColor: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0448490Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/theme/Theme.kt:226:16 'var navigationBarColor: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0450963Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/webapp/WebAppActivity.kt:166:36 The corresponding parameter in the supertype 'GeckoTabCallbacks' is named 'isLoading'. This may cause problems when calling this function with named arguments.
+2026-10-20T02:56:03.0453634Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/webapp/WebAppActivity.kt:179:37 The corresponding parameter in the supertype 'GeckoTabCallbacks' is named 'isSecure'. This may cause problems when calling this function with named arguments.
+2026-10-20T02:56:03.0456305Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/webapp/WebAppActivity.kt:181:37 The corresponding parameter in the supertype 'GeckoTabCallbacks' is named 'canGoBack'. This may cause problems when calling this function with named arguments.
+2026-10-20T02:56:03.0459205Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/ui/webapp/WebAppActivity.kt:181:55 The corresponding parameter in the supertype 'GeckoTabCallbacks' is named 'canGoForward'. This may cause problems when calling this function with named arguments.
+2026-10-20T02:56:03.0461645Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/CrashHandlerHelper.kt:792:60 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0463443Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/DebugLogManager.kt:85:87 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0465168Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/HangWatchdog.kt:71:118 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0466836Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/HangWatchdog.kt:112:119 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:03.0468510Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/main/java/com/***/browser/util/HangWatchdog.kt:170:134 'val id: Long' is deprecated. Deprecated in Java.
+2026-10-20T02:56:07.3546102Z 
+2026-10-20T02:56:07.3560453Z > Task :app:compileDebugJavaWithJavac
+2026-10-20T02:56:07.4546772Z > Task :app:processDebugJavaRes
+2026-10-20T02:56:07.4557123Z > Task :app:bundleDebugClassesToCompileJar
+2026-10-20T02:56:07.5551493Z > Task :app:bundleDebugClassesToRuntimeJar
+2026-10-20T02:56:07.9560994Z > Task :app:compileReleaseJavaWithJavac
+2026-10-20T02:56:08.2548976Z > Task :app:kspDebugUnitTestKotlin
+2026-10-20T02:56:09.3552275Z > Task :app:generateReleaseLintReportModel
+2026-10-20T02:56:16.8560818Z 
+2026-10-20T02:56:16.8571064Z > Task :app:compileDebugUnitTestKotlin
+2026-10-20T02:56:16.8593737Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/test/java/com/***/browser/GreetingScreenshotTest.kt:21:35 'fun createComposeRule(effectContext: CoroutineContext = ...): ComposeContentTestRule' is deprecated. Use `androidx.compose.ui.test.junit4.v2.createComposeRule` instead. The v2 APIs use StandardTestDispatcher instead of UnconfinedTestDispatcher, which aligns with standard coroutine behavior by queuing tasks rather than executing them immediately. Tests relying on immediate execution may require explicit synchronization. Please refer to the migration guide for more details.
+2026-10-20T02:56:16.8597824Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/test/java/com/***/browser/engine/OnionNavigationRegressionTest.kt:72:82 This class is not recommended for use in Kotlin. Use 'kotlin.Int' instead.
+2026-10-20T02:56:16.8600532Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/test/java/com/***/browser/engine/OnionNavigationRegressionTest.kt:73:80 This class is not recommended for use in Kotlin. Use 'kotlin.Long' instead.
+2026-10-20T02:56:16.8602442Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/test/java/com/***/browser/engine/OnionNavigationRegressionTest.kt:74:86 This class is not recommended for use in Kotlin. Use 'kotlin.Boolean' instead.
+2026-10-20T02:56:16.8604267Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/test/java/com/***/browser/engine/Step36TerminalRecoveryTest.kt:59:62 Unchecked cast of 'Any!' to 'MutableStateFlow<Any>'.
+2026-10-20T02:56:16.8606096Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/test/java/com/***/browser/engine/Step36TerminalRecoveryTest.kt:68:35 Java type mismatch: inferred type is 'Any?', but 'Any' was expected.
+2026-10-20T02:56:16.8631475Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/test/java/com/***/browser/engine/TabThumbnailMemoryOptimizationTest.kt:53:55 'static field TRIM_MEMORY_RUNNING_CRITICAL: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:16.8692983Z w: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/src/test/java/com/***/browser/engine/TabThumbnailMemoryOptimizationTest.kt:67:50 'static field TRIM_MEMORY_RUNNING_CRITICAL: Int' is deprecated. Deprecated in Java.
+2026-10-20T02:56:17.3548398Z 
+2026-10-20T02:56:17.3571581Z > Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+2026-10-20T02:56:17.3600611Z > Task :app:processDebugUnitTestJavaRes
+2026-10-20T02:56:19.3546597Z 
+2026-10-20T02:56:19.3563482Z > Task :app:testDebugUnitTest
+2026-10-20T02:56:19.3590565Z 
+2026-10-20T02:56:19.3620697Z Gradle Test Executor 1 STANDARD_ERROR
+2026-10-20T02:56:19.3640935Z     [Robolectric] WARN: Android SDK 36 requires Java 21 (have Java 17). Tests won't be run on SDK 36 unless explicitly requested.
+2026-10-20T02:56:27.4565947Z 
+2026-10-20T02:56:27.4593630Z AdblockBridgeTest > testRuleCompilationAndExceptionLifecycle PASSED
+2026-10-20T02:56:27.7570758Z 
+2026-10-20T02:56:27.7621165Z AdblockBridgeTest > testApiCompatibilityGatingRegression PASSED
+2026-10-20T02:56:28.1590687Z 
+2026-10-20T02:56:28.1681211Z AdblockBridgeTest > testFirstPartyCleanResourceAllowed PASSED
+2026-10-20T02:56:28.3560700Z 
+2026-10-20T02:56:28.3601391Z AdblockBridgeTest > testGoogleAnalyticsCollectBlocked PASSED
+2026-10-20T02:56:28.5610796Z 
+2026-10-20T02:56:28.5641311Z AdblockBridgeTest > testGoogleTagManagerGtagJsBlocked PASSED
+2026-10-20T02:56:28.7580840Z 
+2026-10-20T02:56:28.7611096Z AdblockFallbackTest > testHealthyNativeSkipsFallback PASSED
+2026-10-20T02:56:29.1545598Z 
+2026-10-20T02:56:29.1546469Z AdblockFallbackTest > testDegradedNativeBuildsFallback PASSED
+2026-10-20T02:56:29.4560993Z 
+2026-10-20T02:56:29.4621426Z AdblockFallbackTest > testFallbackRuleOrderingIsIdentical PASSED
+2026-10-20T02:56:29.6570838Z 
+2026-10-20T02:56:29.6601440Z BlockExtensionTest > testHiddenClassIdSelectorsMessagePath PASSED
+2026-10-20T02:56:29.9549611Z 
+2026-10-20T02:56:29.9581042Z BlockExtensionTest > test100SequentialPings PASSED
+2026-10-20T02:56:35.1590671Z 
+2026-10-20T02:56:35.1631418Z BlockExtensionTest > testConcurrentLoadTiers PASSED
+2026-10-20T02:56:35.3564097Z 
+2026-10-20T02:56:35.3611175Z BlockExtensionTest > testShouldBlockGoogleAnalyticsCollect PASSED
+2026-10-20T02:56:35.6560603Z 
+2026-10-20T02:56:35.6573607Z BlockExtensionTest > testInvalidAndUnsupportedMessages PASSED
+2026-10-20T02:56:36.0560749Z 
+2026-10-20T02:56:36.0589060Z BlockExtensionTest > testPortGenerationCorrelationRegression PASSED
+2026-10-20T02:56:36.3560617Z 
+2026-10-20T02:56:36.3621267Z BlockExtensionTest > testCosmeticResourcesMessagePath PASSED
+2026-10-20T02:56:36.5560729Z 
+2026-10-20T02:56:36.5585817Z BlockExtensionTest > testZeroDiagnosticTrafficOnBlockingChannel PASSED
+2026-10-20T02:56:36.7550714Z 
+2026-10-20T02:56:36.7554589Z BlockExtensionTest > testShouldAllowFirstPartyCleanResource PASSED
+2026-10-20T02:56:37.9570896Z 
+2026-10-20T02:56:37.9621364Z BlockExtensionTest > testSequentialRequestsAndPing PASSED
+2026-10-20T02:56:38.0560616Z 
+2026-10-20T02:56:38.0591409Z BlockExtensionTest > testShouldBlockGoogleTagManager PASSED
+2026-10-20T02:56:38.7546093Z 
+2026-10-20T02:56:38.7558529Z BlockExtensionTest > testConcurrentNativeMessagingStress PASSED
+2026-10-20T02:56:38.9550558Z 
+2026-10-20T02:56:38.9571323Z BlockExtensionTest > testBackgroundJsContainsNoHotPathLogIpc PASSED
+2026-10-20T02:56:39.3570897Z 
+2026-10-20T02:56:39.3591238Z > Task :app:lintAnalyzeRelease
+2026-10-20T02:57:08.8588904Z 
+2026-10-20T02:57:08.8641004Z > Task :app:testDebugUnitTest
+2026-10-20T02:57:08.8674522Z 
+2026-10-20T02:57:08.8711144Z BlockExtensionTest > testStrictPingFirstAndShouldBlockProof PASSED
+2026-10-20T02:57:08.8711767Z 
+2026-10-20T02:57:08.8741080Z BlockExtensionTest > testFailureHandlingNoDiagnosticIpcAmplification PASSED
+2026-10-20T02:57:08.8770405Z 
+2026-10-20T02:57:08.8798816Z MemoryTelemetryCompileLifecycleTest > testCompileMemoryStats_formatsExpectedMemoryFields PASSED
+2026-10-20T02:57:08.8799712Z 
+2026-10-20T02:57:08.8815735Z MemoryTelemetryCompileLifecycleTest > testCompileRules_triggersMemoryLifecycleAndSwapCorrectly PASSED
+2026-10-20T02:57:08.8816590Z 
+2026-10-20T02:57:08.8817026Z RuntimeAdblockActivationRegressionTest > testEngineStateIntegrity PASSED
+2026-10-20T02:57:08.8817561Z 
+2026-10-20T02:57:08.8818083Z RuntimeAdblockActivationRegressionTest > testCosmeticRulesAvailableAfterCompilation PASSED
+2026-10-20T02:57:08.8818764Z 
+2026-10-20T02:57:08.8819900Z RuntimeAdblockActivationRegressionTest > testRulesetGenerationPersistence_acrossContentProcessRecovery PASSED
+2026-10-20T02:57:08.8820800Z 
+2026-10-20T02:57:08.8821312Z RuntimeAdblockActivationRegressionTest > testRulesetActivation_updatesGenerationAndMatches PASSED
+2026-10-20T02:57:08.8821992Z 
+2026-10-20T02:57:08.8822586Z RuntimeAdblockActivationRegressionTest > testNetworkDecisionRemainsBlockAfterMultipleRecoveries PASSED
+2026-10-20T02:57:08.8823326Z 
+2026-10-20T02:57:08.8823671Z ValidationBenchmarkTest > testVerifyNativeApiValues PASSED
+2026-10-20T02:57:08.8824123Z 
+2026-10-20T02:57:08.8824505Z ValidationBenchmarkTest > testComprehensiveConcurrencyTiers PASSED
+2026-10-20T02:57:08.8825000Z 
+2026-10-20T02:57:08.8825417Z ValidationBenchmarkTest > testStageByStageIntervalMeasurement PASSED
+2026-10-20T02:57:08.8825932Z 
+2026-10-20T02:57:08.8826258Z ValidationBenchmarkTest > testPureSubsystemBenchmarks PASSED
+2026-10-20T02:57:08.8826680Z 
+2026-10-20T02:57:08.8827068Z CrashReportingSystemTest > testSensitiveDownloadUrlAndLogRedaction PASSED
+2026-10-20T02:57:08.8827599Z 
+2026-10-20T02:57:08.8828021Z CrashReportingSystemTest > testProcessExitClassificationSignals PASSED
+2026-10-20T02:57:08.8828541Z 
+2026-10-20T02:57:08.8828936Z CrashReportingSystemTest > testCompileSingleFlightInvariant PASSED
+2026-10-20T02:57:08.8829450Z 
+2026-10-20T02:57:08.8829822Z CrashReportingSystemTest > testAbnormalTerminationDetection PASSED
+2026-10-20T02:57:08.8830549Z 
+2026-10-20T02:57:08.8831103Z CrashReportingSystemTest > testProcessExitClassificationUserRequestedTermination PASSED
+2026-10-20T02:57:08.8831707Z 
+2026-10-20T02:57:08.8832052Z CrashReportingSystemTest > testBreadcrumbRedaction PASSED
+2026-10-20T02:57:08.8832503Z 
+2026-10-20T02:57:08.8832981Z CrashReportingSystemTest > testJavaCrashReportGenerationAndFormat PASSED
+2026-10-20T02:57:08.8833788Z 
+2026-10-20T02:57:08.8834348Z CrashReportingSystemTest > testLastNativeOperationSessionAndPidIsolation PASSED
+2026-10-20T02:57:08.8834940Z 
+2026-10-20T02:57:08.8835457Z CrashReportingSystemTest > testCleanRunLifecycleAndRecoveryExport PASSED
+2026-10-20T02:57:08.8836164Z 
+2026-10-20T02:57:08.8836589Z ExampleRobolectricTest > read string from context PASSED
+2026-10-20T02:57:08.8837138Z 
+2026-10-20T02:57:08.8837543Z ExampleUnitTest > addition_isCorrect PASSED
+2026-10-20T02:57:15.4560710Z 
+2026-10-20T02:57:15.4591167Z GreetingScreenshotTest > welcome_screen_screenshot PASSED
+2026-10-20T02:57:15.5590832Z 
+2026-10-20T02:57:15.5651384Z LoggingOptimizationTest > testSanitizeFastPathNonSensitiveString PASSED
+2026-10-20T02:57:15.5680390Z 
+2026-10-20T02:57:15.5680799Z LoggingOptimizationTest > testSanitizeDownloadUrlRedaction PASSED
+2026-10-20T02:57:15.6620622Z 
+2026-10-20T02:57:15.6621353Z LoggingOptimizationTest > testDiagnosticLogBuffering PASSED
+2026-10-20T02:57:15.6621748Z 
+2026-10-20T02:57:15.6622001Z LoggingOptimizationTest > testSanitizeRedactsQueryAndSecrets PASSED
+2026-10-20T02:57:15.9563411Z 
+2026-10-20T02:57:15.9601628Z PerformanceAndAdblockBaselineRegressionTest > testNativeCrashForensicsReportStructure PASSED
+2026-10-20T02:57:16.1545204Z 
+2026-10-20T02:57:16.1571491Z PerformanceAndAdblockBaselineRegressionTest > testDebugLogManagerRingBufferCoalescing PASSED
+2026-10-20T02:57:16.5570576Z 
+2026-10-20T02:57:16.5601307Z PerformanceAndAdblockBaselineRegressionTest > testFilterBootstrapSingleFlight PASSED
+2026-10-20T02:57:17.1550602Z 
+2026-10-20T02:57:17.1611356Z PerformanceAndAdblockBaselineRegressionTest > testConcurrentWebExtensionDecisionsNoDataRace PASSED
+2026-10-20T02:57:17.4568418Z 
+2026-10-20T02:57:17.4613501Z PerformanceAndAdblockBaselineRegressionTest > testCrashHandlerHelperNonBlockingStartupPhase PASSED
+2026-10-20T02:57:17.7550667Z 
+2026-10-20T02:57:17.7571428Z PerformanceAndAdblockBaselineRegressionTest > testCosmeticAndScriptletResourcesUnchanged PASSED
+2026-10-20T02:57:18.0544820Z 
+2026-10-20T02:57:18.0553237Z PerformanceAndAdblockBaselineRegressionTest > testGeckoEngineManagerNoPollingLoadUrl PASSED
+2026-10-20T02:57:18.6556953Z 
+2026-10-20T02:57:18.6582030Z PerformanceAndAdblockBaselineRegressionTest > testAdblockBaseline100ChecksGolden PASSED
+2026-10-20T02:57:18.8595421Z 
+2026-10-20T02:57:18.8621103Z PerformanceAndAdblockBaselineRegressionTest > testBlockExtensionDecisionIsOffUiThread PASSED
+2026-10-20T02:57:22.8545574Z 
+2026-10-20T02:57:22.8581789Z PerformanceAndAdblockBaselineRegressionTest > testAdblockDecisionPreservationUnderLoad PASSED
+2026-10-20T02:57:22.9580750Z 
+2026-10-20T02:57:22.9623165Z StartupCrashTest > testAppStartupInitialization PASSED
+2026-10-20T02:57:24.2550714Z 
+2026-10-20T02:57:24.2581556Z StartupIsolationMatrixTest > testConfigD_ExecutionTrace PASSED
+2026-10-20T02:57:25.3590954Z 
+2026-10-20T02:57:25.3642605Z StartupIsolationMatrixTest > testSqlCipherFailureControlledErrorState PASSED
+2026-10-20T02:57:25.3693982Z 
+2026-10-20T02:57:25.3781237Z DownloadClassificationUnitTest > testDocumentClassification PASSED
+2026-10-20T02:57:25.3781713Z 
+2026-10-20T02:57:25.3781991Z DownloadClassificationUnitTest > testArchiveClassification PASSED
+2026-10-20T02:57:25.3782385Z 
+2026-10-20T02:57:25.3782670Z DownloadClassificationUnitTest > testExtensionBadge PASSED
+2026-10-20T02:57:25.3783030Z 
+2026-10-20T02:57:25.3783308Z DownloadClassificationUnitTest > testAppApkClassification PASSED
+2026-10-20T02:57:25.3783708Z 
+2026-10-20T02:57:25.3783971Z DownloadClassificationUnitTest > testAudioClassification PASSED
+2026-10-20T02:57:25.3784352Z 
+2026-10-20T02:57:25.3784597Z DownloadClassificationUnitTest > testVideoClassification PASSED
+2026-10-20T02:57:25.3784958Z 
+2026-10-20T02:57:25.3785261Z DownloadClassificationUnitTest > testDownloadProgressCalculation PASSED
+2026-10-20T02:57:25.6560554Z 
+2026-10-20T02:57:25.6591418Z AutoHideRemovalRegressionTest > test2_WebSwipeRefreshLayout_NeverInterceptsUpwardGesture PASSED
+2026-10-20T02:57:25.7600590Z 
+2026-10-20T02:57:25.7661325Z AutoHideRemovalRegressionTest > test1_ScrollPositionsTrackedWithoutDirectionInference PASSED
+2026-10-20T02:57:25.9590733Z 
+2026-10-20T02:57:25.9651504Z BrowserViewAttachmentRaceTest > testWarmSessionNavigation_alreadyAttachedSessionNavigatesDirectly PASSED
+2026-10-20T02:57:26.1544976Z 
+2026-10-20T02:57:26.1561529Z BrowserViewAttachmentRaceTest > testRecreatedViewSameSession_reusesExistingGeckoSessionAndNavigates PASSED
+2026-10-20T02:57:26.2546999Z 
+2026-10-20T02:57:26.2561360Z BrowserViewAttachmentRaceTest > testAttachmentRace_loadUriNeverBeforeSetSession_andDispatchedOnceAfter PASSED
+2026-10-20T02:57:26.2590460Z 
+2026-10-20T02:57:26.2601138Z BrowserViewAttachmentRaceTest > testDuplicateNavigation_repeatedUrlCalls_dispatchesExactlyOnce PASSED
+2026-10-20T02:57:26.3560791Z 
+2026-10-20T02:57:26.3581333Z BrowserViewAttachmentRaceTest > testLatestNavigationWins_supersededUrlNeverDispatched PASSED
+2026-10-20T02:57:26.4560662Z 
+2026-10-20T02:57:26.4621527Z ContentProcessRecoveryTests > testViewDetachSync_cleansUpOwnershipBeforeClearingTag_noInvariantViolation PASSED
+2026-10-20T02:57:26.5570937Z 
+2026-10-20T02:57:26.5597629Z ContentProcessRecoveryTests > testContentProcessCrashRecovery_reloadsLastUrl PASSED
+2026-10-20T02:57:26.6562572Z 
+2026-10-20T02:57:26.6611376Z ContentProcessRecoveryTests > testStep21_D_sameHostDifferentQuery_notSuccess PASSED
+2026-10-20T02:57:26.6629024Z 
+2026-10-20T02:57:26.6641376Z ContentProcessRecoveryTests > testStep24_initialLoadLocationCallback_doesNotDoubleIncrement PASSED
+2026-10-20T02:57:26.7545185Z 
+2026-10-20T02:57:26.7574153Z ContentProcessRecoveryTests > testContentProcessKillRecovery_reloadsLastUrlWithoutDuplicatingSession PASSED
+2026-10-20T02:57:26.8566841Z 
+2026-10-20T02:57:26.8591528Z ContentProcessRecoveryTests > testStep20_sameUrlRecovery_withNoOnLocationChange_completesSuccessAndClearsSuppressionState PASSED
+2026-10-20T02:57:26.8606268Z 
+2026-10-20T02:57:26.8621066Z ContentProcessRecoveryTests > testRecovery_timeout_emitsTimeoutAndClears PASSED
+2026-10-20T02:57:26.9570841Z 
+2026-10-20T02:57:26.9601501Z ContentProcessRecoveryTests > testStep24_genuineLinkClick_incrementsGenerationExactlyOnce PASSED
+2026-10-20T02:57:26.9602449Z 
+2026-10-20T02:57:26.9631733Z ContentProcessRecoveryTests > testRecoveryLoopSuppression_allowsOnlyOneRecoveryPerGeneration PASSED
+2026-10-20T02:57:27.0544934Z 
+2026-10-20T02:57:27.0552274Z ContentProcessRecoveryTests > testRecovery_matchingTargetUrlAndPageStopSuccess_completesRecovery PASSED
+2026-10-20T02:57:27.0590418Z 
+2026-10-20T02:57:27.0591093Z ContentProcessRecoveryTests > testRecoveryDispatch_emitsDispatchedNotSuccess PASSED
+2026-10-20T02:57:27.1600865Z 
+2026-10-20T02:57:27.1618094Z ContentProcessRecoveryTests > testRecovery_staleGenerationCallbackCannotCompleteRecovery PASSED
+2026-10-20T02:57:27.1660609Z 
+2026-10-20T02:57:27.1721338Z ContentProcessRecoveryTests > testRecovery_detachedRecoveryPath_defersAndResumesOnAttach PASSED
+2026-10-20T02:57:27.1740366Z 
+2026-10-20T02:57:27.1781252Z ContentProcessRecoveryTests > testStep24_normalizedSameUrlLocationChange_doesNotIncrementGeneration PASSED
+2026-10-20T02:57:27.2560764Z 
+2026-10-20T02:57:27.2576181Z ContentProcessRecoveryTests > testBackgroundKill_defersRecoveryUntilTabAttached PASSED
+2026-10-20T02:57:27.2610490Z 
+2026-10-20T02:57:27.2623681Z ContentProcessRecoveryTests > testStep24_isDifferentHost_verification PASSED
+2026-10-20T02:57:27.2690539Z 
+2026-10-20T02:57:27.2721733Z ContentProcessRecoveryTests > testRecovery_aboutBlankDoesNotCompleteRecovery PASSED
+2026-10-20T02:57:27.3600703Z 
+2026-10-20T02:57:27.3661490Z ContentProcessRecoveryTests > testBuildVerificationMarker_emitsExpectedVersionAndActiveStateMachine PASSED
+2026-10-20T02:57:27.3690454Z 
+2026-10-20T02:57:27.3781297Z ContentProcessRecoveryTests > testNoDuplicateGeckoSessionCreation_preservesSessionIdentity PASSED
+2026-10-20T02:57:27.6609167Z 
+2026-10-20T02:57:27.6629169Z ContentProcessRecoveryTests > testRecovery_secondKillDuringRecovery_emitsCrashInFlight PASSED
+2026-10-20T02:57:27.6629869Z 
+2026-10-20T02:57:27.6630567Z ContentProcessRecoveryTests > testStep21_B_noOnLocationChange_exactTargetOnPageStop_success PASSED
+2026-10-20T02:57:27.6631333Z 
+2026-10-20T02:57:27.6672401Z ContentProcessRecoveryTests > testGeckoViewTagInvariant_checksCorrectlyWithoutThrowing PASSED
+2026-10-20T02:57:27.6673009Z 
+2026-10-20T02:57:27.6673344Z ContentProcessRecoveryTests > testStep21_C_sameHostDifferentPath_notSuccess PASSED
+2026-10-20T02:57:27.6673799Z 
+2026-10-20T02:57:27.6674100Z ContentProcessRecoveryTests > testStep21_E_aboutBlank_notSuccess PASSED
+2026-10-20T02:57:27.6674520Z 
+2026-10-20T02:57:27.6674848Z ContentProcessRecoveryTests > testStep21_A_exactSameUrlRecovery_success PASSED
+2026-10-20T02:57:27.7545100Z 
+2026-10-20T02:57:27.7571513Z ContentProcessRecoveryTests > testStep24_sameUrlLocationChange_doesNotIncrementGeneration PASSED
+2026-10-20T02:57:27.7600488Z 
+2026-10-20T02:57:27.7601443Z ContentProcessRecoveryTests > testDuplicateNavigationCheck_doesNotSuppressWhenSessionClosed PASSED
+2026-10-20T02:57:27.7630537Z 
+2026-10-20T02:57:27.7661184Z ContentProcessRecoveryTests > testInPageLinkNavigation_updatesRecoveryTargetAndIncrementsGeneration PASSED
+2026-10-20T02:57:27.8544369Z 
+2026-10-20T02:57:27.8572551Z ContentProcessRecoveryTests > testRecovery_pageStopFailure_emitsNavFailedAndClears PASSED
+2026-10-20T02:57:27.8600445Z 
+2026-10-20T02:57:27.8631482Z ContentProcessRecoveryTests > testRecoverySucceeds_thenLaterContentKillInSameGeneration_allowsNewRecovery PASSED
+2026-10-20T02:57:27.8632366Z 
+2026-10-20T02:57:27.8661114Z ContentProcessRecoveryTests > testRecovery_userNavigation_supersedesActiveRecovery PASSED
+2026-10-20T02:57:27.8690539Z 
+2026-10-20T02:57:27.8721153Z ContentProcessRecoveryTests > testSecondKillInSameGeneration_suppressedWithMaxAttemptsExceeded PASSED
+2026-10-20T02:57:27.9560686Z 
+2026-10-20T02:57:27.9591273Z ContentProcessRecoveryTests > testNewerNavigationBeforeReattach_suppressesStaleRecovery PASSED
+2026-10-20T02:57:27.9620565Z 
+2026-10-20T02:57:27.9651065Z ContentProcessRecoveryTests > testStep21_F_legitimateRedirectChain_success PASSED
+2026-10-20T02:57:28.0550659Z 
+2026-10-20T02:57:28.0569533Z ContentProcessRecoveryTests > testContentProcessKill_whenSessionNotOpen_opensSessionBeforeLoadUri PASSED
+2026-10-20T02:57:28.0590744Z 
+2026-10-20T02:57:28.0591837Z ContentProcessRecoveryTests > testStep24_sameHostSpaStateChange_withoutUserGesture_doesNotIncrementGeneration PASSED
+2026-10-20T02:57:28.1544284Z 
+2026-10-20T02:57:28.1571203Z ContentProcessRecoveryTests > testStep24_internalAboutBlank_doesNotIncrementGeneration PASSED
+2026-10-20T02:57:28.2564151Z 
+2026-10-20T02:57:28.2571240Z ContentProcessRecoveryTests > testStep21_urlNormalizationEquivalence PASSED
+2026-10-20T02:57:28.2600439Z 
+2026-10-20T02:57:28.2608811Z ContentProcessRecoveryTests > testNoDuplicateViewMapping_cleansUpStaleMappings PASSED
+2026-10-20T02:57:28.3555575Z 
+2026-10-20T02:57:28.3571218Z ContentProcessRecoveryTests > testRecoveryIgnoresDocshellAboutBlank_andWaitsForTargetUrl PASSED
+2026-10-20T02:57:28.3600460Z 
+2026-10-20T02:57:28.3621039Z ContentProcessRecoveryTests > testReattachingDetachedTab_executesDeferredRecovery PASSED
+2026-10-20T02:57:28.4544770Z 
+2026-10-20T02:57:28.4571326Z ContentProcessRecoveryTests > testStaleGenerationRecovery_suppressedForInactiveSessionOrBlankUrl PASSED
+2026-10-20T02:57:28.4600425Z 
+2026-10-20T02:57:28.4630758Z DumpTest > dump PASSED
+2026-10-20T02:57:28.4631171Z 
+2026-10-20T02:57:28.4661064Z ExternalResponseTest > test PASSED
+2026-10-20T02:57:28.4661363Z 
+2026-10-20T02:57:28.4661594Z GeckoEngineTests > testGeckoEngineManagerSingleton PASSED
+2026-10-20T02:57:28.5576014Z 
+2026-10-20T02:57:28.5591138Z GeckoViewAttachIdempotencyTest > test1_SingleStableGeckoViewPerTab PASSED
+2026-10-20T02:57:28.8544807Z 
+2026-10-20T02:57:28.8594389Z GeckoViewAttachIdempotencyTest > test3_UrlChangesDoNotDetachView PASSED
+2026-10-20T02:57:28.8610540Z 
+2026-10-20T02:57:28.8620954Z GeckoViewAttachIdempotencyTest > test2_AttachViewIsStrictlyIdempotent PASSED
+2026-10-20T02:57:28.8640430Z 
+2026-10-20T02:57:28.8660688Z NewSessionTest > test PASSED
+2026-10-20T02:57:28.8660960Z 
+2026-10-20T02:57:28.8661301Z OnionFallbackUnitTest > testOfflineErrorPageGenerationForBadCert PASSED
+2026-10-20T02:57:28.8665467Z 
+2026-10-20T02:57:28.8665762Z OnionFallbackUnitTest > testOnionFallbackUrlGeneration PASSED
+2026-10-20T02:57:28.8666186Z 
+2026-10-20T02:57:28.8666427Z OnionFallbackUnitTest > testCertErrorUriGeneration PASSED
+2026-10-20T02:57:28.9580617Z 
+2026-10-20T02:57:28.9621330Z OnionNavigationRegressionTest > testA_OnionHttpAndHttpsAreNotEquivalent PASSED
+2026-10-20T02:57:29.0563903Z 
+2026-10-20T02:57:29.0602754Z OnionNavigationRegressionTest > testE_CertificateError_DoesNotTriggerContentProcessRecovery PASSED
+2026-10-20T02:57:29.1569775Z 
+2026-10-20T02:57:29.1614564Z OnionNavigationRegressionTest > testD_RepeatedCertErrors_DoNotCreateRecoveryLoops PASSED
+2026-10-20T02:57:29.1623502Z 
+2026-10-20T02:57:29.1640903Z OnionNavigationRegressionTest > testF_ValidHttpOnion_RemainsHttpWhenNoRedirectOccurs PASSED
+2026-10-20T02:57:29.2572146Z 
+2026-10-20T02:57:29.2587550Z OnionNavigationRegressionTest > testC_ExplicitHttpsOnion_BadCert_NoHttpDowngrade PASSED
+2026-10-20T02:57:29.2600569Z 
+2026-10-20T02:57:29.2630470Z OnionNavigationRegressionTest > testG_ClearnetHttpAndHttps_EquivalenceUnchanged PASSED
+2026-10-20T02:57:29.2650508Z 
+2026-10-20T02:57:29.2676370Z OnionNavigationRegressionTest > testB_ExplicitHttpOnion_HttpsBadCert_TriggersOneFallback PASSED
+2026-10-20T02:57:29.4544906Z 
+2026-10-20T02:57:29.4562315Z PaintTelemetryGuardTest > testPaintCallbacksArePassiveDiagnosticsOnly PASSED
+2026-10-20T02:57:29.5560786Z 
+2026-10-20T02:57:29.5584342Z PaintTelemetryGuardTest > testPaintStateNotResetByProgressOrLoading PASSED
+2026-10-20T02:57:29.7548545Z 
+2026-10-20T02:57:29.7559849Z PaintTelemetryGuardTest > testFirstCompositeAndFirstContentfulPaintAreOneShotPerNavigation PASSED
+2026-10-20T02:57:29.8556055Z 
+2026-10-20T02:57:29.8571736Z PaintTelemetryGuardTest > testPaintStatusResetRunsOnlyOnGenuinelyNewNavigation PASSED
+2026-10-20T02:57:29.8600491Z 
+2026-10-20T02:57:29.8601326Z Step15ForensicValidationTest > testH_onLocationChange_generationIncrementsOnlyOnGenuineNewNavigation PASSED
+2026-10-20T02:57:30.1554383Z 
+2026-10-20T02:57:30.1555906Z Step15ForensicValidationTest > testC_terminationOnDestination_recoveryTargetIsDestination_aboutBlankNotSuccess PASSED
+2026-10-20T02:57:30.1556748Z 
+2026-10-20T02:57:30.1557292Z Step15ForensicValidationTest > testE_secondIndependentRecovery_allowedWithoutSuppression PASSED
+2026-10-20T02:57:30.1557954Z 
+2026-10-20T02:57:30.1558386Z Step15ForensicValidationTest > testA_normalDuckDuckGoSearch_loadsSuccessfully PASSED
+2026-10-20T02:57:30.1558971Z 
+2026-10-20T02:57:30.1559586Z Step15ForensicValidationTest > testB_tapExternalResult_updatesLocationAndGeneration_noDuckDuckGoRestoration PASSED
+2026-10-20T02:57:30.2560870Z 
+2026-10-20T02:57:30.2562666Z Step15ForensicValidationTest > testD_fullRecoverySequence_completesSuccessfully PASSED
+2026-10-20T02:57:30.2563582Z 
+2026-10-20T02:57:30.2564274Z Step15ForensicValidationTest > testG_duplicateNavigationProtection_suppressesRecomposition_doesNotBlockRecovery PASSED
+2026-10-20T02:57:30.3544802Z 
+2026-10-20T02:57:30.3546331Z Step15ForensicValidationTest > testF_viewLifecycleDuringExternalNavigation_maintainsInvariants PASSED
+2026-10-20T02:57:30.4545305Z 
+2026-10-20T02:57:30.4547061Z Step26TeardownRegressionTest > testRestoreSavedTabsDoesNotClobberActiveBrowsingSession PASSED
+2026-10-20T02:57:30.4547847Z 
+2026-10-20T02:57:30.4548262Z Step26TeardownRegressionTest > testTabSwitchMaintainsActiveState PASSED
+2026-10-20T02:57:30.4548799Z 
+2026-10-20T02:57:30.4549226Z Step29GeckoKillForensicTest > testRecoveryDoesNotSelfTriggerKillLoop PASSED
+2026-10-20T02:57:30.6553653Z 
+2026-10-20T02:57:30.6554891Z Step29GeckoKillForensicTest > testHealthyGeckoViewIsNotDetachedWhileContentProcessIsValid PASSED
+2026-10-20T02:57:30.7550688Z 
+2026-10-20T02:57:30.7551377Z Step29GeckoKillForensicTest > testComparativeNavigationMatrix PASSED
+2026-10-20T02:57:30.7551682Z 
+2026-10-20T02:57:30.7552150Z Step30GeckoKillIsolationTest > testReloadBypassesDuplicateSuppressionAndReopensSession PASSED
+2026-10-20T02:57:30.7552566Z 
+2026-10-20T02:57:30.7560936Z Step30GeckoKillIsolationTest > testRecoveryDoesNotProduceBlankPageOnTargetMatch PASSED
+2026-10-20T02:57:30.8546019Z 
+2026-10-20T02:57:30.8547091Z Step30GeckoKillIsolationTest > testControlledFourWayMatrix PASSED
+2026-10-20T02:57:30.9550563Z 
+2026-10-20T02:57:30.9581158Z Step30GeckoKillIsolationTest > testProgressBarLifecycleTransitions PASSED
+2026-10-20T02:57:30.9591617Z 
+2026-10-20T02:57:30.9603891Z Step30GeckoKillIsolationTest > testTerminationReasonClassification PASSED
+2026-10-20T02:57:30.9630979Z 
+2026-10-20T02:57:30.9661013Z Step31StateMachineFixTest > test1_LoadingChangeTrue_SetsInitialProgress PASSED
+2026-10-20T02:57:31.0580712Z 
+2026-10-20T02:57:31.0611131Z Step31StateMachineFixTest > test4_NormalAboutBlank_BehavesNormally PASSED
+2026-10-20T02:57:31.0640498Z 
+2026-10-20T02:57:31.0693826Z Step31StateMachineFixTest > test2_LoadingLifecycle_EndsWithZeroProgress PASSED
+2026-10-20T02:57:31.0725937Z 
+2026-10-20T02:57:31.0761146Z Step31StateMachineFixTest > test8_RepeatedKills_ObeysSuppression PASSED
+2026-10-20T02:57:31.1570586Z 
+2026-10-20T02:57:31.1571790Z Step31StateMachineFixTest > test6_FullRecoverySequence_EndsCleanly PASSED
+2026-10-20T02:57:31.1600514Z 
+2026-10-20T02:57:31.1631096Z Step31StateMachineFixTest > test5_TransientAboutBlankDuringRecovery_DoesNotClearRecovery PASSED
+2026-10-20T02:57:31.1640367Z 
+2026-10-20T02:57:31.1668734Z Step31StateMachineFixTest > test3_StaleProgressAfterNavStop_IsIgnored PASSED
+2026-10-20T02:57:31.2556310Z 
+2026-10-20T02:57:31.2571407Z Step31StateMachineFixTest > test7_FailedRecovery_TerminatesLoadingAndProgress PASSED
+2026-10-20T02:57:31.3570598Z 
+2026-10-20T02:57:31.3573568Z Step33IdentityFirewallTest > test11_RecoverySupersededByNewNav_TransitionsToSuperseded PASSED
+2026-10-20T02:57:31.3620418Z 
+2026-10-20T02:57:31.3651102Z Step33IdentityFirewallTest > test12_RecoveryFailure_TransitionsToFailed PASSED
+2026-10-20T02:57:31.3710440Z 
+2026-10-20T02:57:31.3741281Z Step33IdentityFirewallTest > test2_ViewBoundCallback_RejectedWhenDetached PASSED
+2026-10-20T02:57:31.4570640Z 
+2026-10-20T02:57:31.4591745Z Step33IdentityFirewallTest > test10_RecoveryCompletion_TransitionsToSuccess PASSED
+2026-10-20T02:57:31.4600348Z 
+2026-10-20T02:57:31.4631349Z Step33IdentityFirewallTest > test4_SingleNavigationAuthority_AllocatesExactlyOnce PASSED
+2026-10-20T02:57:31.5550627Z 
+2026-10-20T02:57:31.5581185Z Step33IdentityFirewallTest > test1_OldSessionCallback_IsRejected PASSED
+2026-10-20T02:57:31.5610393Z 
+2026-10-20T02:57:31.5620839Z Step33IdentityFirewallTest > test14_ProgressLifecycle_StrictDeterminism PASSED
+2026-10-20T02:57:31.5621326Z 
+2026-10-20T02:57:31.5621692Z Step33IdentityFirewallTest > test9_ViewAttach_ResumesPendingDetachedRecovery PASSED
+2026-10-20T02:57:31.7545112Z 
+2026-10-20T02:57:31.7571156Z Step33IdentityFirewallTest > test5_Reload_IncrementsGeneration PASSED
+2026-10-20T02:57:31.7571841Z 
+2026-10-20T02:57:31.7600963Z Step33IdentityFirewallTest > test13_ViewInvariants_ExecutesCleanly PASSED
+2026-10-20T02:57:31.7630327Z 
+2026-10-20T02:57:31.7661012Z Step33IdentityFirewallTest > test3_NonViewBoundCallback_AllowedWhenDetached PASSED
+2026-10-20T02:57:31.7730364Z 
+2026-10-20T02:57:31.7750904Z Step33IdentityFirewallTest > test6_HistoryNavigation_IncrementsGeneration PASSED
+2026-10-20T02:57:31.8570632Z 
+2026-10-20T02:57:31.8592700Z Step33IdentityFirewallTest > test7_InPageHashLocationChange_PreservesGeneration PASSED
+2026-10-20T02:57:31.8630452Z 
+2026-10-20T02:57:31.8681437Z Step33IdentityFirewallTest > test8_GeckoKillOnDetachedTab_TransitionsToPendingDetached PASSED
+2026-10-20T02:57:32.0550785Z 
+2026-10-20T02:57:32.0601579Z Step34FinalNavAuthorityTest > testIssueA_loadUrlFollowedByOnLoadRequest_usesSingleNavIdAndCorrelates PASSED
+2026-10-20T02:57:32.1550592Z 
+2026-10-20T02:57:32.1575306Z Step34FinalNavAuthorityTest > testDuplicateNavigation_repeatedLoadUrl_performsExactlyOneLoadUriAndOneGeneration PASSED
+2026-10-20T02:57:32.1590463Z 
+2026-10-20T02:57:32.1621318Z Step34FinalNavAuthorityTest > testIssueB_contentProcessCrash_classifiedAsContentProcessFailed PASSED
+2026-10-20T02:57:32.2561708Z 
+2026-10-20T02:57:32.2581598Z Step34FinalNavAuthorityTest > testIssueB_pageStopFailed_classifiedAsNavigationFailed PASSED
+2026-10-20T02:57:32.5560691Z 
+2026-10-20T02:57:32.5591655Z Step34FinalNavAuthorityTest > testDuplicateNavigation_userGestureOnLoadRequest_whenInFlightOrDispatched_doesNotAllocateSecondGeneration PASSED
+2026-10-20T02:57:32.5600368Z 
+2026-10-20T02:57:32.5631106Z Step34FinalNavAuthorityTest > testIssueB_viewOnReleaseAfterNavSuccess_classifiedAsLifecycleDisposalAndSuppressed PASSED
+2026-10-20T02:57:32.6547079Z 
+2026-10-20T02:57:32.6581436Z Step34FinalNavAuthorityTest > testIssueA_redirectDuringInFlightNav_correlatesWithoutAllocation PASSED
+2026-10-20T02:57:32.7570762Z 
+2026-10-20T02:57:32.7601258Z Step34FinalNavAuthorityTest > testIssueB_viewOnReleaseDuringActiveLoading_classifiedAsFailureConfirmed PASSED
+2026-10-20T02:57:32.8550876Z 
+2026-10-20T02:57:32.8601485Z Step34FinalNavAuthorityTest > testIssueA_linkClickUserGesture_allocatesSingleNavId_subsequentCallbacksCorrelate PASSED
+2026-10-20T02:57:37.9570688Z 
+2026-10-20T02:57:37.9641429Z Step35StressValidationTest > stressTestAndInvariantCheck PASSED
+2026-10-20T02:57:37.9723039Z 
+2026-10-20T02:57:37.9771455Z Step36TabStateCoalescingTest > test4_UserVisibleChanges_EmitStateFlowAndIntegratePendingTrackers PASSED
+2026-10-20T02:57:37.9830431Z 
+2026-10-20T02:57:37.9849302Z Step36TabStateCoalescingTest > test2_CoalescedFlush_EmitsSingleUpdate PASSED
+2026-10-20T02:57:37.9910365Z 
+2026-10-20T02:57:37.9934905Z Step36TabStateCoalescingTest > test1_TrackerUpdates_DoNotEmitStateFlowImmediately PASSED
+2026-10-20T02:57:38.0562277Z 
+2026-10-20T02:57:38.0581409Z Step36TabStateCoalescingTest > test3_IdenticalUpdates_DoNotEmitStateFlow PASSED
+2026-10-20T02:57:38.0582206Z 
+2026-10-20T02:57:38.0582936Z Step36TabStateCoalescingTest > test5_ConcurrentTrackerEvents_ThreadSafety PASSED
+2026-10-20T02:57:38.2545032Z 
+2026-10-20T02:57:38.2548385Z Step36TerminalRecoveryTest > test_passwordSave_suppressedWhenFortKnoxActive PASSED
+2026-10-20T02:57:38.2568162Z 
+2026-10-20T02:57:38.2589471Z Step36TerminalRecoveryTest > test_adblock_cosmeticIdempotent_deduplicatesSelectors PASSED
+2026-10-20T02:57:38.3546631Z 
+2026-10-20T02:57:38.3548182Z Step36TerminalRecoveryTest > test_passwordSave_suppressedOnHttp PASSED
+2026-10-20T02:57:38.4600202Z 
+2026-10-20T02:57:38.4601337Z Step36TerminalRecoveryTest > test_scrollFlicker_recoverySuppressedDuringActiveScroll PASSED
+2026-10-20T02:57:38.5545775Z 
+2026-10-20T02:57:38.5581261Z Step36TerminalRecoveryTest > test_scrollFlicker_jsEvalConfirmation_SuccessSuppressesKill PASSED
+2026-10-20T02:57:38.6559960Z 
+2026-10-20T02:57:38.6584631Z Step36TerminalRecoveryTest > test_scrollFlicker_timeoutExecutesKill PASSED
+2026-10-20T02:57:38.7570799Z 
+2026-10-20T02:57:38.7572125Z Step36TerminalRecoveryTest > test_scrollFlicker_recoveryExecutedIfDeadAndNotScrolling PASSED
+2026-10-20T02:57:38.8546238Z 
+2026-10-20T02:57:38.8571200Z Step36TerminalRecoveryTest > test_passwordSave_showsWhenUnlocked PASSED
+2026-10-20T02:57:38.8580991Z 
+2026-10-20T02:57:38.8637596Z Step36TerminalRecoveryTest > test_geckoKill_logsCallsiteAndTrigger PASSED
+2026-10-20T02:57:38.9560695Z 
+2026-10-20T02:57:38.9641434Z Step36TerminalRecoveryTest > test_scrollFlicker_jsEvalConfirmation_FailureExecutesKill PASSED
+2026-10-20T02:57:38.9730452Z 
+2026-10-20T02:57:38.9757557Z Step36TerminalRecoveryTest > test_passwordSave_suppressedWhenLocked PASSED
+2026-10-20T02:57:39.0551852Z 
+2026-10-20T02:57:39.0591068Z Step36TerminalRecoveryTest > test_adblock_network_activeDuringScroll PASSED
+2026-10-20T02:57:39.5560727Z 
+2026-10-20T02:57:39.5571373Z Step38TabUrlOverwriteRegressionTest > testTabUrlOverwriteSuppressedDuringInFlightNav PASSED
+2026-10-20T02:57:39.6560599Z 
+2026-10-20T02:57:39.6591465Z Step40NewSessionLifecycleRegressionTest > testCloseTabSwitchesToParentTab PASSED
+2026-10-20T02:57:40.0547838Z 
+2026-10-20T02:57:40.0561360Z Step40NewSessionLifecycleRegressionTest > testOnNewSessionLifecycle PASSED
+2026-10-20T02:57:40.1544897Z 
+2026-10-20T02:57:40.1561564Z TabThumbnailManagerTest > test4_DuplicateCapture_WithinMinInterval_IsSkippedOrPostponed PASSED
+2026-10-20T02:57:41.6545071Z 
+2026-10-20T02:57:41.6569162Z TabThumbnailManagerTest > test1_SaveAndGetThumbnail_MemoryAndDisk FAILED
+2026-10-20T02:57:41.6580930Z     java.lang.AssertionError at TabThumbnailManagerTest.kt:52
+2026-10-20T02:57:41.6600364Z 
+2026-10-20T02:57:41.6630840Z TabThumbnailManagerTest > test5_ForceCapture_ExecutesImmediately PASSED
+2026-10-20T02:57:44.6544898Z 
+2026-10-20T02:57:44.6562145Z TabThumbnailManagerTest > test2_RemoveThumbnailAndClearAll PASSED
+2026-10-20T02:57:44.7558584Z 
+2026-10-20T02:57:44.7560414Z TabThumbnailManagerTest > test3_DebouncedCapture_BatchesMultipleCalls PASSED
+2026-10-20T02:57:44.7561271Z 
+2026-10-20T02:57:44.7580398Z TabThumbnailMemoryOptimizationTest > test4_GeckoEngineManager_OnTrimMemory_HandlesCriticalTrim PASSED
+2026-10-20T02:57:44.7581538Z 
+2026-10-20T02:57:44.7659518Z TabThumbnailMemoryOptimizationTest > test2_ThumbnailManager_OnTrimMemory_EvictsMemoryCache PASSED
+2026-10-20T02:57:44.9550782Z 
+2026-10-20T02:57:44.9561450Z TabThumbnailMemoryOptimizationTest > test1_ThumbnailManager_SavesAndRetrievesThumbnail PASSED
+2026-10-20T02:57:44.9590496Z 
+2026-10-20T02:57:44.9611047Z TabThumbnailMemoryOptimizationTest > test3_ThumbnailManager_OnLowMemory_EvictsMemoryCache PASSED
+2026-10-20T02:57:45.0544597Z 
+2026-10-20T02:57:45.0571511Z AdblockNativeCompatibilityTest > testVerifyNativeCompatibilityMatrix PASSED
+2026-10-20T02:57:45.1544483Z 
+2026-10-20T02:57:45.1591217Z AdblockNativeCompatibilityTest > testHiddenClassIdSelectorsSafeFallbackWhenGated PASSED
+2026-10-20T02:57:45.5570667Z 
+2026-10-20T02:57:45.5601145Z AdblockNativeCompatibilityTest > testAdblockCoreOperationsFunctionSafely PASSED
+2026-10-20T02:57:45.7550564Z 
+2026-10-20T02:57:45.7582929Z AttackSimulationTest > simulateMaliciousDirectFallback PASSED
+2026-10-20T02:57:45.7590674Z 
+2026-10-20T02:57:45.7592867Z AttackSimulationTest > simulateWebRtcAddressLeakageExploit PASSED
+2026-10-20T02:57:45.8544606Z 
+2026-10-20T02:57:45.8546146Z AttackSimulationTest > simulateHostileDnsHijacking PASSED
+2026-10-20T02:57:45.8546774Z 
+2026-10-20T02:57:45.8547216Z AttackSimulationTest > simulateSqlCipherMemoryKeyZeroization PASSED
+2026-10-20T02:57:45.9591409Z 
+2026-10-20T02:57:45.9651344Z AttackSimulationTest > simulateDangerousProtocolSchemeHijacking PASSED
+2026-10-20T02:57:45.9710779Z 
+2026-10-20T02:57:45.9741081Z AttackSimulationTest > simulateRapidModeSwitchingRaceConditions PASSED
+2026-10-20T02:57:46.0580562Z 
+2026-10-20T02:57:46.0583176Z AttackSimulationTest > simulatePortScanningAndProbingExploits PASSED
+2026-10-20T02:57:46.0583961Z 
+2026-10-20T02:57:46.0584378Z AttackSimulationTest > simulateOnionLeakageInShieldMode PASSED
+2026-10-20T02:57:46.1572721Z 
+2026-10-20T02:57:46.1610877Z AttackSimulationTest > simulateArgon2idMemoryZeroization PASSED
+2026-10-20T02:57:46.1642184Z 
+2026-10-20T02:57:46.1662194Z BlockExtensionIsolationTest > testSimultaneousTabRequestsIsolation PASSED
+2026-10-20T02:57:46.2550610Z 
+2026-10-20T02:57:46.2581425Z BlockExtensionIsolationTest > testListenerSettersDoNotClearMultiListeners PASSED
+2026-10-20T02:57:46.5600906Z 
+2026-10-20T02:57:46.5621624Z ClickInterceptionAndProxyAuthorityTest > testLegitimateUiWithSameDestinationIsNotIntercepted PASSED
+2026-10-20T02:57:46.5664403Z 
+2026-10-20T02:57:46.5703199Z ClickInterceptionAndProxyAuthorityTest > testNormalAnchorWithUnrelatedFixedUiIsNotIntercepted PASSED
+2026-10-20T02:57:46.6563247Z 
+2026-10-20T02:57:46.6564576Z ClickInterceptionAndProxyAuthorityTest > testGhostRedirectAnalysisStopsWhenTorRouteDisappears PASSED
+2026-10-20T02:57:46.7590802Z 
+2026-10-20T02:57:46.7621251Z ClickInterceptionAndProxyAuthorityTest > testUserSelectedCandidateOpensExactlyOnce PASSED
+2026-10-20T02:57:46.7626456Z 
+2026-10-20T02:57:46.7635629Z ClickInterceptionAndProxyAuthorityTest > testInterceptedFalseReachesNativeLayer PASSED
+2026-10-20T02:57:46.8642298Z 
+2026-10-20T02:57:46.8671499Z ClickInterceptionAndProxyAuthorityTest > testSubdomainsOfSameRegistrableDomainAreNotIntercepted PASSED
+2026-10-20T02:57:46.8717075Z 
+2026-10-20T02:57:46.8754269Z ClickInterceptionAndProxyAuthorityTest > testHiddenOverlayWithNoNavigationTargetIsNotIntercepted PASSED
+2026-10-20T02:57:46.9570686Z 
+2026-10-20T02:57:46.9601289Z ClickInterceptionAndProxyAuthorityTest > testInterceptedTrueReachesNativeLayer PASSED
+2026-10-20T02:57:47.0547558Z 
+2026-10-20T02:57:47.0591193Z ClickInterceptionAndProxyAuthorityTest > testFinalUrlIsNullForFailedAnalysis PASSED
+2026-10-20T02:57:47.1550629Z 
+2026-10-20T02:57:47.1601240Z ClickInterceptionAndProxyAuthorityTest > testNormalLinkOpensImmediately PASSED
+2026-10-20T02:57:47.2550670Z 
+2026-10-20T02:57:47.2611299Z ClickInterceptionAndProxyAuthorityTest > testGestureDeduplicationGeneratesSingleInspectionEvent PASSED
+2026-10-20T02:57:47.4580919Z 
+2026-10-20T02:57:47.4641420Z ClickInterceptionAndProxyAuthorityTest > testNativeGeckoRemainsOnlyProxyAuthority PASSED
+2026-10-20T02:57:47.6560569Z 
+2026-10-20T02:57:47.6592685Z ClickInterceptionAndProxyAuthorityTest > testNoWebExtensionProxyCodeRemainsInAssets PASSED
+2026-10-20T02:57:47.7550559Z 
+2026-10-20T02:57:47.7601402Z ClickInterceptionAndProxyAuthorityTest > testTransparentOverlayWithSameUrlIsNotIntercepted PASSED
+2026-10-20T02:57:47.8570605Z 
+2026-10-20T02:57:47.8601340Z ClickInterceptionAndProxyAuthorityTest > testSuspiciousPopupIsIntercepted PASSED
+2026-10-20T02:57:47.8630477Z 
+2026-10-20T02:57:47.8656375Z ClickInterceptionAndProxyAuthorityTest > testDifferentRegistrableDomainsInterceptedWhenSuspiciousSignalsExist PASSED
+2026-10-20T02:57:47.9550553Z 
+2026-10-20T02:57:47.9605828Z ClickInterceptionAndProxyAuthorityTest > testSameDomainNestedCandidatesAreNotIntercepted PASSED
+2026-10-20T02:57:48.0567020Z 
+2026-10-20T02:57:48.0591187Z ClickInterceptionAndProxyAuthorityTest > testCanceledCandidateOpensNothing PASSED
+2026-10-20T02:57:48.0620447Z 
+2026-10-20T02:57:48.0651085Z ClickInterceptionAndProxyAuthorityTest > testFinalUrlExistsOnlyForResolved PASSED
+2026-10-20T02:57:48.0651744Z 
+2026-10-20T02:57:48.0681353Z ClickInterceptionAndProxyAuthorityTest > testNormalLinkIsNotIntercepted PASSED
+2026-10-20T02:57:48.1545064Z 
+2026-10-20T02:57:48.1562776Z ClickInterceptionAndProxyAuthorityTest > testOverlayWithNoNavigationTargetIsNotAutomaticallyIntercepted PASSED
+2026-10-20T02:57:48.1590731Z 
+2026-10-20T02:57:48.1651226Z ClickInterceptionAndProxyAuthorityTest > testRealTransparentAnchorOverlayIsIntercepted PASSED
+2026-10-20T02:57:48.2560498Z 
+2026-10-20T02:57:48.2591172Z ClickInterceptionAndProxyAuthorityTest > testCrossDomainOverlayIsIntercepted PASSED
+2026-10-20T02:57:48.2620286Z 
+2026-10-20T02:57:48.2650970Z ClickInterceptionAndProxyAuthorityTest > testSuspiciousLinkIsStoppedBeforeNavigation PASSED
+2026-10-20T02:57:48.4545990Z 
+2026-10-20T02:57:48.4564538Z ClickInterceptionAndProxyAuthorityTest > testOverlayIsNotAutomaticallyChosenAsPrimary PASSED
+2026-10-20T02:57:48.5574337Z 
+2026-10-20T02:57:48.5580915Z ClickInterceptionAndProxyAuthorityTest > testOverlayWithDifferentTargetUrlIsIntercepted PASSED
+2026-10-20T02:57:48.6570672Z 
+2026-10-20T02:57:48.6613404Z ClickInterceptionAndProxyAuthorityTest > testNormalNestedSpanInAnchorIsNotIntercepted PASSED
+2026-10-20T02:57:48.6660422Z 
+2026-10-20T02:57:48.6721043Z ConformanceAuditTest > dummyTest PASSED
+2026-10-20T02:57:48.6760460Z 
+2026-10-20T02:57:48.6780756Z CurrentTorRouteRaceTest > testRaceConditions PASSED
+2026-10-20T02:57:48.6840261Z 
+2026-10-20T02:57:48.6874434Z CurrentTorRouteRaceTest > phaseProgressionToReadyRequiresExplicitCommit PASSED
+2026-10-20T02:57:48.6930272Z 
+2026-10-20T02:57:48.6961119Z CurrentTorRouteRaceTest > staleGenerationCannotOverwriteNewRoute PASSED
+2026-10-20T02:57:48.9553507Z 
+2026-10-20T02:57:48.9578083Z EngineSeparationTest > test1_defaultEngineNetworkBlock PASSED
+2026-10-20T02:57:49.3544876Z 
+2026-10-20T02:57:49.3545818Z EngineSeparationTest > test3_networkResultMerging PASSED
+2026-10-20T02:57:49.6545218Z 
+2026-10-20T02:57:49.6601435Z EngineSeparationTest > test2_additionalEngineUnbreak PASSED
+2026-10-20T02:57:49.8571932Z 
+2026-10-20T02:57:49.8631231Z EngineSeparationTest > test5_additionalForceHideSelector PASSED
+2026-10-20T02:57:50.2559017Z 
+2026-10-20T02:57:50.2588994Z EngineSeparationTest > test4_defaultCosmeticHideSelector PASSED
+2026-10-20T02:57:50.5544411Z 
+2026-10-20T02:57:50.5561774Z EngineSeparationTest > test7_shieldStandardVsAggressive PASSED
+2026-10-20T02:57:50.9560587Z 
+2026-10-20T02:57:50.9561588Z EngineSeparationTest > test6_cosmeticExceptions PASSED
+2026-10-20T02:57:50.9590599Z 
+2026-10-20T02:57:50.9621242Z FaviconPrivacySecurityTest > testFaviconMethodsDoNotQueryExternalServices PASSED
+2026-10-20T02:57:51.0560818Z 
+2026-10-20T02:57:51.0621493Z FaviconPrivacySecurityTest > testCodebaseDoesNotContainExternalFaviconEndpoints PASSED
+2026-10-20T02:57:51.3544786Z 
+2026-10-20T02:57:51.3561212Z FilterSubscriptionPipelineTest > testGenericCosmeticRule PASSED
+2026-10-20T02:57:51.7545419Z 
+2026-10-20T02:57:51.7571393Z FilterSubscriptionPipelineTest > testAdblockBridgeConcurrentEvaluation PASSED
+2026-10-20T02:57:52.1580703Z 
+2026-10-20T02:57:52.1591018Z FilterSubscriptionPipelineTest > testCosmeticRuleException PASSED
+2026-10-20T02:57:52.4550911Z 
+2026-10-20T02:57:52.4651467Z FilterSubscriptionPipelineTest > testDomainSpecificCosmeticRule PASSED
+2026-10-20T02:57:52.7550751Z 
+2026-10-20T02:57:52.7631643Z FilterSubscriptionPipelineTest > testAdblockBridgePreservesBaselineRulesAcrossCompilations PASSED
+2026-10-20T02:57:52.8560854Z 
+2026-10-20T02:57:52.8631318Z FilterSubscriptionPipelineTest > testFilterManagerSubscriptionsLifecycle PASSED
+2026-10-20T02:57:53.2544804Z 
+2026-10-20T02:57:53.2601231Z FilterSubscriptionPipelineTest > testAdblockBridgeFallbackRulesAndMatching PASSED
+2026-10-20T02:57:53.5558688Z 
+2026-10-20T02:57:53.5609810Z FilterSubscriptionPipelineTest > testValidOldEngineSurvivesFailedOrEmptyUpdate PASSED
+2026-10-20T02:57:53.6572126Z 
+2026-10-20T02:57:53.6631290Z FilterSubscriptionPipelineTest > testGoogleAnalyticsAndGtagBootstrapEnforcement PASSED
+2026-10-20T02:57:53.9545234Z 
+2026-10-20T02:57:53.9561386Z FilterSubscriptionPipelineTest > testEngineAuthorityAndFullRulesetSync PASSED
+2026-10-20T02:57:53.9590492Z 
+2026-10-20T02:57:53.9621069Z GeckoNetworkHardeningTest > testNetworkHardeningShieldPreferences PASSED
+2026-10-20T02:57:53.9621705Z 
+2026-10-20T02:57:53.9651351Z GeckoNetworkHardeningTest > testNetworkHardeningTorPreferences PASSED
+2026-10-20T02:57:53.9680437Z 
+2026-10-20T02:57:53.9710852Z GeckoNetworkHardeningTest > testMandatoryTorPreferencesImmutable PASSED
+2026-10-20T02:57:53.9711444Z 
+2026-10-20T02:57:53.9741019Z GeckoNetworkHardeningTest > ghostMandatoryRoutingContainsAllCriticalPrefs PASSED
+2026-10-20T02:57:53.9770342Z 
+2026-10-20T02:57:53.9790866Z GeckoNetworkHardeningTest > testCurrentTorRouteLifecycle PASSED
+2026-10-20T02:57:53.9850525Z 
+2026-10-20T02:57:53.9911531Z GeckoPasswordAutofillIntegrationTest > testStorageDelegateReturnsNullWhenVaultIsLocked PASSED
+2026-10-20T02:57:55.9572349Z 
+2026-10-20T02:57:55.9573350Z GeckoPasswordAutofillIntegrationTest > testLazyDecryptionModelSecurity PASSED
+2026-10-20T02:57:56.5560691Z 
+2026-10-20T02:57:56.5561853Z GeckoPasswordAutofillIntegrationTest > testExactOriginAutofillMatchingOnly PASSED
+2026-10-20T02:57:56.6580917Z 
+2026-10-20T02:57:56.6591670Z GeckoPasswordAutofillIntegrationTest > testPasswordAutofillCoordinatorPromptSuppression PASSED
+2026-10-20T02:57:56.9544451Z 
+2026-10-20T02:57:56.9557280Z GeckoPasswordAutofillIntegrationTest > testStorageDelegateSaveEntryNatively PASSED
+2026-10-20T02:57:57.4570801Z 
+2026-10-20T02:57:57.4611343Z GeckoPasswordAutofillIntegrationTest > testStorageDelegateFetchesEntriesWhenUnlocked PASSED
+2026-10-20T02:57:57.5544392Z 
+2026-10-20T02:57:57.5567129Z HardeningAuditVerificationTest > testClipboardManager_failsClosedInGhostModeWithoutTor PASSED
+2026-10-20T02:57:57.6555458Z 
+2026-10-20T02:57:57.6570458Z HardeningAuditVerificationTest > testTorCheckApiResponse_evasionWithSubstringDoesNotFoolMoshi PASSED
+2026-10-20T02:57:57.6645946Z 
+2026-10-20T02:57:57.6684292Z HardeningAuditVerificationTest > testGeckoPreferenceController_resetCacheClearsState PASSED
+2026-10-20T02:57:57.7580790Z 
+2026-10-20T02:57:57.7581516Z HardeningAuditVerificationTest > testTorCheckApiResponse_notTor PASSED
+2026-10-20T02:57:57.7590470Z 
+2026-10-20T02:57:57.7624952Z HardeningAuditVerificationTest > testTorCheckApiResponse_missingFieldsDefaults PASSED
+2026-10-20T02:57:57.8550757Z 
+2026-10-20T02:57:57.8581795Z HardeningAuditVerificationTest > testTorCheckApiResponse_validTor PASSED
+2026-10-20T02:57:57.8610525Z 
+2026-10-20T02:57:57.8611244Z NavigationSecurityAuthorityTest > testDangerousSchemesBlocked PASSED
+2026-10-20T02:57:58.0544720Z 
+2026-10-20T02:57:58.0571444Z NavigationSecurityAuthorityTest > testOnionRoutingIsolation PASSED
+2026-10-20T02:57:58.0600500Z 
+2026-10-20T02:57:58.0630775Z NavigationSecurityAuthorityTest > testLocalNetworkAccessBlocking PASSED
+2026-10-20T02:57:58.1550563Z 
+2026-10-20T02:57:58.1581271Z NavigationSecurityAuthorityTest > testOnionRoutingFailsClosedUntilTorRouteIsReady PASSED
+2026-10-20T02:57:58.1616705Z 
+2026-10-20T02:57:58.1670909Z NavigationSecurityAuthorityTest > testHttpsUpgrade PASSED
+2026-10-20T02:57:58.2560577Z 
+2026-10-20T02:57:58.2586994Z NavigationSecurityAuthorityTest > testAdOrSpamDestinationDetection PASSED
+2026-10-20T02:57:58.6544923Z 
+2026-10-20T02:57:58.6571253Z NetworkFilterCoverageTest > testResourceTypes PASSED
+2026-10-20T02:57:58.9544868Z 
+2026-10-20T02:57:58.9591516Z NetworkFilterCoverageTest > testMergeSemantics_ExceptionOverridesBlock PASSED
+2026-10-20T02:57:59.3560655Z 
+2026-10-20T02:57:59.3585349Z NetworkFilterCoverageTest > testThirdPartyMatching PASSED
+2026-10-20T02:57:59.6570602Z 
+2026-10-20T02:57:59.6601105Z NetworkFilterCoverageTest > testMethodAwareMatching PASSED
+2026-10-20T02:58:00.2544544Z 
+2026-10-20T02:58:00.2548645Z NetworkFilterCoverageTest > testMergeSemantics_ExceptionOverridesImportantException PASSED
+2026-10-20T02:58:00.6570657Z 
+2026-10-20T02:58:00.6591115Z NetworkFilterCoverageTest > testMergeSemantics_ImportantOverridesException PASSED
+2026-10-20T02:58:00.7548871Z 
+2026-10-20T02:58:00.7549941Z NetworkRouteAuthorityTest > testFailClosedWhenFailoverDirectIsTrue PASSED
+2026-10-20T02:58:00.9544717Z 
+2026-10-20T02:58:00.9571323Z NetworkRouteAuthorityTest > testClearnetClientCreationSucceeds PASSED
+2026-10-20T02:58:01.0544634Z 
+2026-10-20T02:58:01.0545976Z NetworkRouteAuthorityTest > testMarkStartingGhostClearsStaleState PASSED
+2026-10-20T02:58:01.0547195Z 
+2026-10-20T02:58:01.0548042Z NetworkRouteAuthorityTest > testFailClosedWhenGhostActiveAndSocksPortPresentButUnverified PASSED
+2026-10-20T02:58:01.0548849Z 
+2026-10-20T02:58:01.0549317Z NetworkRouteAuthorityTest > testFailClosedWhenGhostActiveAndNoSocksPort PASSED
+2026-10-20T02:58:01.1570675Z 
+2026-10-20T02:58:01.1571870Z NetworkRouteAuthorityTest > testGhostClientConfiguresSocksProxy PASSED
+2026-10-20T02:58:01.1595389Z 
+2026-10-20T02:58:01.1620876Z OriginCanonicalizerUnitTest > testExactOriginNormalization PASSED
+2026-10-20T02:58:01.3610947Z 
+2026-10-20T02:58:01.3631211Z OriginCanonicalizerUnitTest > testInsecureAndNonWebSchemesRejected PASSED
+2026-10-20T02:58:01.3690377Z 
+2026-10-20T02:58:01.3719050Z OriginCanonicalizerUnitTest > testOriginHashNonSensitive PASSED
+2026-10-20T02:58:01.4560630Z 
+2026-10-20T02:58:01.4561252Z OriginCanonicalizerUnitTest > testExactOriginDistinction PASSED
+2026-10-20T02:58:01.4561667Z 
+2026-10-20T02:58:01.4561976Z PasswordCryptoEngineTest > testAes256GcmEncryptionDecryption PASSED
+2026-10-20T02:58:01.5561203Z 
+2026-10-20T02:58:01.5631205Z PasswordCryptoEngineTest > testPasswordGeneratorAndStrength PASSED
+2026-10-20T02:58:02.3544858Z 
+2026-10-20T02:58:02.3571680Z PasswordCryptoEngineTest > testEncryptedBackupExportAndImport PASSED
+2026-10-20T02:58:02.3595958Z 
+2026-10-20T02:58:02.3621243Z PasswordCryptoEngineTest > testExactOriginCanonicalizationAndHashing PASSED
+2026-10-20T02:58:02.4544466Z 
+2026-10-20T02:58:02.4571459Z PasswordCryptoEngineTest > testAes256GcmPackedEncryptionDecryption PASSED
+2026-10-20T02:58:02.5544585Z 
+2026-10-20T02:58:02.5571272Z PasswordCryptoEngineTest > testAes256GcmTamperedCiphertextThrows PASSED
+2026-10-20T02:58:02.9544840Z 
+2026-10-20T02:58:02.9551257Z PasswordCryptoEngineTest > testPinValidationAndKekDerivation PASSED
+2026-10-20T02:58:03.3545159Z 
+2026-10-20T02:58:03.3573458Z PasswordCryptoEngineTest > testArgon2idKeyDerivationAndVerifier PASSED
+2026-10-20T02:58:03.6544760Z 
+2026-10-20T02:58:03.6571273Z PasswordVaultSecurityTest > testKeyDerivationAndAesGcmRoundtrip PASSED
+2026-10-20T02:58:03.8580696Z 
+2026-10-20T02:58:03.8601306Z PasswordVaultSecurityTest > testVerifierComputation PASSED
+2026-10-20T02:58:03.8650541Z 
+2026-10-20T02:58:03.8711146Z PasswordVaultSecurityTest > testExactOriginCanonicalization PASSED
+2026-10-20T02:58:03.8750539Z 
+2026-10-20T02:58:03.8751733Z PasswordVaultSecurityTest > testSiteHashingConsistency PASSED
+2026-10-20T02:58:03.8760281Z 
+2026-10-20T02:58:03.8760706Z PasswordVaultSecurityTest > testPinValidation PASSED
+2026-10-20T02:58:03.9544941Z 
+2026-10-20T02:58:03.9561700Z PermissionSystemUnitTest > testAppBackgroundingRevocation PASSED
+2026-10-20T02:58:03.9562284Z 
+2026-10-20T02:58:03.9562618Z PermissionSystemUnitTest > testManualRevocation PASSED
+2026-10-20T02:58:04.0559935Z 
+2026-10-20T02:58:04.0560859Z PermissionSystemUnitTest > testExactOriginBindingAndNavigationRevocation PASSED
+2026-10-20T02:58:04.1545044Z 
+2026-10-20T02:58:04.1571109Z PermissionSystemUnitTest > testTabCloseCleanup PASSED
+2026-10-20T02:58:04.1590285Z 
+2026-10-20T02:58:04.1610766Z ProfileConfigRenderingFlagsTest > test3_YamlConfigs_DoNotContainForcedGpuFlags PASSED
+2026-10-20T02:58:04.3544533Z 
+2026-10-20T02:58:04.3546159Z ProfileConfigRenderingFlagsTest > test4_AtomicWriteAndVerify_SucceedsWithoutForcedGpuFlags PASSED
+2026-10-20T02:58:04.3546880Z 
+2026-10-20T02:58:04.3547389Z ProfileConfigRenderingFlagsTest > test1_ShieldPrefs_DoesNotContainForcedGpuFlags PASSED
+2026-10-20T02:58:04.4545035Z 
+2026-10-20T02:58:04.4563086Z ProfileConfigRenderingFlagsTest > test5_VerificationRejectsForcedGpuFlags PASSED
+2026-10-20T02:58:04.4570614Z 
+2026-10-20T02:58:04.4589777Z ProfileConfigRenderingFlagsTest > test6_TimerPrecisionIsCompatibilitySafeAndProfileIsolated PASSED
+2026-10-20T02:58:04.4590815Z 
+2026-10-20T02:58:04.4591363Z ProfileConfigRenderingFlagsTest > test2_TorPrefs_DoesNotContainForcedGpuFlags PASSED
+2026-10-20T02:58:04.5562019Z 
+2026-10-20T02:58:04.5581876Z RedirectInspectorTest > testExtractNestedTargetUrlFromQueryParameters PASSED
+2026-10-20T02:58:04.5597308Z 
+2026-10-20T02:58:04.5611047Z RedirectInspectorTest > testSsrfBlockingForLoopbackAndPrivateRanges PASSED
+2026-10-20T02:58:04.7544804Z 
+2026-10-20T02:58:04.7561361Z RedirectInspectorTest > testStripTrackingParameters PASSED
+2026-10-20T02:58:04.7590609Z 
+2026-10-20T02:58:04.7591662Z RedirectInspectorTest > testAdvancedTrackingTokens PASSED
+2026-10-20T02:58:04.8545162Z 
+2026-10-20T02:58:04.8568437Z RedirectInspectorTest > testTrackingParameterDetection PASSED
+2026-10-20T02:58:04.9560688Z 
+2026-10-20T02:58:04.9604588Z RedirectInspectorTest > testFinalUrlNullInvariantOnFailure PASSED
+2026-10-20T02:58:04.9667571Z 
+2026-10-20T02:58:04.9711010Z RedirectInspectorTest > testGhostModeRequiresTorSocksProxy PASSED
+2026-10-20T02:58:05.0544886Z 
+2026-10-20T02:58:05.0561228Z RedirectInspectorTest > testSsrfAllowedForPublicWebUrls PASSED
+2026-10-20T02:58:05.1544580Z 
+2026-10-20T02:58:05.1545349Z RedirectInspectorTest > testSchemeSafetyForNavigation PASSED
+2026-10-20T02:58:05.2591669Z 
+2026-10-20T02:58:05.2611627Z RedirectInspectorTest > testStripAllTrackingParametersPreservesOtherParamsAndFragment PASSED
+2026-10-20T02:58:05.2658518Z 
+2026-10-20T02:58:05.2721157Z ReleaseSecurityRegressionTest > faviconTrafficMustUseTheCentralRouteAuthorityAndBlockPrivateTargets PASSED
+2026-10-20T02:58:05.2771041Z 
+2026-10-20T02:58:05.2838550Z ReleaseSecurityRegressionTest > ghostTranslationMustNotHaveAStaleTorPortFallback PASSED
+2026-10-20T02:58:05.2864590Z 
+2026-10-20T02:58:05.2889564Z ReleaseSecurityRegressionTest > crashReportsMustStayAppPrivateByDefault PASSED
+2026-10-20T02:58:05.2915879Z 
+2026-10-20T02:58:05.2930668Z ReleaseSecurityRegressionTest > rootReleaseDocumentationMustExist PASSED
+2026-10-20T02:58:05.2960290Z 
+2026-10-20T02:58:05.2980922Z ReleaseSecurityRegressionTest > privacyNetworkControllerMustNotContainUnsafePortFallback PASSED
+2026-10-20T02:58:05.2990369Z 
+2026-10-20T02:58:05.3020830Z ReleaseSecurityRegressionTest > ghostReaderMustUseCentralRouteAuthorityAndNeverFallbackTo9050 PASSED
+2026-10-20T02:58:05.3046402Z 
+2026-10-20T02:58:05.3069256Z ReleaseSecurityRegressionTest > releaseVersionPropertiesMustBeValid PASSED
+2026-10-20T02:58:05.3093066Z 
+2026-10-20T02:58:05.3117012Z ReleaseSecurityRegressionTest > normalAuxiliaryClientsMustUseTheCentralDnsRebindingGuard PASSED
+2026-10-20T02:58:05.3130281Z 
+2026-10-20T02:58:05.3160769Z ReleaseSecurityRegressionTest > readerMustNotContainUnsafeHardcodedTorFallback PASSED
+2026-10-20T02:58:05.3187943Z 
+2026-10-20T02:58:05.3205896Z ReleaseSecurityRegressionTest > readerMustFailClosedForGhostOrOnionFallback PASSED
+2026-10-20T02:58:05.3220414Z 
+2026-10-20T02:58:05.3250789Z ReleaseSecurityRegressionTest > releaseBuildAndWorkflowMustFailClosedOnSigningAndTargetCurrentPlayApi PASSED
+2026-10-20T02:58:05.3280331Z 
+2026-10-20T02:58:05.3280990Z ReleaseSecurityRegressionTest > ghostPreferencesMustFailClosedInsteadOfUsingDefault9050 PASSED
+2026-10-20T02:58:05.3281567Z 
+2026-10-20T02:58:05.3281997Z ReleaseSecurityRegressionTest > ghostReaderMustFailClosedBeforeGeckoFallback PASSED
+2026-10-20T02:58:05.4581159Z 
+2026-10-20T02:58:05.4611650Z ReleaseSecurityRegressionTest > sourceReleaseMustNotClaimCompletelyOfflineOperation PASSED
+2026-10-20T02:58:05.4620427Z 
+2026-10-20T02:58:05.4671132Z RouteTransitionRegressionTest > testGeckoPreferenceControllerCacheReset PASSED
+2026-10-20T02:58:05.6555250Z 
+2026-10-20T02:58:05.6591562Z RouteTransitionRegressionTest > testSwitchingTabsPreservesTabUrlAndNavigationState PASSED
+2026-10-20T02:58:05.7560846Z 
+2026-10-20T02:58:05.7562217Z RouteTransitionRegressionTest > testPrivacyProfileModeSwitchPreservesActiveTabContent PASSED
+2026-10-20T02:58:05.9572402Z 
+2026-10-20T02:58:05.9601385Z RouteTransitionRegressionTest > testCrashHandlerLifecycleDoesNotCrashOrBlock PASSED
+2026-10-20T02:58:06.1544528Z 
+2026-10-20T02:58:06.1565728Z SimultaneousGhostShieldTabRoutingTest > testSimultaneousGhostAndShieldTabsMaintainRouteInvariant PASSED
+2026-10-20T02:58:06.2561629Z 
+2026-10-20T02:58:06.2591806Z SimultaneousGhostShieldTabRoutingTest > testClosingLastGhostTabEnforcesDirectClearnetSafety PASSED
+2026-10-20T02:58:06.2650753Z 
+2026-10-20T02:58:06.2681332Z SiteSecurityPolicyEnforcementTest > testPolicyPersistenceAndRetrieval PASSED
+2026-10-20T02:58:06.3582270Z 
+2026-10-20T02:58:06.3671652Z SiteSecurityPolicyEnforcementTest > testDefaultFallbackPolicy PASSED
+2026-10-20T02:58:06.3700449Z 
+2026-10-20T02:58:06.3701215Z TorSecurityStateMachineTest > testGhostReadyInvariantRequiresAllPhases PASSED
+2026-10-20T02:58:06.3730485Z 
+2026-10-20T02:58:06.3760844Z TorSecurityStateMachineTest > testShieldPreferencesDirect PASSED
+2026-10-20T02:58:06.3790315Z 
+2026-10-20T02:58:06.3790900Z TorSecurityStateMachineTest > testTorPreferencesFailClosed PASSED
+2026-10-20T02:58:06.3820371Z 
+2026-10-20T02:58:06.3850784Z TorSecurityStateMachineTest > testTorPreferencesDynamicPort PASSED
+2026-10-20T02:58:06.3851428Z 
+2026-10-20T02:58:06.3880906Z TorSecurityStateMachineTest > testTorStateTransitions PASSED
+2026-10-20T02:58:06.5544975Z 
+2026-10-20T02:58:06.5551689Z WebExtensionProtocolLogVerificationTest > testInvalidUrlThrowsExceptionInsteadOfSilentAllow PASSED
+2026-10-20T02:58:06.5574655Z 
+2026-10-20T02:58:06.5575301Z WebExtensionProtocolLogVerificationTest > testAdblockSelfTestAndState PASSED
+2026-10-20T02:58:06.6551986Z 
+2026-10-20T02:58:06.6582663Z WebExtensionProtocolLogVerificationTest > testDirectShouldBlockProtocolVerification PASSED
+2026-10-20T02:58:07.8550603Z 
+2026-10-20T02:58:07.8571292Z 385 tests completed, 1 failed
+2026-10-20T02:58:08.3544902Z 
+2026-10-20T02:58:08.3546898Z > Task :app:testDebugUnitTest FAILED
+2026-10-20T02:58:08.3547569Z > Task :app:finalizeTestRoborazziDebug SKIPPED
+2026-10-20T02:59:00.6552158Z 
+2026-10-20T02:59:00.6552191Z 
+2026-10-20T02:59:00.6571000Z FAILURE: Build failed with an exception.
+2026-10-20T02:59:00.6572008Z [Incubating] Problems report is available at: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/build/reports/problems/problems-report.html
+2026-10-20T02:59:00.6600391Z 
+2026-10-20T02:59:00.6600790Z 46 actionable tasks: 29 executed, 17 from cache
+2026-10-20T02:59:00.6630474Z * What went wrong:
+2026-10-20T02:59:00.6631049Z Execution failed for task ':app:testDebugUnitTest'.
+2026-10-20T02:59:00.6661233Z > There were failing tests. See the report at: file:///home/runner/work/Remmi-Browser-3/Remmi-Browser-3/app/build/reports/tests/testDebugUnitTest/index.html
+2026-10-20T02:59:00.6700307Z 
+2026-10-20T02:59:00.6701198Z * Try:
+2026-10-20T02:59:00.6729885Z > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-10-20T02:59:00.6760321Z 
+2026-10-20T02:59:00.6760679Z BUILD FAILED in 4m 42s
+2026-10-20T02:59:01.1781555Z ##[error]Process completed with exit code 1.
+2026-10-20T02:59:01.1968838Z Post job cleanup.
+2026-10-20T02:59:01.2726202Z Post job cleanup.
+2026-10-20T02:59:01.3547746Z [command]/usr/bin/git version
+2026-10-20T02:59:01.3612364Z git version 2.55.0
+2026-10-20T02:59:01.3645886Z Temporarily overriding HOME='/home/runner/work/_temp/436c86e2-89fd-48df-ba9b-8de7ba0c9e53' before making global git config changes
+2026-10-20T02:59:01.3647104Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T02:59:01.3649161Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Remmi-Browser-3/Remmi-Browser-3
+2026-10-20T02:59:01.3683924Z Removing SSH command configuration
+2026-10-20T02:59:01.3689334Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T02:59:01.3728213Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T02:59:01.3962903Z Removing HTTP extra header
+2026-10-20T02:59:01.3968189Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T02:59:01.4006724Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T02:59:01.4216000Z Removing includeIf entries pointing to credentials config files
+2026-10-20T02:59:01.4223951Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-20T02:59:01.4258225Z includeif.gitdir:/home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git.path
+2026-10-20T02:59:01.4259107Z includeif.gitdir:/home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git/worktrees/*.path
+2026-10-20T02:59:01.4259952Z includeif.gitdir:/github/workspace/.git.path
+2026-10-20T02:59:01.4260567Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-20T02:59:01.4267172Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git.path
+2026-10-20T02:59:01.4297117Z /home/runner/work/_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config
+2026-10-20T02:59:01.4306379Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-1b434ce0\-3c3c\-450a\-875a\-f737a49b2066\.config
+2026-10-20T02:59:01.4337474Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git/worktrees/*.path
+2026-10-20T02:59:01.4367118Z /home/runner/work/_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config
+2026-10-20T02:59:01.4374869Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/Remmi-Browser-3/Remmi-Browser-3/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-1b434ce0\-3c3c\-450a\-875a\-f737a49b2066\.config
+2026-10-20T02:59:01.4415391Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-20T02:59:01.4437837Z /github/runner_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config
+2026-10-20T02:59:01.4444711Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-1b434ce0\-3c3c\-450a\-875a\-f737a49b2066\.config
+2026-10-20T02:59:01.4475218Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-20T02:59:01.4497159Z /github/runner_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config
+2026-10-20T02:59:01.4504126Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-1b434ce0\-3c3c\-450a\-875a\-f737a49b2066\.config
+2026-10-20T02:59:01.4589390Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-20T02:59:01.4773674Z Removing credentials config '/home/runner/work/_temp/git-credentials-1b434ce0-3c3c-450a-875a-f737a49b2066.config'
+2026-10-20T02:59:01.4912101Z Cleaning up orphan processes
+2026-10-20T02:59:01.5169398Z Terminate orphan process: pid (2324) (java)

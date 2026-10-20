@@ -123,16 +123,19 @@ class TabThumbnailManager private constructor(private val context: Context) {
   fun saveThumbnail(tabId: String, rawBitmap: Bitmap) {
     if (rawBitmap.isRecycled) return
 
-    ioScope.launch(Dispatchers.IO) {
-      if (rawBitmap.isRecycled) return@launch
-      val scaled = scaleToThumbnail(rawBitmap, TARGET_WIDTH)
-      if (scaled !== rawBitmap && !rawBitmap.isRecycled) {
-        try { rawBitmap.recycle() } catch (_: Throwable) {}
-      }
-      memoryCache.put(tabId, scaled)
-      val now = System.currentTimeMillis()
-      _thumbnailVersions.value = _thumbnailVersions.value + (tabId to now)
+    val scaled = try {
+      if (!rawBitmap.isRecycled) {
+        scaleToThumbnail(rawBitmap, TARGET_WIDTH)
+      } else null
+    } catch (_: Throwable) {
+      null
+    } ?: return
 
+    memoryCache.put(tabId, scaled)
+    val now = System.currentTimeMillis()
+    _thumbnailVersions.value = _thumbnailVersions.value + (tabId to now)
+
+    ioScope.launch(Dispatchers.IO) {
       try {
         if (!scaled.isRecycled) {
           val file = File(thumbnailDir, "thumb_$tabId.jpg")
@@ -256,12 +259,10 @@ class TabThumbnailManager private constructor(private val context: Context) {
     lastCaptureTime.remove(tabId)
     memoryCache.remove(tabId)
     _thumbnailVersions.value = _thumbnailVersions.value - tabId
-    ioScope.launch {
-      try {
-        val file = File(thumbnailDir, "thumb_$tabId.jpg")
-        if (file.exists()) file.delete()
-      } catch (_: Exception) {}
-    }
+    try {
+      val file = File(thumbnailDir, "thumb_$tabId.jpg")
+      if (file.exists()) file.delete()
+    } catch (_: Exception) {}
   }
 
   fun clearAll() {
@@ -271,11 +272,9 @@ class TabThumbnailManager private constructor(private val context: Context) {
     lastCaptureTime.clear()
     memoryCache.evictAll()
     _thumbnailVersions.value = emptyMap()
-    ioScope.launch {
-      try {
-        thumbnailDir.listFiles()?.forEach { it.delete() }
-      } catch (_: Exception) {}
-    }
+    try {
+      thumbnailDir.listFiles()?.forEach { it.delete() }
+    } catch (_: Exception) {}
   }
 
   private fun scaleToThumbnail(source: Bitmap, targetWidth: Int): Bitmap {

@@ -79,8 +79,10 @@ class TabThumbnailManagerTest {
     assertFalse(thumbnailManager.thumbnailVersions.value.containsKey(tabId))
 
     // Clear all
-    thumbnailManager.saveThumbnail("tab_a", bitmap)
-    thumbnailManager.saveThumbnail("tab_b", bitmap)
+    val bitmapA = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+    val bitmapB = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+    thumbnailManager.saveThumbnail("tab_a", bitmapA)
+    thumbnailManager.saveThumbnail("tab_b", bitmapB)
     awaitCondition { thumbnailManager.getThumbnail("tab_a") != null && thumbnailManager.getThumbnail("tab_b") != null }
     thumbnailManager.clearAll()
     awaitCondition { thumbnailManager.getThumbnail("tab_a") == null && thumbnailManager.getThumbnail("tab_b") == null }
