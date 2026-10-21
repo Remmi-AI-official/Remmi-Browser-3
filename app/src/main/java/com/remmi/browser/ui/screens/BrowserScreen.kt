@@ -692,9 +692,10 @@ fun BrowserScreen(
       val effectiveParentId = activeTab.parentTabId ?: chainParentId
       val isLinkTab = activeTab.openedFromLink || effectiveParentId != null
 
-      if (activeTab.canGoBack || geckoEngine.canGoBack(activeTab.id)) {
+      val hasRealHistory = (activeTab.canGoBack || geckoEngine.canGoBack(activeTab.id)) && geckoEngine.hasRealBackHistory(activeTab.id)
+      if (hasRealHistory) {
         Log.i("BrowserScreen", "[FORENSIC] NAV_BACK_REQUEST tabId=${activeTab.id} action=GO_BACK url=${activeTab.url}")
-        backToHomePendingByTab[activeTab.id] = activeTab.url.isNotBlank() && activeTab.url != "about:blank" && activeTab.url != "remmi://newtab" && activeTab.url != "about:home"
+        backToHomePendingByTab[activeTab.id] = false
         if (activeTab.inTabNavigationCount > 0) {
           tabManager.updateTab(activeTab.id) { it.copy(inTabNavigationCount = (it.inTabNavigationCount - 1).coerceAtLeast(0)) }
         }
@@ -1489,12 +1490,13 @@ fun BrowserScreen(
           verticalAlignment = Alignment.CenterVertically,
         ) {
           // 1. Back Button
-          val canNavigateBack = activeTab.canGoBack || geckoEngine.canGoBack(activeTab.id) || !isNewTab
+          val hasRealBackHistory = (activeTab.canGoBack || geckoEngine.canGoBack(activeTab.id)) && geckoEngine.hasRealBackHistory(activeTab.id)
+          val canNavigateBack = hasRealBackHistory || !isNewTab
           IconButton(
             onClick = {
-              if (activeTab.canGoBack || geckoEngine.canGoBack(activeTab.id)) {
+              if ((activeTab.canGoBack || geckoEngine.canGoBack(activeTab.id)) && geckoEngine.hasRealBackHistory(activeTab.id)) {
                 Log.i("BrowserScreen", "[FORENSIC] NAV_BACK_TOOLBAR tabId=${activeTab.id} action=GO_BACK")
-                backToHomePendingByTab[activeTab.id] = activeTab.url.isNotBlank() && activeTab.url != "about:blank" && activeTab.url != "remmi://newtab" && activeTab.url != "about:home"
+                backToHomePendingByTab[activeTab.id] = false
                 if (activeTab.inTabNavigationCount > 0) {
                   tabManager.updateTab(activeTab.id) { it.copy(inTabNavigationCount = (it.inTabNavigationCount - 1).coerceAtLeast(0)) }
                 }
@@ -2423,7 +2425,24 @@ fun BrowserScreen(
           viewModel = activityViewModel,
           initialTab = historyBookmarksInitialTab,
           onSelectUrl = { url ->
-            tabManager.updateTab(activeTab.id) { it.copy(url = url, isReaderMode = false, readerArticle = null) }
+            val sanitized = NetworkHardening.sanitizeUrl(url)
+            homeRequestedByTab[activeTab.id] = false
+            backToHomePendingByTab.remove(activeTab.id)
+            val isOnion = sanitized.contains(".onion", ignoreCase = true)
+            if (isOnion && activeTab.profile != PrivacyProfile.GHOST) {
+              tabManager.updateTab(activeTab.id) {
+                it.copy(url = sanitized, profile = PrivacyProfile.GHOST, isReaderMode = false, readerArticle = null, isLoading = true, progress = 15)
+              }
+              if (!CurrentTorRoute.isReady) {
+                isWaitingForTor = true
+              }
+              geckoEngine.loadUrl(activeTab.id, sanitized, forceReload = true)
+            } else {
+              tabManager.updateTab(activeTab.id) {
+                it.copy(url = sanitized, isReaderMode = false, readerArticle = null, isLoading = true, progress = 15)
+              }
+              geckoEngine.loadUrl(activeTab.id, sanitized)
+            }
           },
           onDismiss = { showHistoryBookmarksSheet = false }
         )
@@ -2461,9 +2480,13 @@ fun BrowserScreen(
   if (showReadingListScreen) {
     ReadingListScreen(
       onOpenUrl = { url ->
+        val sanitized = NetworkHardening.sanitizeUrl(url)
         homeRequestedByTab[activeTab.id] = false
         backToHomePendingByTab.remove(activeTab.id)
-        tabManager.updateTab(activeTab.id) { it.copy(url = url, isReaderMode = false, readerArticle = null) }
+        tabManager.updateTab(activeTab.id) {
+          it.copy(url = sanitized, isReaderMode = false, readerArticle = null, isLoading = true, progress = 15)
+        }
+        geckoEngine.loadUrl(activeTab.id, sanitized)
         showReadingListScreen = false
       },
       onDismiss = { showReadingListScreen = false }
@@ -2779,8 +2802,13 @@ fun BrowserScreen(
         redirectChainTabId = null
       },
       onOpenUrl = { url ->
-        tabManager.updateTab(activeTab.id) { it.copy(url = url, isReaderMode = false, readerArticle = null) }
-        geckoEngine.loadUrl(activeTab.id, url)
+        val sanitized = NetworkHardening.sanitizeUrl(url)
+        homeRequestedByTab[activeTab.id] = false
+        backToHomePendingByTab.remove(activeTab.id)
+        tabManager.updateTab(activeTab.id) {
+          it.copy(url = sanitized, isReaderMode = false, readerArticle = null, isLoading = true, progress = 15)
+        }
+        geckoEngine.loadUrl(activeTab.id, sanitized)
       },
       onOpenInNewTab = { url ->
         tabManager.openTab(

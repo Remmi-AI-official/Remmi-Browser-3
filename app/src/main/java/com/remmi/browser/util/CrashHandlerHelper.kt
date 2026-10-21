@@ -219,17 +219,28 @@ object CrashHandlerHelper {
 
   /**
    * Updates startup phase checkpoint. In-memory immediately, persisted asynchronously.
-   * When APP_READY is reached, marks the run clean.
+   * When FIRST_FRAME or APP_READY is reached, marks the run clean and prevents asynchronous
+   * background prewarm callbacks from regressing the recorded startup phase.
    */
   fun updateStartupPhase(context: Context? = null, phase: StartupPhase) {
     try {
-      currentPhase = phase
+      val existingPhase = currentPhase
+      val isTerminalOrReady = existingPhase == StartupPhase.APP_READY || existingPhase == StartupPhase.SHUTDOWN
+      val isRegressingFromReady = isTerminalOrReady && phase != StartupPhase.APP_READY && phase != StartupPhase.SHUTDOWN
+
+      if (!isRegressingFromReady) {
+        currentPhase = phase
+      }
+
       val ctx = context?.applicationContext ?: appContext
       if (ctx != null) {
         val prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val editor = prefs.edit().putString(KEY_STARTUP_PHASE, phase.id)
+        val editor = prefs.edit()
+        if (!isRegressingFromReady) {
+          editor.putString(KEY_STARTUP_PHASE, phase.id)
+        }
 
-        if (phase == StartupPhase.APP_READY) {
+        if (phase == StartupPhase.FIRST_FRAME || phase == StartupPhase.APP_READY) {
           editor.putBoolean(KEY_PREVIOUS_RUN_CLEAN, true)
           editor.putLong(KEY_LAST_CLEAN_TIMESTAMP, System.currentTimeMillis())
         }
@@ -239,6 +250,58 @@ object CrashHandlerHelper {
       DebugLogManager.log("[APP_LIFECYCLE] ${phase.id}")
     } catch (e: Throwable) {
       Log.e(TAG, "Error updating startup phase: ${e.message}", e)
+    }
+  }
+
+  /**
+   * Marks the session as clean when the user backgrounds the app (Activity.onStop),
+   * so normal OS low-memory background process reclamation (OOM_KILL in cached state)
+   * is not misreported as a foreground crash on next launch.
+   */
+  fun onAppBackgrounded(context: Context) {
+    try {
+      val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+      prefs.edit()
+        .putBoolean(KEY_PREVIOUS_RUN_CLEAN, true)
+        .putLong(KEY_LAST_CLEAN_TIMESTAMP, System.currentTimeMillis())
+        .apply()
+      DebugLogManager.log("[APP_LIFECYCLE] APP_BACKGROUNDED")
+    } catch (e: Throwable) {
+      Log.e(TAG, "Error in onAppBackgrounded: ${e.message}", e)
+    }
+  }
+
+  /**
+   * Called when the activity returns to the foreground (Activity.onStart).
+   */
+  fun onAppForegrounded(context: Context) {
+    try {
+      val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+      prefs.edit()
+        .putBoolean(KEY_PREVIOUS_RUN_CLEAN, true)
+        .putString(KEY_STARTUP_PHASE, StartupPhase.APP_READY.id)
+        .putLong(KEY_LAST_CLEAN_TIMESTAMP, System.currentTimeMillis())
+        .apply()
+      currentPhase = StartupPhase.APP_READY
+      DebugLogManager.log("[APP_LIFECYCLE] APP_FOREGROUNDED")
+    } catch (e: Throwable) {
+      Log.e(TAG, "Error in onAppForegrounded: ${e.message}", e)
+    }
+  }
+
+  /**
+   * Marks background initialization clean if the process was started headlessly by the OS
+   * without an Activity reaching APP_READY.
+   */
+  fun markBackgroundInitComplete(context: Context) {
+    try {
+      val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+      prefs.edit()
+        .putBoolean(KEY_PREVIOUS_RUN_CLEAN, true)
+        .putLong(KEY_LAST_CLEAN_TIMESTAMP, System.currentTimeMillis())
+        .apply()
+    } catch (e: Throwable) {
+      Log.e(TAG, "Error in markBackgroundInitComplete: ${e.message}", e)
     }
   }
 

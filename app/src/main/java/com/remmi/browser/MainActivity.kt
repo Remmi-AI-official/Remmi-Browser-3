@@ -160,6 +160,7 @@ class MainActivity : FragmentActivity() {
       androidx.compose.runtime.LaunchedEffect(Unit) {
         android.util.Log.i("AppStartup", "STATE_LOG: FIRST_FRAME (time=${android.os.SystemClock.elapsedRealtime()})")
         com.remmi.browser.util.CrashHandlerHelper.updateStartupPhase(this@MainActivity, com.remmi.browser.util.StartupPhase.FIRST_FRAME)
+        com.remmi.browser.util.CrashHandlerHelper.updateStartupPhase(this@MainActivity, com.remmi.browser.util.StartupPhase.APP_READY)
         kotlinx.coroutines.withContext(Dispatchers.IO) {
           val pendingCrash = com.remmi.browser.util.CrashHandlerHelper.checkAndExportPendingReport(this@MainActivity)
           if (pendingCrash != null) {
@@ -178,7 +179,6 @@ class MainActivity : FragmentActivity() {
             }
           }
         }
-        com.remmi.browser.util.CrashHandlerHelper.updateStartupPhase(this@MainActivity, com.remmi.browser.util.StartupPhase.APP_READY)
       }
 
       RemmiTheme(
@@ -308,7 +308,13 @@ class MainActivity : FragmentActivity() {
     outState.remove("android:viewHierarchyState")
   }
 
+  override fun onStart() {
+    super.onStart()
+    com.remmi.browser.util.CrashHandlerHelper.onAppForegrounded(this)
+  }
+
   override fun onStop() {
+    com.remmi.browser.util.CrashHandlerHelper.onAppBackgrounded(this)
     super.onStop()
     com.remmi.browser.security.permissions.PermissionSessionManager.getInstance().onAppBackgrounded()
   }

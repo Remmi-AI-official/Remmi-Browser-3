@@ -115,6 +115,7 @@ class RemmiApp : Application(), SingletonImageLoader.Factory {
           }
         }
         Log.i("RemmiApp", "Background initialization completed.")
+        com.remmi.browser.util.CrashHandlerHelper.markBackgroundInitComplete(this@RemmiApp)
       } catch (e: Throwable) {
         Log.e("RemmiApp", "Error during background init: ${e.message}", e)
       }

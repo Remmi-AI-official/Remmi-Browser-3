@@ -243,7 +243,6 @@ fun BrowserView(
       when (event) {
         Lifecycle.Event.ON_RESUME -> {
           scope.launch {
-            geckoEngine.setTabActive(tab.id, true)
             geckoViewRef?.let { gv ->
               gv.visibility = View.VISIBLE
               geckoEngine.attachView(
@@ -256,6 +255,7 @@ fun BrowserView(
                 callbacks = tabCallbacks,
               )
             }
+            geckoEngine.setTabActive(tab.id, true)
           }
         }
         Lifecycle.Event.ON_PAUSE -> {
@@ -376,10 +376,14 @@ fun BrowserView(
 
   val swipeSchemeColor2 = remember { android.graphics.Color.parseColor("#00E5FF") }
   val swipeSchemeColor3 = remember { android.graphics.Color.parseColor("#7C4DFF") }
-  val darkSurfaceColor = remember { android.graphics.Color.parseColor("#121824") }
   val darkProgressBgColor = remember { android.graphics.Color.parseColor("#1E2430") }
   val warmLightSurfaceColor = remember { android.graphics.Color.parseColor("#FAF5EE") }
-  val surfaceColor = if (ThemeCyber.colors.isLight) warmLightSurfaceColor else darkSurfaceColor
+  val surfaceColor = android.graphics.Color.argb(
+    (ThemeCyber.colors.background.alpha * 255).toInt(),
+    (ThemeCyber.colors.background.red * 255).toInt(),
+    (ThemeCyber.colors.background.green * 255).toInt(),
+    (ThemeCyber.colors.background.blue * 255).toInt()
+  )
   val primaryColorInt = android.graphics.Color.argb(
     (ThemeCyber.colors.primary.alpha * 255).toInt(),
     (ThemeCyber.colors.primary.red * 255).toInt(),
@@ -424,6 +428,9 @@ fun BrowserView(
             tag = tab.id
             swipeLayout.addView(this)
           }
+          try {
+            coverUntilFirstPaint(surfaceColor)
+          } catch (_: Throwable) {}
           alpha = 1f
           setDynamicToolbarMaxHeight(0)
           geckoViewRef = this
@@ -467,6 +474,11 @@ fun BrowserView(
         if (targetGeckoView.parent !== swipeLayout) {
           (targetGeckoView.parent as? ViewGroup)?.removeView(targetGeckoView)
           targetGeckoView.setBackgroundColor(surfaceColor)
+          try {
+            if (geckoEngine.shouldReplaceHistoryForFirstLoad(tab.id)) {
+              targetGeckoView.coverUntilFirstPaint(surfaceColor)
+            }
+          } catch (_: Throwable) {}
           targetGeckoView.tag = tab.id
           targetGeckoView.setDynamicToolbarMaxHeight(0)
           swipeLayout.addView(targetGeckoView)

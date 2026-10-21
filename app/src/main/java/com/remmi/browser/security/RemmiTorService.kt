@@ -73,8 +73,13 @@ class RemmiTorService : TorService() {
     } catch (e: Exception) {
       DebugLogManager.log("RemmiTorService onStartCommand: Foreground update error: ${e.message}")
     }
+    if (intent == null) {
+      DebugLogManager.log("RemmiTorService onStartCommand: Ignoring null-intent OS restart; stopping headless service")
+      stopSelf()
+      return START_NOT_STICKY
+    }
     super.onStartCommand(intent, flags, startId)
-    return START_STICKY
+    return START_NOT_STICKY
   }
 
   override fun onTaskRemoved(rootIntent: Intent?) {
