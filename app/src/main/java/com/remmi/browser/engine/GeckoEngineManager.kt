@@ -4379,15 +4379,11 @@ class GeckoEngineManager private constructor(private val context: Context) {
   }
 
   fun goBack(tabId: String) {
-    if (!hasRealBackHistory(tabId)) {
-      Log.i(TAG, "[FORENSIC] NAV_BACK_GECKO_TO_HOME tabId=$tabId reason=no_real_back_history")
+    if (hasRealBackHistory(tabId)) {
+      realBackNavigationInFlight.add(tabId)
+    } else {
       realBackNavigationInFlight.remove(tabId)
-      sessionCallbacks[tabId]?.onNavStateChange(false, sessionNavStates[tabId]?.second ?: false)
-      sessionCallbacks[tabId]?.onUrlChange("about:blank")
-      resetToNewTab(tabId)
-      return
     }
-    realBackNavigationInFlight.add(tabId)
     onMainSession(tabId, "GO_BACK") { session ->
       allocateNavigationGeneration(tabId, "goBack", "history_back")
       Log.i(TAG, "[FORENSIC] NAV_BACK_GECKO tabId=$tabId sessionHash=${session.hashCode()} thread=${Thread.currentThread().name}")
