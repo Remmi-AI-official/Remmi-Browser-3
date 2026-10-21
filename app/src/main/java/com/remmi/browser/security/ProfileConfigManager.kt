@@ -158,6 +158,19 @@ class ProfileConfigManager(private val context: Context) {
       appendLine("""user_pref("image.mem.surfacecache.max_size_kb", 65536);""")
       appendLine("""user_pref("browser.low_end_device_optimizations", false);""")
       appendLine()
+      val currentSettings = try {
+        com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value
+      } catch (_: Throwable) {
+        null
+      }
+      val bgHex = currentSettings?.resolveBackgroundHex() ?: "#F7F3EB"
+      val isDark = currentSettings?.resolveIsDarkTheme() ?: false
+      appendLine("""user_pref("browser.display.background_color", "$bgHex");""")
+      appendLine("""user_pref("browser.display.background_color.dark", "$bgHex");""")
+      appendLine("""user_pref("ui.systemUsesDarkTheme", ${if (isDark) 1 else 0});""")
+      appendLine("""user_pref("browser.in-content.dark-mode", $isDark);""")
+      appendLine("""user_pref("layout.css.prefers-color-scheme.content-override", ${if (isDark) 0 else 1});""")
+      appendLine()
       appendLine("// Form & Password Manager Engine Integration")
       appendLine("""user_pref("signon.rememberSignons", true);""")
       appendLine("""user_pref("signon.autofillForms", false);""")
@@ -273,6 +286,17 @@ class ProfileConfigManager(private val context: Context) {
       appendLine("""user_pref("browser.cache.memory.capacity", 16384);""")
       appendLine("""user_pref("image.mem.surfacecache.max_size_kb", 65536);""")
       appendLine("""user_pref("browser.low_end_device_optimizations", false);""")
+      val currentSettings = try {
+        com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value
+      } catch (_: Throwable) {
+        null
+      }
+      val bgHex = currentSettings?.resolveBackgroundHex() ?: "#F7F3EB"
+      val isDark = currentSettings?.resolveIsDarkTheme() ?: false
+      appendLine("""user_pref("browser.display.background_color", "$bgHex");""")
+      appendLine("""user_pref("browser.display.background_color.dark", "$bgHex");""")
+      appendLine("""user_pref("ui.systemUsesDarkTheme", ${if (isDark) 1 else 0});""")
+      appendLine("""user_pref("browser.in-content.dark-mode", $isDark);""")
     }
   }
 

@@ -220,14 +220,21 @@ fun RemmiTheme(
   val view = LocalView.current
   if (!view.isInEditMode) {
     SideEffect {
+      val bgArgb = cyberColorScheme.background.toArgb()
       val window = (view.context as? Activity)?.window
       if (window != null) {
-        window.statusBarColor = cyberColorScheme.background.toArgb()
+        window.statusBarColor = bgArgb
         window.navigationBarColor = cyberColorScheme.surface.toArgb()
+        window.decorView.setBackgroundColor(bgArgb)
+        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(bgArgb))
         val insetsController = WindowCompat.getInsetsController(window, view)
         insetsController.isAppearanceLightStatusBars = isLight
         insetsController.isAppearanceLightNavigationBars = isLight
       }
+      try {
+        com.remmi.browser.engine.GeckoEngineManager.getInstance(view.context)
+          .updateThemeBackgroundColor(bgArgb, !isLight)
+      } catch (_: Throwable) {}
     }
   }
 

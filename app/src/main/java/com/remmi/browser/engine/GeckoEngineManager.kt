@@ -187,16 +187,76 @@ class GeckoEngineManager private constructor(private val context: Context) {
   private val sessionCallbacks = mutableMapOf<String, GeckoTabCallbacks>()
   private val sessionNavStates = mutableMapOf<String, Pair<Boolean, Boolean>>()
   private val sessionHistoryLists = java.util.concurrent.ConcurrentHashMap<String, GeckoSession.HistoryDelegate.HistoryList>()
+  private val firstRealPageHistoryIndex = java.util.concurrent.ConcurrentHashMap<String, Int>()
+  private val awaitingFirstRealHistoryCommit = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+  private val realBackNavigationInFlight = java.util.Collections.synchronizedSet(mutableSetOf<String>())
   private val mainHandler = Handler(Looper.getMainLooper())
+
+  @Volatile
+  private var activeThemeBackgroundColorInt: Int = try {
+    android.graphics.Color.parseColor(
+      com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value.resolveBackgroundHex()
+    )
+  } catch (_: Throwable) {
+    android.graphics.Color.parseColor("#F7F3EB")
+  }
+
+  @Volatile
+  private var activeThemeIsDark: Boolean = try {
+    com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value.resolveIsDarkTheme()
+  } catch (_: Throwable) {
+    false
+  }
+
+  fun updateThemeBackgroundColor(colorInt: Int, isDark: Boolean) {
+    val prevColor = activeThemeBackgroundColorInt
+    val prevDark = activeThemeIsDark
+    activeThemeBackgroundColorInt = colorInt
+    activeThemeIsDark = isDark
+    mainHandler.post {
+      try {
+        geckoViewPool.values.forEach { gv ->
+          gv.setBackgroundColor(colorInt)
+        }
+        attachedViews.values.forEach { gv ->
+          gv.setBackgroundColor(colorInt)
+        }
+        runtime?.settings?.preferredColorScheme = if (isDark) {
+          GeckoRuntimeSettings.COLOR_SCHEME_DARK
+        } else {
+          GeckoRuntimeSettings.COLOR_SCHEME_LIGHT
+        }
+      } catch (_: Throwable) {}
+    }
+    if (prevColor != colorInt || prevDark != isDark) {
+      val rt = runtime ?: return
+      val hex = String.format("#%06X", 0xFFFFFF and colorInt)
+      engineScope.launch {
+        try {
+          GeckoPreferenceController(rt).applyPreferences(
+            mapOf(
+              "browser.display.background_color" to hex,
+              "browser.display.background_color.dark" to hex,
+              "layout.css.prefers-color-scheme.content-override" to (if (isDark) 0 else 1),
+              "ui.systemUsesDarkTheme" to (if (isDark) 1 else 0),
+              "browser.in-content.dark-mode" to isDark,
+            ),
+            GeckoPreferenceController.PREF_BRANCH_USER
+          )
+        } catch (_: Throwable) {}
+      }
+    }
+  }
 
   private fun isBlankOrHomeUrl(url: String?): Boolean {
     return url.isNullOrBlank() || url == "about:blank" || url == "about:home" || url == "remmi://newtab"
   }
 
-  private fun hasRealBackHistory(historyList: GeckoSession.HistoryDelegate.HistoryList): Boolean {
+  private fun hasRealBackHistory(tabId: String, historyList: GeckoSession.HistoryDelegate.HistoryList): Boolean {
     val currentIdx = historyList.currentIndex
-    if (currentIdx <= 0) return false
-    for (i in 0 until currentIdx) {
+    val minRealIdx = firstRealPageHistoryIndex[tabId] ?: 0
+    if (currentIdx <= minRealIdx) return false
+    for (i in minRealIdx until currentIdx) {
       val uri = historyList.getOrNull(i)?.uri
       if (!isBlankOrHomeUrl(uri)) {
         return true
@@ -208,7 +268,12 @@ class GeckoEngineManager private constructor(private val context: Context) {
   fun hasRealBackHistory(tabId: String): Boolean {
     val historyList = sessionHistoryLists[tabId]
     if (historyList != null) {
-      return hasRealBackHistory(historyList)
+      return hasRealBackHistory(tabId, historyList)
+    }
+    val dispatchedRealCount = dispatchedNavigationsHistory[tabId]?.count { !isBlankOrHomeUrl(it) } ?: 0
+    val inTabCount = try { TabManager.getInstance().getTab(tabId)?.inTabNavigationCount ?: 0 } catch (_: Throwable) { 0 }
+    if (dispatchedRealCount <= 1 && inTabCount <= 0) {
+      return false
     }
     return sessionNavStates[tabId]?.first ?: false
   }
@@ -217,7 +282,8 @@ class GeckoEngineManager private constructor(private val context: Context) {
     try {
       val gv = view ?: return
       val bgColor = (gv.background as? android.graphics.drawable.ColorDrawable)?.color
-        ?: android.graphics.Color.parseColor("#0A0E17")
+        ?: activeThemeBackgroundColorInt
+      gv.setBackgroundColor(bgColor)
       gv.coverUntilFirstPaint(bgColor)
     } catch (_: Throwable) {}
   }
@@ -291,6 +357,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
       isSaveEnabled = false
       isSaveFromParentEnabled = false
       setDynamicToolbarMaxHeight(0)
+      setBackgroundColor(activeThemeBackgroundColorInt)
       tag = tabId
     }
     geckoViewPool[tabId] = newView
@@ -1559,8 +1626,13 @@ class GeckoEngineManager private constructor(private val context: Context) {
     GeckoPreferenceController.resetCache(rt)
     try {
       val initialSettings = com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value
-      if (initialSettings.darkThemeForAllWebPages || initialSettings.pureBlackOled) {
-        rt.settings.preferredColorScheme = GeckoRuntimeSettings.COLOR_SCHEME_DARK
+      val isDark = initialSettings.resolveIsDarkTheme()
+      activeThemeIsDark = isDark
+      activeThemeBackgroundColorInt = android.graphics.Color.parseColor(initialSettings.resolveBackgroundHex())
+      rt.settings.preferredColorScheme = if (isDark) {
+        GeckoRuntimeSettings.COLOR_SCHEME_DARK
+      } else {
+        GeckoRuntimeSettings.COLOR_SCHEME_LIGHT
       }
     } catch (_: Exception) {}
 
@@ -2377,7 +2449,14 @@ class GeckoEngineManager private constructor(private val context: Context) {
             val inFlightUrl = inFlightUrls[tabId]
             val isBackNavigation = inFlightUrl == "history_back"
             if (isBackNavigation) {
-              if (hasRealBackHistory(tabId)) {
+              val currentCommittedUri = sessionHistoryLists[tabId]?.let { list ->
+                val idx = list.currentIndex
+                if (idx >= 0) list.getOrNull(idx)?.uri else null
+              }
+              val isTargetRealPage = realBackNavigationInFlight.contains(tabId) ||
+                hasRealBackHistory(tabId) ||
+                !isBlankOrHomeUrl(currentCommittedUri)
+              if (isTargetRealPage) {
                 val transBackMsg = "[FORENSIC][NAV_TRANSIENT_BLANK] tabId=$tabId navId=$activeNavId generation=$genBefore action=KEEP_EXISTING_SURFACE_ON_REAL_BACK elapsedRealtime=$now"
                 Log.i(TAG, transBackMsg)
                 com.remmi.browser.util.DebugLogManager.log(transBackMsg)
@@ -2386,6 +2465,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
               val backMsg = "[FORENSIC] history_back reached about:blank -> transitioning tabId=$tabId to New Tab"
               Log.i(TAG, backMsg)
               com.remmi.browser.util.DebugLogManager.log(backMsg)
+              realBackNavigationInFlight.remove(tabId)
               inFlightNavigations.remove(tabId)
               inFlightUrls.remove(tabId)
               dispatchedNavigationsHistory.remove(tabId)
@@ -2416,6 +2496,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
         }
 
         if (url != null && !isInternalOrIgnoredUrl(url)) {
+          realBackNavigationInFlight.remove(tabId)
           lastObservedUrls[tabId] = url
         }
 
@@ -2562,9 +2643,11 @@ class GeckoEngineManager private constructor(private val context: Context) {
         val effectiveCanGoBack = if (!canGoBack) {
           false
         } else if (historyList != null) {
-          hasRealBackHistory(historyList)
+          hasRealBackHistory(tabId, historyList)
         } else {
-          canGoBack
+          val dispatchedRealCount = dispatchedNavigationsHistory[tabId]?.count { !isBlankOrHomeUrl(it) } ?: 0
+          val inTabCount = try { TabManager.getInstance().getTab(tabId)?.inTabNavigationCount ?: 0 } catch (_: Throwable) { 0 }
+          dispatchedRealCount > 1 || inTabCount > 0
         }
 
         val current = sessionNavStates[tabId] ?: Pair(false, false)
@@ -2774,7 +2857,15 @@ class GeckoEngineManager private constructor(private val context: Context) {
           return
         }
         sessionHistoryLists[tabId] = historyList
-        val realCanGoBack = hasRealBackHistory(historyList)
+        val currentIdx = historyList.currentIndex
+        val currentUri = if (currentIdx >= 0) historyList.getOrNull(currentIdx)?.uri else null
+        if (!isBlankOrHomeUrl(currentUri)) {
+          val existingFirstIdx = firstRealPageHistoryIndex[tabId]
+          if (awaitingFirstRealHistoryCommit.remove(tabId) || existingFirstIdx == null || currentIdx < existingFirstIdx) {
+            firstRealPageHistoryIndex[tabId] = currentIdx
+          }
+        }
+        val realCanGoBack = hasRealBackHistory(tabId, historyList)
         val current = sessionNavStates[tabId] ?: Pair(false, false)
         if (current.first != realCanGoBack) {
           val updated = current.copy(first = realCanGoBack)
@@ -2859,6 +2950,12 @@ class GeckoEngineManager private constructor(private val context: Context) {
         }
         if (latestProg == "about:blank" || isInternalOrIgnoredUrl(latestProg)) {
           latestProgressUrls.remove(tabId)
+        }
+
+        if (isAboutBlank && isBlankOrHomeUrl(lastDispatchedUrls[tabId])) {
+          try {
+            session.purgeHistory()
+          } catch (_: Throwable) {}
         }
 
         if (presentationStates[tabId] == PresentationState.REAL_NAVIGATION_IN_PROGRESS && isAboutBlank) {
@@ -3750,14 +3847,11 @@ class GeckoEngineManager private constructor(private val context: Context) {
     val session = getOrCreateSessionInternal(tabId, profile, securityLevel, containerType, isDesktopMode, openSession = false)
     val sessId = "0x" + Integer.toHexString(System.identityHashCode(session))
     try {
-      if (shouldReplaceHistoryForFirstLoad(tabId) || pendingNavigations.containsKey(tabId)) {
-        coverViewUntilFirstPaint(tabId, geckoView)
-      }
       if (geckoView.session != session) {
+        if (shouldReplaceHistoryForFirstLoad(tabId) || pendingNavigations.containsKey(tabId)) {
+          coverViewUntilFirstPaint(tabId, geckoView)
+        }
         geckoView.setSession(session)
-      }
-      if (shouldReplaceHistoryForFirstLoad(tabId) || pendingNavigations.containsKey(tabId)) {
-        coverViewUntilFirstPaint(tabId, geckoView)
       }
       session.setActive(true)
       attachedViews[tabId] = geckoView
@@ -4062,6 +4156,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
       return
     }
 
+    realBackNavigationInFlight.remove(tabId)
     val (navId, gen) = allocateNavigationGeneration(tabId, "loadUrl", targetUrl)
     val now = android.os.SystemClock.elapsedRealtime()
     val newRealMsg = "[FORENSIC][NAV_NEW_REAL] tabId=$tabId navId=$navId gen=$gen url=$targetUrl trigger=loadUrl"
@@ -4241,6 +4336,9 @@ class GeckoEngineManager private constructor(private val context: Context) {
       inFlightUrls.remove(tabId)
       dispatchedNavigationsHistory.remove(tabId)
       sessionHistoryLists.remove(tabId)
+      firstRealPageHistoryIndex.remove(tabId)
+      realBackNavigationInFlight.remove(tabId)
+      awaitingFirstRealHistoryCommit.add(tabId)
       sessionNavStates[tabId] = Pair(false, false)
       sessionCallbacks[tabId]?.onNavStateChange(false, false)
       val pendingRec = pendingContentRecoveries.remove(tabId)
@@ -4255,7 +4353,9 @@ class GeckoEngineManager private constructor(private val context: Context) {
         Log.i(TAG, superMsg)
         com.remmi.browser.util.DebugLogManager.log(superMsg)
       }
-      coverViewUntilFirstPaint(tabId)
+      try {
+        session.stop()
+      } catch (_: Throwable) {}
       session.load(GeckoSession.Loader().uri("about:blank").flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY))
       try {
         session.purgeHistory()
@@ -4279,14 +4379,15 @@ class GeckoEngineManager private constructor(private val context: Context) {
   }
 
   fun goBack(tabId: String) {
-    val historyList = sessionHistoryLists[tabId]
-    if (historyList != null && !hasRealBackHistory(historyList)) {
+    if (!hasRealBackHistory(tabId)) {
       Log.i(TAG, "[FORENSIC] NAV_BACK_GECKO_TO_HOME tabId=$tabId reason=no_real_back_history")
+      realBackNavigationInFlight.remove(tabId)
       sessionCallbacks[tabId]?.onNavStateChange(false, sessionNavStates[tabId]?.second ?: false)
       sessionCallbacks[tabId]?.onUrlChange("about:blank")
       resetToNewTab(tabId)
       return
     }
+    realBackNavigationInFlight.add(tabId)
     onMainSession(tabId, "GO_BACK") { session ->
       allocateNavigationGeneration(tabId, "goBack", "history_back")
       Log.i(TAG, "[FORENSIC] NAV_BACK_GECKO tabId=$tabId sessionHash=${session.hashCode()} thread=${Thread.currentThread().name}")
@@ -4419,6 +4520,9 @@ class GeckoEngineManager private constructor(private val context: Context) {
     sessionCallbacks.remove(tabId)
     sessionNavStates.remove(tabId)
     sessionHistoryLists.remove(tabId)
+    firstRealPageHistoryIndex.remove(tabId)
+    awaitingFirstRealHistoryCommit.remove(tabId)
+    realBackNavigationInFlight.remove(tabId)
     attachedViews.remove(tabId)
     val pooledGv = geckoViewPool.remove(tabId)
     if (pooledGv != null) {
@@ -4498,6 +4602,9 @@ class GeckoEngineManager private constructor(private val context: Context) {
     sessionCallbacks.clear()
     sessionNavStates.clear()
     sessionHistoryLists.clear()
+    firstRealPageHistoryIndex.clear()
+    awaitingFirstRealHistoryCommit.clear()
+    realBackNavigationInFlight.clear()
     attachedViews.clear()
     geckoViewPool.values.forEach { pooledGv ->
       (pooledGv.parent as? android.view.ViewGroup)?.removeView(pooledGv)

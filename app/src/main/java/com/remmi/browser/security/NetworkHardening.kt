@@ -249,9 +249,11 @@ object NetworkHardening {
       "image.mem.decode_bytes_at_a_time" to 32768,
       "network.http.max-connections" to 64,
       "network.http.max-persistent-connections-per-server" to 10,
-      "layout.css.prefers-color-scheme.content-override" to (if (settings?.darkThemeForAllWebPages == true) 0 else 2),
-      "ui.systemUsesDarkTheme" to (if (settings?.darkThemeForAllWebPages == true) 1 else 0),
-      "browser.in-content.dark-mode" to (settings?.darkThemeForAllWebPages == true),
+      "browser.display.background_color" to (settings?.resolveBackgroundHex() ?: "#F7F3EB"),
+      "browser.display.background_color.dark" to (settings?.resolveBackgroundHex() ?: "#151619"),
+      "layout.css.prefers-color-scheme.content-override" to (if (settings?.darkThemeForAllWebPages == true) 0 else if (settings?.resolveIsDarkTheme() == true) 0 else 1),
+      "ui.systemUsesDarkTheme" to (if (settings?.resolveIsDarkTheme() == true) 1 else 0),
+      "browser.in-content.dark-mode" to (settings?.resolveIsDarkTheme() == true),
     )
   }
 

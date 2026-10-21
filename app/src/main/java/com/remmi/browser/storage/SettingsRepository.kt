@@ -214,7 +214,45 @@ data class BrowserSettings(
   val showRedirectChain: Boolean = true,
   val logPopupEvents: Boolean = true,
   val preserveIntermediateUrls: Boolean = true,
-)
+) {
+  fun resolveBackgroundHex(systemDark: Boolean = isSystemNightMode()): String {
+    val isLight = !pureBlackOled && when (appearanceMode) {
+      AppearanceMode.LIGHT -> true
+      AppearanceMode.DARK -> false
+      AppearanceMode.SYSTEM -> !systemDark && cyberTheme.isLight
+    }
+    return if (isLight) {
+      when (cyberTheme) {
+        CyberTheme.CYBER_MATRIX -> "#EEF5F0"
+        CyberTheme.VERONICA -> "#F9F1F4"
+        CyberTheme.JARVIS -> "#F0F4FA"
+        CyberTheme.STARK_IND -> "#FAF5EA"
+        else -> "#F7F3EB"
+      }
+    } else {
+      if (pureBlackOled) "#000000" else "#151619"
+    }
+  }
+
+  fun resolveIsDarkTheme(systemDark: Boolean = isSystemNightMode()): Boolean {
+    return pureBlackOled || darkThemeForAllWebPages || when (appearanceMode) {
+      AppearanceMode.LIGHT -> false
+      AppearanceMode.DARK -> true
+      AppearanceMode.SYSTEM -> systemDark || !cyberTheme.isLight
+    }
+  }
+
+  companion object {
+    fun isSystemNightMode(): Boolean {
+      return try {
+        val uiMode = android.content.res.Resources.getSystem().configuration.uiMode
+        (uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+      } catch (_: Throwable) {
+        false
+      }
+    }
+  }
+}
 
 class SettingsRepository(private val context: Context) {
 

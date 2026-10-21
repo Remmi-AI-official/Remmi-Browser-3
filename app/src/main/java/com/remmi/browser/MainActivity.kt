@@ -142,6 +142,11 @@ class MainActivity : FragmentActivity() {
     val prefs = getSharedPreferences("remmi_app_state", Context.MODE_PRIVATE)
     val hasSeenOnboarding = prefs.getBoolean("has_seen_onboarding", false)
     val settingsRepo = SettingsRepository.getInstance(applicationContext)
+    try {
+      val initialBgColor = android.graphics.Color.parseColor(settingsRepo.settings.value.resolveBackgroundHex())
+      window.decorView.setBackgroundColor(initialBgColor)
+      window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(initialBgColor))
+    } catch (_: Throwable) {}
 
     val incomingUrl = handleIncomingIntent(intent)
     val initialScreen = when {

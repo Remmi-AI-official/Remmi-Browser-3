@@ -306,6 +306,10 @@ fun BrowserScreen(
     settings.doNotTrackEnabled,
     settings.strictReferrerPolicy,
     settings.httpsOnlyMode,
+    settings.appearanceMode,
+    settings.cyberTheme,
+    settings.pureBlackOled,
+    settings.darkThemeForAllWebPages,
   ) {
     geckoEngine.updateGlobalPreferences(settings)
   }
@@ -1008,7 +1012,8 @@ fun BrowserScreen(
                         val isBlank = newUrl.isBlank() || newUrl == "about:blank" || newUrl == "remmi://newtab" || newUrl == "about:home"
                         val currentTabIsReal = currentTab.url.isNotBlank() && currentTab.url != "about:blank" && currentTab.url != "remmi://newtab" && currentTab.url != "about:home"
 
-                        if (isBlank && currentTabIsReal && backToHomePendingByTab[tabId] != true) {
+                        val isExplicitEngineBlank = isBlank && geckoEngine.getLastDispatchedUrl(tabId) == "about:blank" && !geckoEngine.isRealNavigationInProgress(tabId)
+                        if (isBlank && currentTabIsReal && backToHomePendingByTab[tabId] != true && !isExplicitEngineBlank) {
                           // Gecko may report a transient about:blank while a real document is being
                           // attached/replaced. Never turn that renderer state into a Compose home-page swap.
                           Log.i("BrowserScreen", "[FORENSIC] SUPPRESS_TRANSIENT_BLANK_URL tabId=$tabId currentUrl=${currentTab.url}")
@@ -2408,7 +2413,7 @@ fun BrowserScreen(
     }
   }
 
-  // 4. History & Bookmarks Sheet
+  // 4. History & Bookmarks Screen (In-window overlay without Dialog dim scrim to prevent window brightness/color shift)
   if (showHistoryBookmarksSheet) {
     val db = database
     if (db != null) {
@@ -2416,10 +2421,9 @@ fun BrowserScreen(
         key = "activity_vm_${db.hashCode()}",
         factory = ActivityViewModelFactory(db.historyDao(), db.bookmarkDao())
       )
-      ModalBottomSheet(
-        onDismissRequest = { showHistoryBookmarksSheet = false },
-        containerColor = ThemeCyber.colors.background,
-        dragHandle = null,
+      Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = ThemeCyber.colors.background,
       ) {
         ActivityScreen(
           viewModel = activityViewModel,

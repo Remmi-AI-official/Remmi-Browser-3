@@ -55,15 +55,7 @@ fun CyberpunkBackground(
   Box(
     modifier = modifier
       .fillMaxSize()
-      .background(
-        Brush.verticalGradient(
-          colors = listOf(
-            backgroundColor,
-            surfaceLight.copy(alpha = 0.45f),
-            backgroundColor
-          )
-        )
-      )
+      .background(backgroundColor)
   ) {
     if (!customWallpaperUri.isNullOrBlank()) {
       val painter = rememberAsyncImagePainter(
