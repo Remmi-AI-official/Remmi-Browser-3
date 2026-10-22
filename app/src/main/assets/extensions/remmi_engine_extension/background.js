@@ -573,18 +573,11 @@ function purgeTabCosmeticState(tabId) {
   TAB_COSMETIC_KEYS.delete(tabId);
 }
 
-// Tab navigation & destruction listeners to enforce per-page lifecycle release
+// Tab destruction listener to enforce per-tab lifecycle release
 if (typeof browser !== 'undefined' && browser.tabs) {
   if (browser.tabs.onRemoved) {
     browser.tabs.onRemoved.addListener((tabId) => {
       purgeTabCosmeticState(tabId);
-    });
-  }
-  if (browser.tabs.onUpdated) {
-    browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
-      if (changeInfo.status === "loading" || changeInfo.url) {
-        purgeTabCosmeticState(tabId);
-      }
     });
   }
 }
@@ -666,8 +659,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       currentProfile,
       rulesGeneration,
       "URL_COSMETIC",
-      hostname,
-      url
+      hostname || url
     ].join("|");
 
     const cached = getCachedCosmetic(cacheKey);

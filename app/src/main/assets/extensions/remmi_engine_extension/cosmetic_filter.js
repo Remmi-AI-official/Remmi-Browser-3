@@ -20,6 +20,7 @@
   let batchInjectTimer = null;
   let isInflight = false;
   let lastScrollTime = 0;
+  let lastInteractionTime = 0;
   const pendingClassesSet = new Set();
   const pendingIdsSet = new Set();
   let domObserver = null;
@@ -30,13 +31,34 @@
     const updateScrollTimestamp = function () {
       lastScrollTime = Date.now();
     };
+    const updateInteractionTimestamp = function () {
+      lastInteractionTime = Date.now();
+    };
     window.addEventListener('scroll', updateScrollTimestamp, { passive: true, capture: true });
     window.addEventListener('touchmove', updateScrollTimestamp, { passive: true, capture: true });
     window.addEventListener('wheel', updateScrollTimestamp, { passive: true, capture: true });
+    window.addEventListener('pointerdown', updateInteractionTimestamp, { passive: true, capture: true });
+    window.addEventListener('mousedown', updateInteractionTimestamp, { passive: true, capture: true });
+    window.addEventListener('touchstart', updateInteractionTimestamp, { passive: true, capture: true });
+    window.addEventListener('click', updateInteractionTimestamp, { passive: true, capture: true });
   } catch (_e) {}
 
   function isActivelyScrolling() {
-    return lastScrollTime > 0 && (Date.now() - lastScrollTime) < 450;
+    const now = Date.now();
+    return (lastScrollTime > 0 && (now - lastScrollTime) < 450) ||
+           (lastInteractionTime > 0 && (now - lastInteractionTime) < 600);
+  }
+
+  function applyForceDarkWebPagesIfNeeded() {
+    try {
+      const root = document.head || document.documentElement;
+      if (!root || document.getElementById('__remmi_dark_mode_style')) return;
+      const s = document.createElement('style');
+      s.id = '__remmi_dark_mode_style';
+      s.setAttribute('data-remmi-cosmetic', '1');
+      s.textContent = ':root, html { color-scheme: dark !important; background-color: #121212 !important; color: #e2e8f0 !important; } body { background-color: #121212 !important; color: #e2e8f0 !important; } a { color: #60a5fa; }';
+      root.appendChild(s);
+    } catch (_e) {}
   }
 
   // Used to prevent extremely malformed selectors from crashing the style injection
@@ -129,6 +151,11 @@
 
     if (!hasNew) return;
 
+    if (!initialCosmeticsApplied) {
+      flushPendingInjections();
+      return;
+    }
+
     if (!batchInjectTimer) {
       if (typeof requestIdleCallback === 'function') {
         batchInjectTimer = requestIdleCallback(flushPendingInjections, { timeout: 100 });
@@ -151,6 +178,9 @@
         })
         .then((response) => {
           if (response && response.ok) {
+            if (response.forceDarkWebPages) {
+              applyForceDarkWebPagesIfNeeded();
+            }
             const allHide = [];
             if (Array.isArray(response.hideSelectors) && response.hideSelectors.length > 0) {
               allHide.push(...response.hideSelectors);
@@ -279,7 +309,9 @@
     }
 
     domObserver = new MutationObserver((mutations) => {
-      const scrollingNow = isActivelyScrolling();
+      if (isActivelyScrolling()) {
+        return;
+      }
       let shouldScan = false;
       for (let i = 0; i < mutations.length; i++) {
         const m = mutations[i];
@@ -293,19 +325,6 @@
               shouldScan = true;
             }
           }
-        } else if (m.type === 'attributes') {
-          // Ignore scroll-driven animation/sticky class toggles while user is actively scrolling
-          if (scrollingNow) {
-            continue;
-          }
-          const targetEl = m.target;
-          const tag = targetEl && targetEl.tagName;
-          if (tag === 'HEADER' || tag === 'NAV' || tag === 'BODY' || tag === 'HTML' || tag === 'SECTION') {
-            continue;
-          }
-          if (collectNode(targetEl)) {
-            shouldScan = true;
-          }
         }
       }
       if (shouldScan) {
@@ -315,9 +334,7 @@
 
     domObserver.observe(target, {
       childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'id']
+      subtree: true
     });
   }
 

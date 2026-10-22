@@ -42,6 +42,7 @@ class BlockExtension private constructor(private val adblockBridge: AdblockBridg
 
   var siteSecurityProvider: ((String) -> Boolean)? = null
   var cosmeticPolicyProvider: ((String) -> Boolean)? = null
+  var forceDarkWebPagesProvider: (() -> Boolean)? = null
   // Global listeners (for passive threat and click interception events)
   private val threatListeners = CopyOnWriteArraySet<(url: String, type: String) -> Unit>()
   private val htmlListeners = CopyOnWriteArraySet<(url: String, html: String) -> Unit>()
@@ -358,6 +359,7 @@ class BlockExtension private constructor(private val adblockBridge: AdblockBridg
             put("procedural", org.json.JSONArray(cosmetic.procedural))
             put("proceduralCount", cosmetic.proceduralCount)
             put("generics", cosmetic.generics)
+            put("forceDarkWebPages", forceDarkWebPagesProvider?.invoke() ?: false)
             if (cosmetic.error != null) put("error", cosmetic.error)
           }
         } catch (t: Throwable) {
@@ -930,6 +932,7 @@ class BlockExtension private constructor(private val adblockBridge: AdblockBridg
                         put("procedural", org.json.JSONArray(cosmetic.procedural))
                         put("proceduralCount", cosmetic.proceduralCount)
                         put("generics", cosmetic.generics)
+                        put("forceDarkWebPages", forceDarkWebPagesProvider?.invoke() ?: false)
                         if (cosmetic.error != null) put("error", cosmetic.error)
                         put("requestId", requestId)
                         put("portGeneration", reqPortGen)

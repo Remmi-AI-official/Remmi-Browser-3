@@ -314,7 +314,7 @@ fun SettingsScreen(
                   unfocusedIndicatorColor = Color.Transparent,
                   focusedTextColor = textPrimaryColor,
                   unfocusedTextColor = textPrimaryColor,
-                  cursorColor = if (isLight) Color(0xFF2563EB) else Color(0xFF38BDF8),
+                  cursorColor = ThemeCyber.colors.primary,
                 ),
                 modifier = Modifier.fillMaxWidth()
               )
@@ -324,6 +324,7 @@ fun SettingsScreen(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = topBarTitleColor,
+                fontFamily = ThemeCyber.fontFamily,
                 letterSpacing = 0.5.sp
               )
             }
@@ -336,7 +337,7 @@ fun SettingsScreen(
               Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = if (isLight) Color(0xFF1E40AF) else Color(0xFFFFFFFF),
+                tint = ThemeCyber.colors.primary,
                 modifier = Modifier.size(24.dp)
               )
             }
@@ -352,7 +353,7 @@ fun SettingsScreen(
                 Icon(
                   imageVector = if (isSearching) Icons.Default.Close else Icons.Default.Search,
                   contentDescription = "Search Settings",
-                  tint = if (isLight) Color(0xFF1E40AF) else Color(0xFFFFFFFF),
+                  tint = ThemeCyber.colors.primary,
                   modifier = Modifier.size(22.dp)
                 )
               }
@@ -1214,13 +1215,13 @@ private fun SearchEngineSubScreen(
 
     items(SearchEngine.entries) { engine ->
       val isSelected = currentEngine == engine
-      val accentTint = if (isLight) Color(0xFF2563EB) else Color(0xFF38BDF8)
+      val accentTint = ThemeCyber.colors.primary
 
       Card(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
           containerColor = if (isSelected) {
-            if (isLight) Color(0xFFEFF6FF) else Color(0xFF0C213B)
+            accentTint.copy(alpha = if (isLight) 0.10f else 0.16f)
           } else cardBg
         ),
         modifier = Modifier
@@ -1320,7 +1321,8 @@ private fun AppearanceSubScreen(
 ) {
   var showFontMenu by remember { mutableStateOf(false) }
   var showAnimMenu by remember { mutableStateOf(false) }
-  val accentTint = if (isLight) Color(0xFF7C3AED) else Color(0xFFA78BFA)
+  val context = LocalContext.current
+  val accentTint = ThemeCyber.colors.primary
 
   LazyColumn(
     modifier = modifier,
@@ -1331,9 +1333,10 @@ private fun AppearanceSubScreen(
       Spacer(modifier = Modifier.height(2.dp))
       Text(
         text = "Appearance",
-        color = Color(0xFF388BFD),
+        color = accentTint,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
+        fontFamily = ThemeCyber.fontFamily,
         modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
       )
     }
@@ -1356,22 +1359,31 @@ private fun AppearanceSubScreen(
             selected = settings.appearanceMode == AppearanceMode.SYSTEM,
             onClick = { settingsRepo.updateAppearanceMode(AppearanceMode.SYSTEM) },
             textPrimary = textPrimary,
+            accentColor = accentTint,
             showDivider = true,
             dividerColor = cardBorder.copy(alpha = 0.5f)
           )
           AppearanceModeOption(
             title = "Light",
             selected = settings.appearanceMode == AppearanceMode.LIGHT,
-            onClick = { settingsRepo.updateAppearanceMode(AppearanceMode.LIGHT) },
+            onClick = {
+              settingsRepo.updateAppearanceMode(AppearanceMode.LIGHT)
+              settingsRepo.updatePureBlackOled(false)
+            },
             textPrimary = textPrimary,
+            accentColor = accentTint,
             showDivider = true,
             dividerColor = cardBorder.copy(alpha = 0.5f)
           )
           AppearanceModeOption(
-            title = "Dark",
+            title = "Dark (OLED Ready)",
             selected = settings.appearanceMode == AppearanceMode.DARK,
-            onClick = { settingsRepo.updateAppearanceMode(AppearanceMode.DARK) },
+            onClick = {
+              settingsRepo.updateAppearanceMode(AppearanceMode.DARK)
+              settingsRepo.updatePureBlackOled(true)
+            },
             textPrimary = textPrimary,
+            accentColor = accentTint,
             showDivider = false
           )
         }
@@ -1383,9 +1395,10 @@ private fun AppearanceSubScreen(
       Spacer(modifier = Modifier.height(4.dp))
       Text(
         text = "Advanced appearance setting",
-        color = Color(0xFF388BFD),
+        color = accentTint,
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
+        fontFamily = ThemeCyber.fontFamily,
         modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
       )
     }
@@ -1403,34 +1416,48 @@ private fun AppearanceSubScreen(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
+          // 1. Pure Black OLED Mode
           Row(
             modifier = Modifier
               .fillMaxWidth()
+              .clickable {
+                val nextOled = !settings.pureBlackOled
+                settingsRepo.updatePureBlackOled(nextOled)
+                if (nextOled && settings.appearanceMode == AppearanceMode.LIGHT) {
+                  settingsRepo.updateAppearanceMode(AppearanceMode.DARK)
+                }
+              }
               .padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
           ) {
             Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
               Text(
-                text = "Dark theme for all web pages",
+                text = "Pure Black OLED Mode",
                 color = textPrimary,
                 fontSize = 15.5.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                fontFamily = ThemeCyber.fontFamily
               )
               Spacer(modifier = Modifier.height(3.dp))
               Text(
-                text = "Automatically apply dark theme on all web pages. Some sites may not look great.",
+                text = "True #000000 pitch-black background in Dark Mode for maximum AMOLED battery savings and contrast.",
                 color = textSecondary,
                 fontSize = 12.5.sp,
                 lineHeight = 16.sp
               )
             }
             Switch(
-              checked = settings.darkThemeForAllWebPages,
-              onCheckedChange = { settingsRepo.updateDarkThemeForAllWebPages(it) },
+              checked = settings.pureBlackOled,
+              onCheckedChange = { enabled ->
+                settingsRepo.updatePureBlackOled(enabled)
+                if (enabled && settings.appearanceMode == AppearanceMode.LIGHT) {
+                  settingsRepo.updateAppearanceMode(AppearanceMode.DARK)
+                }
+              },
               colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF388BFD)
+                checkedTrackColor = accentTint
               )
             )
           }
@@ -1441,9 +1468,65 @@ private fun AppearanceSubScreen(
             modifier = Modifier.padding(vertical = 2.dp)
           )
 
+          // 2. Dark theme for all web pages
           Row(
             modifier = Modifier
               .fillMaxWidth()
+              .clickable {
+                val nextDarkWeb = !settings.darkThemeForAllWebPages
+                settingsRepo.updateDarkThemeForAllWebPages(nextDarkWeb)
+                com.remmi.browser.engine.GeckoEngineManager.getInstance(context).updateDarkThemeSettings(nextDarkWeb)
+              }
+              .padding(vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+          ) {
+            Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+              Text(
+                text = "Dark theme for all web pages",
+                color = textPrimary,
+                fontSize = 15.5.sp,
+                fontWeight = FontWeight.Medium,
+                fontFamily = ThemeCyber.fontFamily
+              )
+              Spacer(modifier = Modifier.height(3.dp))
+              Text(
+                text = "Automatically apply dark theme on all web pages via Gecko prefers-color-scheme and smart CSS inversion.",
+                color = textSecondary,
+                fontSize = 12.5.sp,
+                lineHeight = 16.sp
+              )
+            }
+            Switch(
+              checked = settings.darkThemeForAllWebPages,
+              onCheckedChange = { enabled ->
+                settingsRepo.updateDarkThemeForAllWebPages(enabled)
+                com.remmi.browser.engine.GeckoEngineManager.getInstance(context).updateDarkThemeSettings(enabled)
+              },
+              colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = accentTint
+              )
+            )
+          }
+
+          Divider(
+            color = cardBorder.copy(alpha = 0.5f),
+            thickness = 0.8.dp,
+            modifier = Modifier.padding(vertical = 2.dp)
+          )
+
+          // 3. Cyberpunk HUD Theme
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clickable {
+                val nextHud = !settings.cyberHudEnabled
+                settingsRepo.updateCyberHudEnabled(nextHud)
+                if (nextHud && settings.cyberTheme == CyberTheme.NORMAL_DEFAULT) {
+                  settingsRepo.updateCyberTheme(CyberTheme.JARVIS)
+                }
+              }
               .padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -1453,11 +1536,12 @@ private fun AppearanceSubScreen(
                 text = "Cyberpunk HUD Theme",
                 color = textPrimary,
                 fontSize = 15.5.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                fontFamily = ThemeCyber.fontFamily
               )
               Spacer(modifier = Modifier.height(3.dp))
               Text(
-                text = "Enable futuristic Cyberpunk HUD accent themes and neon cyber styling. Kept OFF by default to maintain the clean standard Normal theme.",
+                text = "Enable futuristic Cyberpunk HUD neon borders, tinted cyber surfaces, and tactical monospace HUD styling across the entire browser.",
                 color = textSecondary,
                 fontSize = 12.5.sp,
                 lineHeight = 16.sp
@@ -1467,10 +1551,13 @@ private fun AppearanceSubScreen(
               checked = settings.cyberHudEnabled,
               onCheckedChange = { enabled ->
                 settingsRepo.updateCyberHudEnabled(enabled)
+                if (enabled && settings.cyberTheme == CyberTheme.NORMAL_DEFAULT) {
+                  settingsRepo.updateCyberTheme(CyberTheme.JARVIS)
+                }
               },
               colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF388BFD)
+                checkedTrackColor = accentTint
               )
             )
           }
@@ -1497,7 +1584,12 @@ private fun AppearanceSubScreen(
             ThemeSelectionCard(
               theme = firstTheme,
               isSelected = settings.cyberTheme == firstTheme,
-              onClick = { settingsRepo.updateCyberTheme(firstTheme) },
+              onClick = {
+                settingsRepo.updateCyberTheme(firstTheme)
+                if (firstTheme != CyberTheme.NORMAL_DEFAULT && firstTheme != CyberTheme.MINIMAL_DARK) {
+                  settingsRepo.updateCyberHudEnabled(true)
+                }
+              },
               cardBg = cardBg,
               cardBorder = cardBorder,
               textPrimary = textPrimary,
@@ -1509,7 +1601,12 @@ private fun AppearanceSubScreen(
               ThemeSelectionCard(
                 theme = secondTheme,
                 isSelected = settings.cyberTheme == secondTheme,
-                onClick = { settingsRepo.updateCyberTheme(secondTheme) },
+                onClick = {
+                  settingsRepo.updateCyberTheme(secondTheme)
+                  if (secondTheme != CyberTheme.NORMAL_DEFAULT && secondTheme != CyberTheme.MINIMAL_DARK) {
+                    settingsRepo.updateCyberHudEnabled(true)
+                  }
+                },
                 cardBg = cardBg,
                 cardBorder = cardBorder,
                 textPrimary = textPrimary,
@@ -1724,6 +1821,7 @@ private fun AppearanceModeOption(
   selected: Boolean,
   onClick: () -> Unit,
   textPrimary: Color,
+  accentColor: Color = Color(0xFF388BFD),
   showDivider: Boolean = true,
   dividerColor: Color = Color.Transparent,
 ) {
@@ -1740,13 +1838,14 @@ private fun AppearanceModeOption(
         text = title,
         color = textPrimary,
         fontSize = 15.5.sp,
-        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+        fontFamily = ThemeCyber.fontFamily
       )
       RadioButton(
         selected = selected,
         onClick = onClick,
         colors = RadioButtonDefaults.colors(
-          selectedColor = Color(0xFF388BFD),
+          selectedColor = accentColor,
           unselectedColor = Color(0xFF8E8E93)
         )
       )

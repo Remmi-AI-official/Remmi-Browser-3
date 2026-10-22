@@ -329,8 +329,15 @@ fun AddEditCredentialDialog(
           Button(
             onClick = {
               if (url.isNotBlank() && password.isNotBlank()) {
+                val rawTrimmed = url.trim()
+                val normalizedUrl = when {
+                  rawTrimmed.startsWith("https://", ignoreCase = true) -> rawTrimmed
+                  rawTrimmed.startsWith("http://", ignoreCase = true) -> "https://" + rawTrimmed.substring(7)
+                  !rawTrimmed.contains("://") -> "https://$rawTrimmed"
+                  else -> rawTrimmed
+                }
                 onSave(
-                  url.trim(),
+                  normalizedUrl,
                   username.trim(),
                   password.trim(),
                   notes.trim(),

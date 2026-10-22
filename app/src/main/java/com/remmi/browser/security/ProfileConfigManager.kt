@@ -170,6 +170,8 @@ class ProfileConfigManager(private val context: Context) {
       appendLine("""user_pref("ui.systemUsesDarkTheme", ${if (isDark) 1 else 0});""")
       appendLine("""user_pref("browser.in-content.dark-mode", $isDark);""")
       appendLine("""user_pref("layout.css.prefers-color-scheme.content-override", ${if (isDark) 0 else 1});""")
+      appendLine("""user_pref("nglayout.initialpaint.delay", 150);""")
+      appendLine("""user_pref("nglayout.initialpaint.delay_in_oopif", 150);""")
       appendLine()
       appendLine("// Form & Password Manager Engine Integration")
       appendLine("""user_pref("signon.rememberSignons", true);""")
@@ -297,6 +299,8 @@ class ProfileConfigManager(private val context: Context) {
       appendLine("""user_pref("browser.display.background_color.dark", "$bgHex");""")
       appendLine("""user_pref("ui.systemUsesDarkTheme", ${if (isDark) 1 else 0});""")
       appendLine("""user_pref("browser.in-content.dark-mode", $isDark);""")
+      appendLine("""user_pref("nglayout.initialpaint.delay", 150);""")
+      appendLine("""user_pref("nglayout.initialpaint.delay_in_oopif", 150);""")
     }
   }
 

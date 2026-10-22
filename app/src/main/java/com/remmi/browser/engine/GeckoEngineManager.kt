@@ -117,6 +117,9 @@ class GeckoEngineManager private constructor(private val context: Context) {
         }
       }
     }
+    blockExtension.forceDarkWebPagesProvider = {
+      com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value.darkThemeForAllWebPages
+    }
 
     blockExtension.addThreatListener { threatUrl, threatType ->
       mainHandler.post {
@@ -208,6 +211,15 @@ class GeckoEngineManager private constructor(private val context: Context) {
     false
   }
 
+  private val viewBackgroundColors = java.util.WeakHashMap<GeckoView, Int>()
+
+  private fun setGeckoViewBackgroundIfNeeded(gv: GeckoView, colorInt: Int) {
+    if (viewBackgroundColors[gv] != colorInt) {
+      viewBackgroundColors[gv] = colorInt
+      gv.setBackgroundColor(colorInt)
+    }
+  }
+
   fun updateThemeBackgroundColor(colorInt: Int, isDark: Boolean) {
     val prevColor = activeThemeBackgroundColorInt
     val prevDark = activeThemeIsDark
@@ -217,10 +229,10 @@ class GeckoEngineManager private constructor(private val context: Context) {
     mainHandler.post {
       try {
         geckoViewPool.values.forEach { gv ->
-          gv.setBackgroundColor(colorInt)
+          setGeckoViewBackgroundIfNeeded(gv, colorInt)
         }
         attachedViews.values.forEach { gv ->
-          gv.setBackgroundColor(colorInt)
+          setGeckoViewBackgroundIfNeeded(gv, colorInt)
         }
         runtime?.settings?.preferredColorScheme = if (isDark) {
           GeckoRuntimeSettings.COLOR_SCHEME_DARK
@@ -280,7 +292,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
   private fun coverViewUntilFirstPaint(tabId: String, view: GeckoView? = attachedViews[tabId] ?: geckoViewPool[tabId]) {
     try {
       val gv = view ?: return
-      gv.setBackgroundColor(activeThemeBackgroundColorInt)
+      setGeckoViewBackgroundIfNeeded(gv, activeThemeBackgroundColorInt)
     } catch (_: Throwable) {}
   }
 
@@ -353,7 +365,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
       isSaveEnabled = false
       isSaveFromParentEnabled = false
       setDynamicToolbarMaxHeight(0)
-      setBackgroundColor(activeThemeBackgroundColorInt)
+      setGeckoViewBackgroundIfNeeded(this, activeThemeBackgroundColorInt)
       tag = tabId
     }
     geckoViewPool[tabId] = newView
@@ -1777,15 +1789,37 @@ class GeckoEngineManager private constructor(private val context: Context) {
     val tab = TabManager.getInstance().getTab(tabId)
     val profile = tab?.profile ?: currentProfile
     val securityLevel = policy.customSecurityLevel ?: tab?.securityLevel ?: SecurityLevel.STANDARD
+    val targetAllowJs = policy.javascriptEnabled ?: securityLevel.javascriptEnabled
+    val targetTrackingProtection = (policy.cookiePolicy != "ALLOW")
+    val targetSuspendMedia = !policy.autoplayAllowed
+    val targetUaMode = if (profile == PrivacyProfile.GHOST || tab?.isDesktopMode == true) {
+      GeckoSessionSettings.USER_AGENT_MODE_DESKTOP
+    } else {
+      GeckoSessionSettings.USER_AGENT_MODE_MOBILE
+    }
 
     onMainSession(tabId, "APPLY_SITE_SECURITY_POLICY") { session ->
-      session.settings.apply {
-        allowJavascript = policy.javascriptEnabled ?: securityLevel.javascriptEnabled
-        useTrackingProtection = (policy.cookiePolicy != "ALLOW")
-        suspendMediaWhenInactive = !policy.autoplayAllowed
+      val s = session.settings
+      var changed = false
+      if (s.allowJavascript != targetAllowJs) {
+        s.allowJavascript = targetAllowJs
+        changed = true
       }
-      AntiFingerprint.configureGeckoSession(session, profile, securityLevel)
-      Log.d(TAG, "Applied site security policy for host '$host' to tab $tabId (js=${session.settings.allowJavascript}, tp=${session.settings.useTrackingProtection}, autoplay=${policy.autoplayAllowed})")
+      if (s.useTrackingProtection != targetTrackingProtection) {
+        s.useTrackingProtection = targetTrackingProtection
+        changed = true
+      }
+      if (s.suspendMediaWhenInactive != targetSuspendMedia) {
+        s.suspendMediaWhenInactive = targetSuspendMedia
+        changed = true
+      }
+      if (s.userAgentMode != targetUaMode) {
+        s.userAgentMode = targetUaMode
+        changed = true
+      }
+      if (changed) {
+        Log.d(TAG, "Applied site security policy for host '$host' to tab $tabId (js=${s.allowJavascript}, tp=${s.useTrackingProtection}, autoplay=${policy.autoplayAllowed})")
+      }
     }
   }
 
@@ -3050,14 +3084,6 @@ class GeckoEngineManager private constructor(private val context: Context) {
         if (!success) {
           if (lastOriginalFailures[tabId] != "CERTIFICATE_ERROR") {
             checkPostNavFailure(tabId, "PAGE_STOP_FAILED", currUrl)
-          }
-        } else {
-          val currentSettings = com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value
-          if (currentSettings.darkThemeForAllWebPages && !isInternalOrIgnoredUrl(currUrl)) {
-            val forceDarkJs = "javascript:(function(){try{if(document.getElementById('__remmi_dark_mode_style'))return;var s=document.createElement('style');s.id='__remmi_dark_mode_style';s.textContent=':root,html{color-scheme:dark!important;}@media(prefers-color-scheme:light),(prefers-color-scheme:no-preference){html,body{background-color:#121212!important;color:#e0e0e0!important;}}';(document.head||document.documentElement).appendChild(s);}catch(e){}})();"
-            try {
-              session.loadUri(forceDarkJs)
-            } catch (_: Exception) {}
           }
         }
 
@@ -4408,16 +4434,35 @@ class GeckoEngineManager private constructor(private val context: Context) {
   }
 
   fun updateDarkThemeSettings(darkTheme: Boolean) {
+    val currentSettings = try {
+      com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value
+    } catch (_: Throwable) { null }
+    val effectiveDark = darkTheme || (currentSettings?.resolveIsDarkTheme() == true)
+    activeThemeIsDark = effectiveDark
     mainHandler.post {
       try {
-        runtime?.settings?.preferredColorScheme = if (darkTheme) {
+        runtime?.settings?.preferredColorScheme = if (effectiveDark) {
           GeckoRuntimeSettings.COLOR_SCHEME_DARK
         } else {
-          GeckoRuntimeSettings.COLOR_SCHEME_SYSTEM
+          GeckoRuntimeSettings.COLOR_SCHEME_LIGHT
         }
       } catch (e: Exception) {
         Log.w(TAG, "Failed to update preferredColorScheme: ${e.message}")
       }
+    }
+    val rt = runtime ?: return
+    engineScope.launch {
+      try {
+        GeckoPreferenceController(rt).applyPreferences(
+          mapOf(
+            "layout.css.prefers-color-scheme.content-override" to (if (effectiveDark) 0 else 1),
+            "ui.systemUsesDarkTheme" to (if (effectiveDark) 1 else 0),
+            "browser.in-content.dark-mode" to effectiveDark,
+          ),
+          GeckoPreferenceController.PREF_BRANCH_USER
+        )
+        blockExtension.notifyRulesUpdated()
+      } catch (_: Throwable) {}
     }
   }
 

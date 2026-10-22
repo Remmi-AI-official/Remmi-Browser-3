@@ -366,9 +366,45 @@ fun NewTabPage(
         }
 
         Row(
-          horizontalArrangement = Arrangement.spacedBy(10.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
           verticalAlignment = Alignment.CenterVertically
         ) {
+          val settingsRepo = remember { com.remmi.browser.storage.SettingsRepository.getInstance(context) }
+
+          Surface(
+            shape = CircleShape,
+            color = cardBg.copy(alpha = if (isLight) 0.92f else 0.88f),
+            border = BorderStroke(1.dp, if (!isLight) colors.primary.copy(alpha = 0.55f) else cardBorder),
+            shadowElevation = if (isLight) 2.dp else 0.dp,
+            modifier = Modifier
+              .size(44.dp)
+              .clip(CircleShape)
+              .clickable(
+                role = androidx.compose.ui.semantics.Role.Button,
+                onClick = {
+                  if (isLight) {
+                    settingsRepo.updateAppearanceMode(com.remmi.browser.storage.AppearanceMode.DARK)
+                    settingsRepo.updatePureBlackOled(true)
+                    Toast.makeText(context, "OLED Dark Mode Enabled", Toast.LENGTH_SHORT).show()
+                  } else {
+                    settingsRepo.updateAppearanceMode(com.remmi.browser.storage.AppearanceMode.LIGHT)
+                    settingsRepo.updatePureBlackOled(false)
+                    Toast.makeText(context, "Light Mode Enabled", Toast.LENGTH_SHORT).show()
+                  }
+                }
+              )
+              .testTag("home_dark_mode_toggle_button")
+          ) {
+            Box(contentAlignment = Alignment.Center) {
+              Icon(
+                imageVector = if (isLight) Icons.Default.DarkMode else Icons.Default.LightMode,
+                contentDescription = if (isLight) "Enable OLED Dark Mode" else "Switch to Light Mode",
+                tint = if (isLight) Color(0xFF6366F1) else Color(0xFFFBBF24),
+                modifier = Modifier.size(21.dp)
+              )
+            }
+          }
+
           Surface(
             shape = CircleShape,
             color = cardBg.copy(alpha = if (isLight) 0.92f else 0.88f),

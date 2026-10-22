@@ -124,8 +124,7 @@ object PasswordCryptoEngine {
   }
 
   fun isPasswordValid(password: CharArray): Boolean {
-    val strength = evaluatePasswordStrength(password)
-    return strength.hasMinLength && strength.hasUppercase && strength.hasLowercase && strength.hasDigit && strength.hasSymbol
+    return password.size >= 8 && password.any { !it.isWhitespace() }
   }
 
   // --- 1B. Master PIN Strength & Validation ---
@@ -192,27 +191,51 @@ object PasswordCryptoEngine {
   fun deriveKeyEncryptionKey(
     password: CharArray,
     salt: ByteArray = generateSecureRandomBytes(SALT_LENGTH_BYTES),
+    paramsDescription: String? = null,
   ): MasterKeyDerivationResult {
     val passwordBytes = charArrayToUtf8Bytes(password)
     val outputKek = ByteArray(KEY_LENGTH_BYTES)
 
-    try {
-      val params = Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
-        .withVersion(Argon2Parameters.ARGON2_VERSION_13)
-        .withMemoryAsKB(ARGON2_MEMORY_KB)
-        .withIterations(ARGON2_ITERATIONS)
-        .withParallelism(ARGON2_PARALLELISM)
-        .withSalt(salt)
-        .build()
+    val requestedMemKb = paramsDescription
+      ?.substringAfter("m=", "")
+      ?.substringBefore(",")
+      ?.toIntOrNull()
+      ?: ARGON2_MEMORY_KB
 
-      val generator = Argon2BytesGenerator()
-      generator.init(params)
-      generator.generateBytes(passwordBytes, outputKek, 0, KEY_LENGTH_BYTES)
+    try {
+      var actualMemKb = requestedMemKb
+      try {
+        val params = Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+          .withVersion(Argon2Parameters.ARGON2_VERSION_13)
+          .withMemoryAsKB(actualMemKb)
+          .withIterations(ARGON2_ITERATIONS)
+          .withParallelism(ARGON2_PARALLELISM)
+          .withSalt(salt)
+          .build()
+
+        val generator = Argon2BytesGenerator()
+        generator.init(params)
+        generator.generateBytes(passwordBytes, outputKek, 0, KEY_LENGTH_BYTES)
+      } catch (_: OutOfMemoryError) {
+        System.gc()
+        actualMemKb = 16384 // 16 MiB safe fallback under low heap conditions
+        val fallbackParams = Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
+          .withVersion(Argon2Parameters.ARGON2_VERSION_13)
+          .withMemoryAsKB(actualMemKb)
+          .withIterations(ARGON2_ITERATIONS)
+          .withParallelism(ARGON2_PARALLELISM)
+          .withSalt(salt)
+          .build()
+
+        val generator = Argon2BytesGenerator()
+        generator.init(fallbackParams)
+        generator.generateBytes(passwordBytes, outputKek, 0, KEY_LENGTH_BYTES)
+      }
 
       return MasterKeyDerivationResult(
         kek = outputKek,
         salt = salt,
-        paramsDescription = "argon2id;m=$ARGON2_MEMORY_KB,t=$ARGON2_ITERATIONS,p=$ARGON2_PARALLELISM",
+        paramsDescription = "argon2id;m=$actualMemKb,t=$ARGON2_ITERATIONS,p=$ARGON2_PARALLELISM",
       )
     } finally {
       zeroize(passwordBytes)

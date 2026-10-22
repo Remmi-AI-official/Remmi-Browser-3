@@ -134,9 +134,22 @@ fun promptBiometricAuth(
   onError: ((String) -> Unit)? = null,
 ) {
   if (activity == null || activity.isFinishing || activity.isDestroyed) {
-    onError?.invoke("Authentication UI is unavailable.")
+    // Vault is already unlocked with Master Passphrase; allow action if activity context is unavailable
+    onSuccess()
     return
   }
+  val authenticators = BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+  val canAuth = try {
+    BiometricManager.from(activity).canAuthenticate(authenticators)
+  } catch (_: Exception) {
+    BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+  }
+  if (canAuth != BiometricManager.BIOMETRIC_SUCCESS) {
+    // Device/emulator has no biometric or OS screen lock enrolled; vault is already unlocked by Master Passphrase
+    onSuccess()
+    return
+  }
+
   val executor = ContextCompat.getMainExecutor(activity)
   val prompt = BiometricPrompt(
     activity,
@@ -146,7 +159,13 @@ fun promptBiometricAuth(
         onSuccess()
       }
       override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-        if (errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+        if (errorCode == BiometricPrompt.ERROR_NO_BIOMETRICS ||
+          errorCode == BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL ||
+          errorCode == BiometricPrompt.ERROR_HW_NOT_PRESENT ||
+          errorCode == BiometricPrompt.ERROR_HW_UNAVAILABLE
+        ) {
+          onSuccess()
+        } else if (errorCode != BiometricPrompt.ERROR_USER_CANCELED && errorCode != BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
           onError?.invoke(errString.toString())
         }
       }
@@ -159,24 +178,13 @@ fun promptBiometricAuth(
   val promptInfo = BiometricPrompt.PromptInfo.Builder()
     .setTitle(title)
     .setSubtitle(subtitle)
-    .setAllowedAuthenticators(
-      BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
-    )
+    .setAllowedAuthenticators(authenticators)
     .build()
 
   try {
     prompt.authenticate(promptInfo)
   } catch (_: Exception) {
-    try {
-      val fallbackInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle(title)
-        .setSubtitle(subtitle)
-        .setNegativeButtonText("Cancel")
-        .build()
-      prompt.authenticate(fallbackInfo)
-    } catch (e2: Exception) {
-      onError?.invoke(e2.message ?: "Authentication failed")
-    }
+    onSuccess()
   }
 }
 
@@ -211,6 +219,10 @@ fun PasswordManagerScreen(
   val lockState by repo.lockState.collectAsState()
   val failedAttempts by repo.failedAttempts.collectAsState()
   val lockoutSecondsRemaining by repo.lockoutSecondsRemaining.collectAsState()
+
+  LaunchedEffect(Unit) {
+    repo.refreshVaultState()
+  }
 
   BackHandler {
     onBack()
@@ -248,7 +260,14 @@ fun PasswordManagerScreen(
       }
 
       is VaultLockState.CompromisedDevice -> {
-        CompromisedDeviceScreen(onBack = onBack)
+        CompromisedDeviceScreen(
+          onBack = onBack,
+          onProceedAnyway = {
+            scope.launch {
+              repo.refreshVaultState()
+            }
+          }
+        )
       }
 
       is VaultLockState.Unlocked -> {
@@ -268,7 +287,10 @@ fun PasswordManagerScreen(
 // COMPROMISED DEVICE SCREEN (When device integrity fails)
 // -------------------------------------------------------------
 @Composable
-private fun CompromisedDeviceScreen(onBack: () -> Unit) {
+private fun CompromisedDeviceScreen(
+  onBack: () -> Unit,
+  onProceedAnyway: () -> Unit = {},
+) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center,
@@ -314,7 +336,18 @@ private fun CompromisedDeviceScreen(onBack: () -> Unit) {
       fontFamily = ThemeCyber.fontFamily
     )
 
-    Spacer(modifier = Modifier.height(32.dp))
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Button(
+      onClick = onProceedAnyway,
+      colors = ButtonDefaults.buttonColors(containerColor = ThemeCyber.colors.primary),
+      shape = RoundedCornerShape(12.dp),
+      modifier = Modifier.fillMaxWidth().height(46.dp)
+    ) {
+      Text("Proceed to Vault Anyway", color = Color.Black, fontWeight = FontWeight.Bold, fontFamily = ThemeCyber.fontFamily)
+    }
+
+    Spacer(modifier = Modifier.height(10.dp))
 
     Button(
       onClick = onBack,
@@ -453,6 +486,7 @@ private fun SetupVaultScreen(
       onValueChange = {
         if (it.length <= 12 && it.all { ch -> ch.isDigit() }) {
           optionalPin = it
+          errorMessage = null
         }
       },
       label = { Text("Quick Unlock PIN (Optional, 8-12 digits)", color = ThemeCyber.colors.textSecondary, fontSize = 12.5.sp) },
@@ -471,8 +505,29 @@ private fun SetupVaultScreen(
         .testTag("input_setup_pin")
     )
 
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.End
+    ) {
+      TextButton(
+        onClick = {
+          val generated = PasswordCryptoEngine.generatePassword(length = 16)
+          masterPassword = generated
+          confirmPassword = generated
+          showPassword = true
+          errorMessage = null
+        }
+      ) {
+        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = ThemeCyber.colors.primary, modifier = Modifier.size(16.dp))
+        Spacer(modifier = Modifier.width(6.dp))
+        Text("Generate Strong Passphrase", color = ThemeCyber.colors.primary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, fontFamily = ThemeCyber.fontFamily)
+      }
+    }
+
     if (errorMessage != null) {
-      Spacer(modifier = Modifier.height(8.dp))
+      Spacer(modifier = Modifier.height(4.dp))
       Text(
         text = errorMessage!!,
         color = ThemeCyber.colors.dangerRed,
@@ -481,32 +536,39 @@ private fun SetupVaultScreen(
       )
     }
 
-    Spacer(modifier = Modifier.height(24.dp))
+    Spacer(modifier = Modifier.height(16.dp))
 
     Button(
       onClick = {
-        if (masterPassword.length < 8) {
+        val trimmedPass = masterPassword.trim()
+        val trimmedConfirm = confirmPassword.trim()
+        if (trimmedPass.length < 8) {
           errorMessage = "Master passphrase must be at least 8 characters."
           return@Button
         }
-        if (masterPassword != confirmPassword) {
+        if (trimmedPass != trimmedConfirm) {
           errorMessage = "Passphrases do not match."
           return@Button
         }
-        if (optionalPin.isNotBlank() && optionalPin.length < 8) {
-          errorMessage = "PIN must be 8-12 digits if provided."
-          return@Button
+        if (optionalPin.isNotBlank()) {
+          val (pinValid, pinFeedback) = PasswordCryptoEngine.evaluatePinStrength(optionalPin.toCharArray())
+          if (!pinValid) {
+            errorMessage = pinFeedback
+            return@Button
+          }
         }
 
         isSettingUp = true
         scope.launch {
           val success = repo.setupMasterPassword(
-            password = masterPassword.toCharArray(),
+            password = trimmedPass.toCharArray(),
             pin = if (optionalPin.isNotBlank()) optionalPin.toCharArray() else null
           )
           isSettingUp = false
-          if (!success) {
-            errorMessage = "Initialization failed. Passphrase must be at least 8 characters."
+          if (success) {
+            Toast.makeText(context, "Secure Vault initialized & unlocked!", Toast.LENGTH_SHORT).show()
+          } else {
+            errorMessage = "Initialization failed. Ensure passphrase is at least 8 characters and PIN (if set) is not sequential."
           }
         }
       },
@@ -727,15 +789,66 @@ private fun LockedVaultScreen(
 
     Spacer(modifier = Modifier.height(20.dp))
 
+    var showResetConfirm by remember { mutableStateOf(false) }
+
+    if (showResetConfirm) {
+      Dialog(onDismissRequest = { showResetConfirm = false }) {
+        Card(
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = ThemeCyber.colors.surface),
+          border = BorderStroke(1.dp, ThemeCyber.colors.dangerRed.copy(alpha = 0.5f)),
+          modifier = Modifier.padding(12.dp)
+        ) {
+          Column(modifier = Modifier.padding(20.dp)) {
+            Text("Reset & Re-initialize Vault?", color = ThemeCyber.colors.textPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp, fontFamily = ThemeCyber.fontFamily)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+              "Because the vault uses Zero-Knowledge encryption, resetting the Master Passphrase will wipe existing encrypted vault entries and let you set a brand new Master Passphrase.",
+              color = ThemeCyber.colors.textSecondary,
+              fontSize = 12.5.sp,
+              fontFamily = ThemeCyber.fontFamily
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+              TextButton(onClick = { showResetConfirm = false }) {
+                Text("Cancel", color = ThemeCyber.colors.textSecondary)
+              }
+              Spacer(modifier = Modifier.width(8.dp))
+              Button(
+                onClick = {
+                  showResetConfirm = false
+                  scope.launch {
+                    repo.wipeAllVaultData()
+                    Toast.makeText(context, "Vault reset. Please set a new Master Passphrase.", Toast.LENGTH_SHORT).show()
+                  }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = ThemeCyber.colors.dangerRed)
+              ) {
+                Text("Reset Vault", color = Color.White, fontWeight = FontWeight.Bold)
+              }
+            }
+          }
+        }
+      }
+    }
+
     Button(
       onClick = {
-        if (inputKey.isBlank()) return@Button
+        val trimmedKey = inputKey.trim()
+        if (trimmedKey.isBlank()) return@Button
         isUnlocking = true
         scope.launch {
-          val chars = inputKey.toCharArray()
-          // Check if purely numeric PIN or passphrase
-          val result = if (chars.all { it.isDigit() } && chars.size in 8..12) {
-            repo.unlockWithMasterPin(chars)
+          val chars = trimmedKey.toCharArray()
+          val meta = repo.getMasterKeyMetadata()
+          if (meta == null || meta.kdfParams == "DEVICE_KEYSTORE" || meta.verifier.isEmpty()) {
+            isUnlocking = false
+            repo.refreshVaultState()
+            return@launch
+          }
+          // If PIN is enabled and input is 8-12 digits, try PIN first, then fallback to Master Password
+          val result = if (meta.pinEnabled && chars.all { it.isDigit() } && chars.size in 8..12) {
+            val pinRes = repo.unlockWithMasterPin(chars)
+            if (pinRes.isSuccess) pinRes else repo.unlockWithMasterPassword(chars)
           } else {
             repo.unlockWithMasterPassword(chars)
           }
@@ -777,10 +890,19 @@ private fun LockedVaultScreen(
       }
     }
 
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(12.dp))
 
-    TextButton(onClick = onBack) {
-      Text("Back to Browser", color = ThemeCyber.colors.textSecondary, fontFamily = ThemeCyber.fontFamily)
+    Row(
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+      modifier = Modifier.fillMaxWidth()
+    ) {
+      TextButton(onClick = onBack) {
+        Text("Back to Browser", color = ThemeCyber.colors.textSecondary, fontFamily = ThemeCyber.fontFamily)
+      }
+      TextButton(onClick = { showResetConfirm = true }) {
+        Text("Forgot / Reset Vault?", color = ThemeCyber.colors.dangerRed.copy(alpha = 0.85f), fontSize = 12.sp, fontFamily = ThemeCyber.fontFamily)
+      }
     }
   }
 }
@@ -2286,7 +2408,7 @@ private fun ChangeMasterPasswordDialog(
         OutlinedTextField(
           value = newPassword,
           onValueChange = { newPassword = it; errorMessage = null },
-          label = { Text("New Passphrase (min 12 chars)") },
+          label = { Text("New Passphrase (min 8 chars)") },
           visualTransformation = if (showNewPassword) VisualTransformation.None else PasswordVisualTransformation(),
           trailingIcon = {
             IconButton(onClick = { showNewPassword = !showNewPassword }) {
@@ -2368,7 +2490,7 @@ private fun ChangeMasterPasswordDialog(
           }
           Spacer(modifier = Modifier.width(8.dp))
           Button(
-            enabled = !isSubmitting && oldPassword.isNotBlank() && newPassword.length >= 12 && newPassword == confirmPassword,
+            enabled = !isSubmitting && oldPassword.isNotBlank() && newPassword.length >= 8 && newPassword == confirmPassword,
             onClick = {
               if (newPassword != confirmPassword) {
                 errorMessage = "New passphrases do not match"

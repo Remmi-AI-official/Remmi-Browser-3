@@ -160,6 +160,10 @@ object NetworkHardening {
       "browser.cache.memory.max_entry_size" to 4096,
       "image.mem.surfacecache.max_size_kb" to 65536,
       "image.mem.decode_bytes_at_a_time" to 32768,
+      "browser.display.background_color" to (settings?.resolveBackgroundHex() ?: "#FFFFFF"),
+      "browser.display.background_color.dark" to (settings?.resolveBackgroundHex() ?: "#0F172A"),
+      "nglayout.initialpaint.delay" to 150,
+      "nglayout.initialpaint.delay_in_oopif" to 150,
     )
   }
 
@@ -254,6 +258,8 @@ object NetworkHardening {
       "layout.css.prefers-color-scheme.content-override" to (if (settings?.darkThemeForAllWebPages == true) 0 else if (settings?.resolveIsDarkTheme() == true) 0 else 1),
       "ui.systemUsesDarkTheme" to (if (settings?.resolveIsDarkTheme() == true) 1 else 0),
       "browser.in-content.dark-mode" to (settings?.resolveIsDarkTheme() == true),
+      "nglayout.initialpaint.delay" to 150,
+      "nglayout.initialpaint.delay_in_oopif" to 150,
     )
   }
 

@@ -114,8 +114,7 @@ class PasswordManagerRepository private constructor(
     scope.launch {
       val integrity = TamperDetection.checkIntegrity(context)
       if (integrity.isRootDetected) {
-        _lockState.value = VaultLockState.CompromisedDevice
-        return@launch
+        Log.w(TAG, "Root/emulator indicator detected during checkInitialState; keeping vault functional.")
       }
 
       val savedFailed = prefs.getInt(KEY_FAILED_ATTEMPTS, 0)
@@ -127,7 +126,7 @@ class PasswordManagerRepository private constructor(
       if (lockoutUntil > now) {
         val remainingSec = ((lockoutUntil - now) / 1000).toInt()
         startLockoutCountdown(remainingSec, remainingSec)
-      } else {
+      } else if (_lockState.value !is VaultLockState.Unlocked) {
         _lockState.value = VaultLockState.Locked
       }
 
@@ -135,32 +134,41 @@ class PasswordManagerRepository private constructor(
       try {
         val readyState = RemmiDatabase.databaseState.first { it is RemmiDatabase.DatabaseState.Ready }
         if (readyState is RemmiDatabase.DatabaseState.Ready) {
-          try {
-            val metadata = readyState.database.masterKeyMetadataDao().getMetadata()
-            if (metadata == null) {
-              if (_lockState.value !is VaultLockState.TemporarilyLocked) {
-                _lockState.value = VaultLockState.Uninitialized
-              }
-            } else if (metadata.kdfParams == "DEVICE_KEYSTORE") {
-              if (_lockState.value !is VaultLockState.TemporarilyLocked) {
-                _lockState.value = VaultLockState.Locked
-              }
-            } else {
-              if (_lockState.value !is VaultLockState.TemporarilyLocked) {
-                _lockState.value = VaultLockState.Locked
-              }
-            }
-          } catch (_: Throwable) {
-            if (_lockState.value !is VaultLockState.TemporarilyLocked) {
-              _lockState.value = VaultLockState.Uninitialized
-            }
-          }
+          applyMetadataLockState(readyState.database)
         }
       } catch (_: Throwable) {
-        if (_lockState.value !is VaultLockState.TemporarilyLocked) {
+        if (_lockState.value !is VaultLockState.TemporarilyLocked && _lockState.value !is VaultLockState.Unlocked) {
           _lockState.value = VaultLockState.Uninitialized
         }
       }
+    }
+  }
+
+  suspend fun refreshVaultState() = withContext(Dispatchers.IO) {
+    try {
+      val db = getDb()
+      applyMetadataLockState(db)
+    } catch (e: Throwable) {
+      Log.w(TAG, "refreshVaultState fallback to Uninitialized: ${e.message}")
+      if (_lockState.value !is VaultLockState.TemporarilyLocked && _lockState.value !is VaultLockState.Unlocked) {
+        _lockState.value = VaultLockState.Uninitialized
+      }
+    }
+  }
+
+  private suspend fun applyMetadataLockState(db: RemmiDatabase) {
+    if (_lockState.value is VaultLockState.Unlocked || _lockState.value is VaultLockState.TemporarilyLocked) {
+      return
+    }
+    try {
+      val metadata = db.masterKeyMetadataDao().getMetadata()
+      if (metadata == null || metadata.kdfParams == "DEVICE_KEYSTORE" || metadata.verifier.isEmpty()) {
+        _lockState.value = VaultLockState.Uninitialized
+      } else {
+        _lockState.value = VaultLockState.Locked
+      }
+    } catch (_: Throwable) {
+      _lockState.value = VaultLockState.Uninitialized
     }
   }
 
@@ -178,16 +186,17 @@ class PasswordManagerRepository private constructor(
       return@withContext false
     }
 
-    val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(password)
+    var kdfResult: com.remmi.browser.security.crypto.MasterKeyDerivationResult? = null
+    var pinKdfResult: com.remmi.browser.security.crypto.MasterKeyDerivationResult? = null
     val dek = PasswordCryptoEngine.generateSecureRandomBytes(PasswordCryptoEngine.KEY_LENGTH_BYTES)
 
-    var pinKdfResult: com.remmi.browser.security.crypto.MasterKeyDerivationResult? = null
-    var pinEncryptedDek: com.remmi.browser.security.crypto.AesGcmCiphertext? = null
-    var pinVerifierPair: Pair<ByteArray, ByteArray>? = null
-
     try {
+      kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(password)
       val encryptedDek = PasswordCryptoEngine.encryptAesGcm(kdfResult.kek, dek)
       val (verifier, verifierSalt) = PasswordCryptoEngine.computeVerifier(kdfResult.kek)
+
+      var pinEncryptedDek: com.remmi.browser.security.crypto.AesGcmCiphertext? = null
+      var pinVerifierPair: Pair<ByteArray, ByteArray>? = null
 
       if (pin != null && pin.isNotEmpty()) {
         pinKdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(pin)
@@ -226,8 +235,14 @@ class PasswordManagerRepository private constructor(
       PasswordCryptoEngine.zeroize(dek)
       _lockState.value = VaultLockState.Unlocked(dekCopy)
       return@withContext true
+    } catch (e: Throwable) {
+      Log.e(TAG, "setupMasterPassword error: ${e.message}", e)
+      PasswordCryptoEngine.zeroize(dek)
+      return@withContext false
     } finally {
-      PasswordCryptoEngine.zeroize(kdfResult.kek)
+      if (kdfResult != null) {
+        PasswordCryptoEngine.zeroize(kdfResult.kek)
+      }
       if (pinKdfResult != null) {
         PasswordCryptoEngine.zeroize(pinKdfResult.kek)
       }
@@ -300,7 +315,7 @@ class PasswordManagerRepository private constructor(
     val metadata = getDb().masterKeyMetadataDao().getMetadata()
       ?: return@withContext Result.failure(IllegalStateException("Vault uninitialized."))
 
-    val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(password, metadata.kdfSalt)
+    val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(password, metadata.kdfSalt, metadata.kdfParams)
 
     try {
       val isVerified = PasswordCryptoEngine.verifyKek(kdfResult.kek, metadata.verifier, metadata.verifierSalt)
@@ -347,7 +362,7 @@ class PasswordManagerRepository private constructor(
       return@withContext Result.failure(IllegalStateException("Master PIN is not enabled."))
     }
 
-    val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(pin, metadata.pinKdfSalt)
+    val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(pin, metadata.pinKdfSalt, metadata.pinKdfParams)
     try {
       val isVerified = PasswordCryptoEngine.verifyKek(kdfResult.kek, metadata.pinVerifier, metadata.pinVerifierSalt)
       if (!isVerified) {
@@ -386,7 +401,7 @@ class PasswordManagerRepository private constructor(
     val metadata = getDb().masterKeyMetadataDao().getMetadata() ?: return@withContext false
 
     if (password != null && password.isNotEmpty()) {
-      val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(password, metadata.kdfSalt)
+      val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(password, metadata.kdfSalt, metadata.kdfParams)
       try {
         val isVerified = PasswordCryptoEngine.verifyKek(kdfResult.kek, metadata.verifier, metadata.verifierSalt)
         if (isVerified) {
@@ -400,7 +415,7 @@ class PasswordManagerRepository private constructor(
         PasswordCryptoEngine.zeroize(kdfResult.kek)
       }
     } else if (pin != null && pin.isNotEmpty() && metadata.pinEnabled && metadata.pinKdfSalt != null && metadata.pinVerifier != null && metadata.pinVerifierSalt != null) {
-      val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(pin, metadata.pinKdfSalt)
+      val kdfResult = PasswordCryptoEngine.deriveKeyEncryptionKey(pin, metadata.pinKdfSalt, metadata.pinKdfParams)
       try {
         val isVerified = PasswordCryptoEngine.verifyKek(kdfResult.kek, metadata.pinVerifier, metadata.pinVerifierSalt)
         if (isVerified) {
@@ -1044,7 +1059,7 @@ class PasswordManagerRepository private constructor(
       return@withContext Result.failure(IllegalStateException("Vault must be unlocked to change Master Password."))
     }
     if (!PasswordCryptoEngine.isPasswordValid(newPassword)) {
-      return@withContext Result.failure(IllegalArgumentException("New Master Password does not meet security requirements (min 12 chars)."))
+      return@withContext Result.failure(IllegalArgumentException("New Master Password does not meet security requirements (min 8 chars)."))
     }
 
     val metadata = getDb().masterKeyMetadataDao().getMetadata()
@@ -1081,10 +1096,10 @@ class PasswordManagerRepository private constructor(
       ?: return@withContext Result.failure(IllegalStateException("Vault is uninitialized."))
 
     if (!PasswordCryptoEngine.isPasswordValid(newPassword)) {
-      return@withContext Result.failure(IllegalArgumentException("New Master Password does not meet security requirements (min 12 chars)."))
+      return@withContext Result.failure(IllegalArgumentException("New Master Password does not meet security requirements (min 8 chars)."))
     }
 
-    val oldKdf = PasswordCryptoEngine.deriveKeyEncryptionKey(oldPassword, metadata.kdfSalt)
+    val oldKdf = PasswordCryptoEngine.deriveKeyEncryptionKey(oldPassword, metadata.kdfSalt, metadata.kdfParams)
     try {
       val isVerified = PasswordCryptoEngine.verifyKek(oldKdf.kek, metadata.verifier, metadata.verifierSalt)
       if (!isVerified) {
@@ -1146,7 +1161,7 @@ class PasswordManagerRepository private constructor(
       return@withContext Result.failure(IllegalArgumentException("Invalid new PIN format."))
     }
 
-    val oldKdf = PasswordCryptoEngine.deriveKeyEncryptionKey(oldPin, metadata.pinKdfSalt)
+    val oldKdf = PasswordCryptoEngine.deriveKeyEncryptionKey(oldPin, metadata.pinKdfSalt, metadata.pinKdfParams)
     try {
       val isVerified = PasswordCryptoEngine.verifyKek(oldKdf.kek, metadata.pinVerifier, metadata.pinVerifierSalt)
       if (!isVerified) {

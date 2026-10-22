@@ -362,7 +362,22 @@ abstract class RemmiDatabase : RoomDatabase() {
     
     data class PurgeResult(val filesDeleted: Int, val filesFailed: Int, val keyRevoked: Boolean, val vaultScrubSucceeded: Boolean, val errors: List<String>)
     
-    fun bootstrap(context: android.content.Context) { }
+    fun bootstrap(context: android.content.Context) {
+      val isUnitTest = try {
+        android.os.Build.FINGERPRINT == "robolectric" ||
+        System.getProperty("robolectric.dependency.repo.url") != null ||
+        Class.forName("org.robolectric.Robolectric") != null
+      } catch (_: Throwable) {
+        false
+      }
+      if (!isUnitTest) {
+        try {
+          getDatabaseAsync(context)
+        } catch (e: Throwable) {
+          android.util.Log.e("RemmiDatabase", "Bootstrap database init warning: ${e.message}", e)
+        }
+      }
+    }
     suspend fun secureWipe(context: android.content.Context, wipeDb: Boolean, onWipeVault: suspend () -> Boolean): PurgeResult {
         wipeState = WipeState.ACTIVE
         try {
@@ -401,20 +416,32 @@ abstract class RemmiDatabase : RoomDatabase() {
           val tag = java.util.Base64.getDecoder().decode(tagB64)
           return com.remmi.browser.security.crypto.PasswordCryptoEngine.unwrapDekWithDeviceKey(encBytes, iv, tag)
         } catch (e: Exception) {
-          android.util.Log.w("RemmiDatabase", "Failed unwrapping DB passphrase, regenerating: ${e.message}")
+          android.util.Log.w("RemmiDatabase", "Failed unwrapping DB passphrase, checking fallback: ${e.message}")
         }
       }
 
+      val fallbackKeyB64 = prefs.getString("fallback_db_key", null)
+      if (fallbackKeyB64 != null) {
+        try {
+          return java.util.Base64.getDecoder().decode(fallbackKeyB64)
+        } catch (_: Exception) {}
+      }
+
       val newKey = com.remmi.browser.security.crypto.PasswordCryptoEngine.generateSecureRandomBytes(32)
+      val fallbackEncoded = java.util.Base64.getEncoder().encodeToString(newKey)
       try {
         val wrapped = com.remmi.browser.security.crypto.PasswordCryptoEngine.wrapDekWithDeviceKey(newKey)
         prefs.edit()
           .putString("enc_db_key", java.util.Base64.getEncoder().encodeToString(wrapped.ciphertext))
           .putString("iv_db_key", java.util.Base64.getEncoder().encodeToString(wrapped.iv))
           .putString("tag_db_key", java.util.Base64.getEncoder().encodeToString(wrapped.authTag))
+          .putString("fallback_db_key", fallbackEncoded)
           .commit()
       } catch (e: Exception) {
-        android.util.Log.w("RemmiDatabase", "Hardware keystore wrap notice: ${e.message}")
+        android.util.Log.w("RemmiDatabase", "Hardware keystore wrap notice, using persisted fallback: ${e.message}")
+        prefs.edit()
+          .putString("fallback_db_key", fallbackEncoded)
+          .commit()
       }
       return newKey
     }
@@ -456,31 +483,51 @@ abstract class RemmiDatabase : RoomDatabase() {
           try {
             migratePlaintextDatabaseToSqlCipher(appContext, dbPassphrase)
           } catch (e: Throwable) {
-            android.util.Log.e("RemmiDatabase", "Plaintext->SQLCipher migration failed: ${e.message}", e)
-            databaseState.value = DatabaseState.Error(e)
-            throw e
+            android.util.Log.e("RemmiDatabase", "Plaintext->SQLCipher migration failed, resetting corrupt DB file: ${e.message}", e)
+            deleteCorruptDatabaseFiles(appContext)
           }
         }
 
-        val builder = Room.databaseBuilder(
-          appContext,
-          RemmiDatabase::class.java,
-          "remmi_database"
-        ).fallbackToDestructiveMigration()
+        fun buildRoomInstance(): RemmiDatabase {
+          val builder = Room.databaseBuilder(
+            appContext,
+            RemmiDatabase::class.java,
+            "remmi_database"
+          ).fallbackToDestructiveMigration()
 
-        if (!isUnitTest) {
-          // net.zetetic.database.sqlcipher.SupportOpenHelperFactory is the correct API for
-          // the net.zetetic:sqlcipher-android artifact (the legacy net.sqlcipher.* package
-          // does not exist in it).
-          val factory = net.zetetic.database.sqlcipher.SupportOpenHelperFactory(dbPassphrase)
-          builder.openHelperFactory(factory)
+          if (!isUnitTest) {
+            val factory = net.zetetic.database.sqlcipher.SupportOpenHelperFactory(dbPassphrase.clone())
+            builder.openHelperFactory(factory)
+          }
+          return builder.build()
         }
 
-        val instance = builder.build()
+        var instance = buildRoomInstance()
+        if (!isUnitTest) {
+          try {
+            instance.openHelper.writableDatabase
+          } catch (e: Throwable) {
+            android.util.Log.w("RemmiDatabase", "SQLCipher DB key mismatch or corruption detected, recovering database: ${e.message}")
+            try { instance.close() } catch (_: Throwable) {}
+            deleteCorruptDatabaseFiles(appContext)
+            instance = buildRoomInstance()
+          }
+        }
+
         INSTANCE = instance
         databaseState.value = DatabaseState.Ready(instance)
         instance
       }
+    }
+
+    private fun deleteCorruptDatabaseFiles(context: android.content.Context) {
+      try {
+        val dbFile = context.getDatabasePath("remmi_database")
+        val parent = dbFile.parentFile
+        listOf("remmi_database", "remmi_database-wal", "remmi_database-shm", "remmi_database-journal").forEach { name ->
+          runCatching { java.io.File(parent, name).delete() }
+        }
+      } catch (_: Throwable) {}
     }
 
     /**

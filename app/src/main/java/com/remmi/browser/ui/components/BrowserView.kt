@@ -444,6 +444,7 @@ fun BrowserView(
         swipeLayout.setOnRefreshListener {
           geckoEngine.reload(tab.id)
         }
+        swipeLayout.tag = surfaceColor
         swipeRefreshRef = swipeLayout
 
         val gvId = "0x" + Integer.toHexString(System.identityHashCode(gv))
@@ -468,10 +469,14 @@ fun BrowserView(
       },
       update = { swipeLayout ->
         swipeRefreshRef = swipeLayout
-        swipeLayout.setBackgroundColor(surfaceColor)
         val targetGeckoView = geckoEngine.getOrCreateGeckoView(swipeLayout.context, tab.id)
-        targetGeckoView.setBackgroundColor(surfaceColor)
+        if (swipeLayout.tag != surfaceColor) {
+          swipeLayout.tag = surfaceColor
+          swipeLayout.setBackgroundColor(surfaceColor)
+          targetGeckoView.setBackgroundColor(surfaceColor)
+        }
         if (targetGeckoView.parent !== swipeLayout) {
+          targetGeckoView.setBackgroundColor(surfaceColor)
           (targetGeckoView.parent as? ViewGroup)?.removeView(targetGeckoView)
           targetGeckoView.tag = tab.id
           targetGeckoView.setDynamicToolbarMaxHeight(0)
