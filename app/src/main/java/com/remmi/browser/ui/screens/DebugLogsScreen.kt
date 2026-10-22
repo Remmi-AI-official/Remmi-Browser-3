@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -103,7 +104,7 @@ fun DebugLogsScreen(
   var searchQuery by remember { mutableStateOf("") }
   var isSearchVisible by remember { mutableStateOf(false) }
   var activeFilter by remember { mutableStateOf(LogFilter.ALL) }
-  var autoScrollToBottom by remember { mutableStateOf(true) }
+  var displayedLogs by remember { mutableStateOf(logs) }
 
   val listState = rememberLazyListState()
 
@@ -111,9 +112,33 @@ fun DebugLogsScreen(
     onBack()
   }
 
+  // Coalesce live log updates and freeze list position while the user is scrolling or reading down the list
+  LaunchedEffect(
+    logs,
+    listState.isScrollInProgress,
+    listState.firstVisibleItemIndex,
+    listState.firstVisibleItemScrollOffset
+  ) {
+    if (logs.isEmpty()) {
+      displayedLogs = emptyList()
+      return@LaunchedEffect
+    }
+    if (displayedLogs.isEmpty()) {
+      displayedLogs = logs
+      return@LaunchedEffect
+    }
+    val isUserAtTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset <= 24
+    if (!listState.isScrollInProgress && isUserAtTop && displayedLogs != logs) {
+      kotlinx.coroutines.delay(350)
+      if (!listState.isScrollInProgress && listState.firstVisibleItemIndex == 0) {
+        displayedLogs = logs
+      }
+    }
+  }
+
   // Filter logs based on category and search query
-  val filteredLogs = remember(logs, activeFilter, searchQuery) {
-    logs.filter { logLine ->
+  val filteredLogs = remember(displayedLogs, activeFilter, searchQuery) {
+    displayedLogs.filter { logLine ->
       val matchesFilter = when (activeFilter) {
         LogFilter.ALL -> true
         LogFilter.ROUTE -> logLine.contains("[ROUTE]", ignoreCase = true) || logLine.contains("SOCKS", ignoreCase = true)
@@ -125,13 +150,6 @@ fun DebugLogsScreen(
       }
       val matchesQuery = searchQuery.isBlank() || logLine.contains(searchQuery, ignoreCase = true)
       matchesFilter && matchesQuery
-    }
-  }
-
-  // Auto-scroll when new logs arrive if enabled
-  LaunchedEffect(filteredLogs.size, autoScrollToBottom) {
-    if (autoScrollToBottom && filteredLogs.isNotEmpty()) {
-      listState.animateScrollToItem(filteredLogs.size - 1)
     }
   }
 
@@ -231,6 +249,10 @@ fun DebugLogsScreen(
           IconButton(
             onClick = {
               DebugLogManager.log("Diagnostic trigger: Manual log refresh")
+              displayedLogs = DebugLogManager.logs.value
+              scope.launch {
+                listState.scrollToItem(0)
+              }
               Toast.makeText(context, "Refreshed", Toast.LENGTH_SHORT).show()
             },
             modifier = Modifier.testTag("debug_logs_refresh_button")
@@ -604,7 +626,10 @@ fun DebugLogsScreen(
           contentPadding = PaddingValues(8.dp),
           verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-          items(filteredLogs) { logLine ->
+          itemsIndexed(
+            items = filteredLogs,
+            key = { index, logLine -> "$index-${logLine.hashCode()}" }
+          ) { _, logLine ->
             val color = when {
               logLine.contains("GHOST_ROUTE_READY", ignoreCase = true) ||
                 logLine.contains("TOR_EXIT_VERIFIED", ignoreCase = true) ||

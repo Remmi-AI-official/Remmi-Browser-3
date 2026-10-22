@@ -294,7 +294,7 @@ fun BrowserScreen(
   val homeRequestedByTab = remember { mutableStateMapOf<String, Boolean>() }
   val backToHomePendingByTab = remember { mutableStateMapOf<String, Boolean>() }
   val activeTabIsBlank = activeTab.url.isBlank() || activeTab.url == "about:blank" || activeTab.url == "remmi://newtab" || activeTab.url == "about:home"
-  val isNewTab = activeTabIsBlank && (homeRequestedByTab[activeTab.id] != false || !activeTab.isLoading)
+  val isNewTab = activeTabIsBlank
 
   SideEffect {
     tabManager.recordRecomposition(activeTab.id)
@@ -805,10 +805,12 @@ fun BrowserScreen(
                         canGoForward = false,
                         isReaderMode = false,
                         isSecure = true,
-                        readerArticle = null
+                        readerArticle = null,
+                        isLoading = false,
+                        progress = 0
                       )
                     }
-                    geckoEngine.loadUrl(activeTab.id, "about:blank")
+                    geckoEngine.resetToNewTab(activeTab.id)
                   } else {
                     val sanitized = NetworkHardening.sanitizeUrl(target)
                     val currentTab = activeTab
@@ -1025,7 +1027,9 @@ fun BrowserScreen(
                           // This blank is an explicit home/back-to-home transition.
                           homeRequestedByTab[tabId] = true
                           backToHomePendingByTab.remove(tabId)
-                          geckoEngine.resetToNewTab(tabId)
+                          if (geckoEngine.getLastDispatchedUrl(tabId) != "about:blank") {
+                            geckoEngine.resetToNewTab(tabId)
+                          }
                         } else {
                           // First real navigation permanently keeps the Gecko surface mounted for
                           // transient blank callbacks during this tab's browsing lifetime.

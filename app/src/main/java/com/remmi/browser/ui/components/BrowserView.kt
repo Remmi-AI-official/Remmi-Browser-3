@@ -86,7 +86,15 @@ fun BrowserView(
   var lastNavigatedUrl by remember(tab.id) { mutableStateOf(geckoEngine.getLastDispatchedUrl(tab.id) ?: "") }
   var isAttachingOrAttached by remember(tab.id) { mutableStateOf(false) }
   val isViewAttached by geckoEngine.getViewAttachmentState(tab.id).collectAsState()
+  val isDocumentRendered by geckoEngine.getDocumentRenderedState(tab.id).collectAsState()
   val presentationState by geckoEngine.getPresentationStateFlow(tab.id).collectAsState()
+
+  LaunchedEffect(isDocumentRendered, isViewAttached, tab.id) {
+    if (!isDocumentRendered && isViewAttached) {
+      kotlinx.coroutines.delay(400)
+      geckoEngine.setDocumentRendered(tab.id, true)
+    }
+  }
 
   val currentOnUrlChange by rememberUpdatedState(onUrlChange)
   val currentOnTitleChange by rememberUpdatedState(onTitleChange)
@@ -560,5 +568,12 @@ fun BrowserView(
         swipeRefreshRef = null
       },
     )
+    if (!isDocumentRendered || !isViewAttached) {
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(canvasThemeColor)
+      )
+    }
   }
 }

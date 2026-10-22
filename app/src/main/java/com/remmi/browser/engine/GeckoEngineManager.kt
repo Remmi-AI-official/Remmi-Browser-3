@@ -265,7 +265,14 @@ class GeckoEngineManager private constructor(private val context: Context) {
 
   private fun hasRealBackHistory(tabId: String, historyList: GeckoSession.HistoryDelegate.HistoryList): Boolean {
     val currentIdx = historyList.currentIndex
-    val minRealIdx = firstRealPageHistoryIndex[tabId] ?: 0
+    if (currentIdx <= 0) return false
+    var lastBlankIdx = -1
+    for (i in 0..currentIdx) {
+      if (isBlankOrHomeUrl(historyList.getOrNull(i)?.uri)) {
+        lastBlankIdx = i
+      }
+    }
+    val minRealIdx = maxOf(firstRealPageHistoryIndex[tabId] ?: 0, lastBlankIdx + 1)
     if (currentIdx <= minRealIdx) return false
     for (i in minRealIdx until currentIdx) {
       val uri = historyList.getOrNull(i)?.uri
@@ -480,6 +487,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
   }
 
   fun tryEmitFirstComposite(tabId: String, session: GeckoSession): Boolean {
+    _documentRenderedStates.getOrPut(tabId) { MutableStateFlow(true) }.value = true
     val navId = getActiveNavId(tabId)
     val gen = navGenerations[tabId] ?: 0L
     val guard = navigationPaintGuards[tabId] ?: getOrCreatePaintGuard(tabId, navId, gen)
@@ -501,6 +509,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
   }
 
   fun tryEmitFirstContentfulPaint(tabId: String, session: GeckoSession): Boolean {
+    _documentRenderedStates.getOrPut(tabId) { MutableStateFlow(true) }.value = true
     val navId = getActiveNavId(tabId)
     val gen = navGenerations[tabId] ?: 0L
     val guard = navigationPaintGuards[tabId] ?: getOrCreatePaintGuard(tabId, navId, gen)
@@ -2076,6 +2085,11 @@ class GeckoEngineManager private constructor(private val context: Context) {
             }
         }
 
+        if (url.isBlank() || url == "about:blank" || isInternalOrIgnoredUrl(url)) {
+          processAllowedLoadRequest(tabId, session, navId, gen, url, sessId, viewId, request, now)
+          return GeckoResult.fromValue(AllowOrDeny.ALLOW)
+        }
+
         // Intercept all navigations through Adblock (User gesture, redirects, popups)
         val sourceUrl = lastObservedUrls[tabId] ?: lastDispatchedUrls[tabId] ?: tab?.url ?: ""
         val sourceHost = try { if (sourceUrl.isNotBlank()) java.net.URI(sourceUrl).host?.lowercase() else null } catch (_: Exception) { null }
@@ -2479,19 +2493,6 @@ class GeckoEngineManager private constructor(private val context: Context) {
             val inFlightUrl = inFlightUrls[tabId]
             val isBackNavigation = inFlightUrl == "history_back"
             if (isBackNavigation) {
-              val currentCommittedUri = sessionHistoryLists[tabId]?.let { list ->
-                val idx = list.currentIndex
-                if (idx >= 0) list.getOrNull(idx)?.uri else null
-              }
-              val isTargetRealPage = realBackNavigationInFlight.contains(tabId) ||
-                hasRealBackHistory(tabId) ||
-                !isBlankOrHomeUrl(currentCommittedUri)
-              if (isTargetRealPage) {
-                val transBackMsg = "[FORENSIC][NAV_TRANSIENT_BLANK] tabId=$tabId navId=$activeNavId generation=$genBefore action=KEEP_EXISTING_SURFACE_ON_REAL_BACK elapsedRealtime=$now"
-                Log.i(TAG, transBackMsg)
-                com.remmi.browser.util.DebugLogManager.log(transBackMsg)
-                return
-              }
               val backMsg = "[FORENSIC] history_back reached about:blank -> transitioning tabId=$tabId to New Tab"
               Log.i(TAG, backMsg)
               com.remmi.browser.util.DebugLogManager.log(backMsg)
@@ -2500,13 +2501,16 @@ class GeckoEngineManager private constructor(private val context: Context) {
               inFlightUrls.remove(tabId)
               dispatchedNavigationsHistory.remove(tabId)
               sessionHistoryLists.remove(tabId)
+              firstRealPageHistoryIndex.remove(tabId)
+              awaitingFirstRealHistoryCommit.add(tabId)
               endVisualNavigation(tabId, activeNavId, genBefore, "BACK_TO_NEW_TAB")
               lastDispatchedUrls[tabId] = "about:blank"
               lastObservedUrls[tabId] = "about:blank"
-              sessionNavStates[tabId] = Pair(false, sessionNavStates[tabId]?.second ?: false)
-              sessionCallbacks[tabId]?.onNavStateChange(false, sessionNavStates[tabId]?.second ?: false)
+              sessionNavStates[tabId] = Pair(false, false)
+              sessionCallbacks[tabId]?.onNavStateChange(false, false)
               sessionCallbacks[tabId]?.onUrlChange("about:blank")
-              resetToNewTab(tabId)
+              sessionCallbacks[tabId]?.onTitleChange("New Tab")
+              sessionCallbacks[tabId]?.onSecurityChange(true)
               return
             }
 
@@ -2642,11 +2646,14 @@ class GeckoEngineManager private constructor(private val context: Context) {
                 Log.i(TAG, transMsg)
                 com.remmi.browser.util.DebugLogManager.log(transMsg)
               } else {
+                val wasAlreadyBlank = prevObserved == "about:blank" && prevDispatched == "about:blank"
                 lastObservedUrls[tabId] = "about:blank"
                 lastDispatchedUrls[tabId] = "about:blank"
-                sessionCallbacks[tabId]?.onUrlChange("about:blank")
-                sessionCallbacks[tabId]?.onTitleChange("New Tab")
-                sessionCallbacks[tabId]?.onSecurityChange(true)
+                if (!wasAlreadyBlank) {
+                  sessionCallbacks[tabId]?.onUrlChange("about:blank")
+                  sessionCallbacks[tabId]?.onTitleChange("New Tab")
+                  sessionCallbacks[tabId]?.onSecurityChange(true)
+                }
               }
             } else if (!isInternalOrIgnoredUrl(it)) {
               sessionCallbacks[tabId]?.onUrlChange(it)
@@ -2945,13 +2952,17 @@ class GeckoEngineManager private constructor(private val context: Context) {
           }
         }
 
+        val isBlankPageStart = url == "about:blank" || isInternalOrIgnoredUrl(url)
         val oldProg = navProgressStates[tabId] ?: 0
-        navLoadingStates[tabId] = true
-        navProgressStates[tabId] = 10
-        logProgressState(tabId, navId, gen, "NAV_START", oldProg, 10, true, true, "page_start")
-
-        sessionCallbacks[tabId]?.onLoadingChange(true)
-        sessionCallbacks[tabId]?.onProgressChange(10)
+        if (!isBlankPageStart) {
+          navLoadingStates[tabId] = true
+          navProgressStates[tabId] = 10
+          logProgressState(tabId, navId, gen, "NAV_START", oldProg, 10, true, true, "page_start")
+          sessionCallbacks[tabId]?.onLoadingChange(true)
+          sessionCallbacks[tabId]?.onProgressChange(10)
+        } else {
+          logProgressState(tabId, navId, gen, "NAV_START", oldProg, 0, false, false, "blank_page_start_ignored")
+        }
       }
 
       override fun onPageStop(session: GeckoSession, success: Boolean) {
@@ -3016,7 +3027,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
         inFlightNavigations.remove(tabId)
         inFlightUrls.remove(tabId)
 
-        if (success) {
+        if (success && !isAboutBlank) {
           lastSuccessfulNavigations[tabId] = SuccessfulNavRecord(
             navId = navId,
             url = currUrl,
@@ -4344,16 +4355,26 @@ class GeckoEngineManager private constructor(private val context: Context) {
   }
 
   fun resetToNewTab(tabId: String) {
+    val alreadyBlank = lastDispatchedUrls[tabId] == "about:blank" &&
+      lastObservedUrls[tabId] == "about:blank" &&
+      !inFlightNavigations.containsKey(tabId) &&
+      navLoadingStates[tabId] != true
+    if (alreadyBlank) {
+      return
+    }
     onMainSession(tabId, "RESET_TO_NEW_TAB") { session ->
+      val wasObservedBlank = lastObservedUrls[tabId] == "about:blank"
       Log.i(TAG, "[FORENSIC] NAV_NEW_TAB_TRANSITION tabId=$tabId")
       logDestructiveOp("RESET_TO_NEW_TAB", tabId, session, null, null, "resetToNewTab")
-      checkPostNavFailure(tabId, "RESET_TO_NEW_TAB")
       val navId = getActiveNavId(tabId)
       val gen = navGenerations[tabId] ?: 0L
       endVisualNavigation(tabId, navId, gen, "RESET_NEW_TAB")
       presentationStates[tabId] = PresentationState.IDLE
+      _documentRenderedStates.getOrPut(tabId) { MutableStateFlow(false) }.value = false
       lastDispatchedUrls[tabId] = "about:blank"
       lastObservedUrls[tabId] = "about:blank"
+      navLoadingStates[tabId] = false
+      navProgressStates[tabId] = 0
       inFlightNavigations.remove(tabId)
       inFlightUrls.remove(tabId)
       dispatchedNavigationsHistory.remove(tabId)
@@ -4378,7 +4399,11 @@ class GeckoEngineManager private constructor(private val context: Context) {
       try {
         session.stop()
       } catch (_: Throwable) {}
-      session.load(GeckoSession.Loader().uri("about:blank").flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY))
+      if (!wasObservedBlank) {
+        try {
+          session.load(GeckoSession.Loader().uri("about:blank").flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY))
+        } catch (_: Throwable) {}
+      }
       try {
         session.purgeHistory()
       } catch (_: Throwable) {}
