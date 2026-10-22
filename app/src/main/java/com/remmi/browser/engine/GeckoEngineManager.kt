@@ -198,7 +198,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
       com.remmi.browser.storage.SettingsRepository.getInstance(context).settings.value.resolveBackgroundHex()
     )
   } catch (_: Throwable) {
-    android.graphics.Color.parseColor("#F7F3EB")
+    android.graphics.Color.WHITE
   }
 
   @Volatile
@@ -211,6 +211,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
   fun updateThemeBackgroundColor(colorInt: Int, isDark: Boolean) {
     val prevColor = activeThemeBackgroundColorInt
     val prevDark = activeThemeIsDark
+    if (prevColor == colorInt && prevDark == isDark) return
     activeThemeBackgroundColorInt = colorInt
     activeThemeIsDark = isDark
     mainHandler.post {
@@ -228,23 +229,21 @@ class GeckoEngineManager private constructor(private val context: Context) {
         }
       } catch (_: Throwable) {}
     }
-    if (prevColor != colorInt || prevDark != isDark) {
-      val rt = runtime ?: return
-      val hex = String.format("#%06X", 0xFFFFFF and colorInt)
-      engineScope.launch {
-        try {
-          GeckoPreferenceController(rt).applyPreferences(
-            mapOf(
-              "browser.display.background_color" to hex,
-              "browser.display.background_color.dark" to hex,
-              "layout.css.prefers-color-scheme.content-override" to (if (isDark) 0 else 1),
-              "ui.systemUsesDarkTheme" to (if (isDark) 1 else 0),
-              "browser.in-content.dark-mode" to isDark,
-            ),
-            GeckoPreferenceController.PREF_BRANCH_USER
-          )
-        } catch (_: Throwable) {}
-      }
+    val rt = runtime ?: return
+    val hex = String.format("#%06X", 0xFFFFFF and colorInt)
+    engineScope.launch {
+      try {
+        GeckoPreferenceController(rt).applyPreferences(
+          mapOf(
+            "browser.display.background_color" to hex,
+            "browser.display.background_color.dark" to hex,
+            "layout.css.prefers-color-scheme.content-override" to (if (isDark) 0 else 1),
+            "ui.systemUsesDarkTheme" to (if (isDark) 1 else 0),
+            "browser.in-content.dark-mode" to isDark,
+          ),
+          GeckoPreferenceController.PREF_BRANCH_USER
+        )
+      } catch (_: Throwable) {}
     }
   }
 
@@ -281,10 +280,7 @@ class GeckoEngineManager private constructor(private val context: Context) {
   private fun coverViewUntilFirstPaint(tabId: String, view: GeckoView? = attachedViews[tabId] ?: geckoViewPool[tabId]) {
     try {
       val gv = view ?: return
-      val bgColor = (gv.background as? android.graphics.drawable.ColorDrawable)?.color
-        ?: activeThemeBackgroundColorInt
-      gv.setBackgroundColor(bgColor)
-      gv.coverUntilFirstPaint(bgColor)
+      gv.setBackgroundColor(activeThemeBackgroundColorInt)
     } catch (_: Throwable) {}
   }
 

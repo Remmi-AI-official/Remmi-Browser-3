@@ -1,27 +1,18 @@
 package com.remmi.browser.ui.theme
 
 import android.app.Activity
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -32,20 +23,20 @@ import androidx.core.view.WindowCompat
 import com.remmi.browser.storage.AppearanceMode
 
 /**
- * Palette of vivid, warm pictorial icon colors inspired by modern Notes & craft apps.
+ * Palette of vivid pictorial icon colors.
  */
 object PictorialPalette {
-  val Coral = Color(0xFFD96B27) // Warm Terracotta Orange
-  val Emerald = Color(0xFF2E7D5B) // Forest Sage Emerald
-  val Purple = Color(0xFF6E48AA) // Royal Amethyst Purple
-  val Blue = Color(0xFF2563EB) // Ocean Cobalt Blue
-  val Sky = Color(0xFF0284C7) // Vivid Sky Blue
-  val Amber = Color(0xFFD97706) // Golden Amber
-  val Rose = Color(0xFFE11D48) // Coral Rose Red
-  val Teal = Color(0xFF0D9488) // Botanical Teal
-  val Indigo = Color(0xFF4F46E5) // Deep Indigo
+  val Coral = Color(0xFFEA580C)
+  val Emerald = Color(0xFF1E8E3E)
+  val Purple = Color(0xFF8E24AA)
+  val Blue = Color(0xFF1A73E8)
+  val Sky = Color(0xFF0284C7)
+  val Amber = Color(0xFFF57C00)
+  val Rose = Color(0xFFE11D48)
+  val Teal = Color(0xFF00897B)
+  val Indigo = Color(0xFF4F46E5)
 
-  val all = listOf(Coral, Emerald, Purple, Blue, Sky, Amber, Rose, Teal, Indigo)
+  val all = listOf(Blue, Purple, Teal, Amber, Rose, Emerald, Sky, Coral, Indigo)
   val size: Int get() = all.size
   operator fun get(index: Int): Color = all[index % all.size]
 }
@@ -59,9 +50,6 @@ fun pictorialColorFor(key: String): Color {
   return PictorialPalette[idx]
 }
 
-/**
- * Clean icon container using the active theme palette (Old UI style with current warm colors).
- */
 @Composable
 fun PictorialIconBadge(
   icon: ImageVector,
@@ -109,73 +97,53 @@ fun RemmiTheme(
   val activeFontFamily = browserFont.fontFamily
 
   val cyberColorScheme = if (isLight) {
-    val bg = when (cyberTheme) {
-      CyberTheme.CYBER_MATRIX -> Color(0xFFEEF5F0)
-      CyberTheme.VERONICA -> Color(0xFFF9F1F4)
-      CyberTheme.JARVIS -> Color(0xFFF0F4FA)
-      CyberTheme.STARK_IND -> Color(0xFFFAF5EA)
-      else -> Color(0xFFF7F3EB) // Warm Sand Notes Paper
-    }
-    val cardSurface = Color(0xFFFFFDF9)
-    val cardSurfaceAlt = when (cyberTheme) {
-      CyberTheme.CYBER_MATRIX -> Color(0xFFE3EFE7)
-      CyberTheme.VERONICA -> Color(0xFFF3E5EB)
-      CyberTheme.JARVIS -> Color(0xFFE4ECF7)
-      else -> Color(0xFFF1ECE1)
-    }
-    val borderCol = when (cyberTheme) {
-      CyberTheme.CYBER_MATRIX -> Color(0xFFD0E2D6)
-      CyberTheme.VERONICA -> Color(0xFFE8D2DC)
-      CyberTheme.JARVIS -> Color(0xFFD2DFEE)
-      else -> Color(0xFFE5DEC9)
-    }
     CyberColorScheme(
       primary = cyberTheme.primaryAccent,
       secondary = cyberTheme.secondaryAccent,
       tertiary = cyberTheme.tertiaryAccent,
-      background = bg,
-      backgroundDarker = cardSurfaceAlt,
-      surface = cardSurface,
-      surfaceLight = cardSurfaceAlt,
-      surfaceBorder = borderCol,
-      glow = Color.Transparent,
-      textPrimary = Color(0xFF1F1C18),
-      textSecondary = Color(0xFF5C554C),
-      textMuted = Color(0xFF857D73),
-      neonCyan = Color(0xFF0D9488),
+      background = Color(0xFFF8FAFC),
+      backgroundDarker = Color(0xFFF1F5F9),
+      surface = Color(0xFFFFFFFF),
+      surfaceLight = Color(0xFFF1F5F9),
+      surfaceBorder = Color(0xFFE2E8F0),
+      glow = cyberTheme.glowColor,
+      textPrimary = Color(0xFF0F172A),
+      textSecondary = Color(0xFF475569),
+      textMuted = Color(0xFF64748B),
+      neonCyan = Color(0xFF0284C7),
       dangerRed = Color(0xFFDC2626),
-      successGreen = Color(0xFF16A34A),
-      warningYellow = Color(0xFFD97706),
-      torPurple = Color(0xFF6E48AA),
-      successContainer = Color(0xFFDCFCE7),
+      successGreen = Color(0xFF1E8E3E),
+      warningYellow = Color(0xFFF57C00),
+      torPurple = Color(0xFF8E24AA),
+      successContainer = Color(0xFFE8F5E9),
       dangerContainer = Color(0xFFFEE2E2),
       isLight = true,
       isNormalTheme = true,
     )
   } else {
-    val bg = if (pureBlackOled) Color(0xFF000000) else Color(0xFF151619)
-    val surface = if (pureBlackOled) Color(0xFF0C0D10) else Color(0xFF1F2126)
-    val surfaceLight = if (pureBlackOled) Color(0xFF16181D) else Color(0xFF282B32)
-    val border = if (pureBlackOled) Color(0xFF22252C) else Color(0xFF32363F)
-    val primary = if (cyberTheme == CyberTheme.NORMAL_DEFAULT) Color(0xFFF08C4B) else cyberTheme.primaryAccent
+    val bg = if (pureBlackOled) Color(0xFF000000) else Color(0xFF0F172A)
+    val surface = if (pureBlackOled) Color(0xFF0A0D14) else Color(0xFF1E293B)
+    val surfaceLight = if (pureBlackOled) Color(0xFF141923) else Color(0xFF334155)
+    val border = if (pureBlackOled) Color(0xFF1E293B) else Color(0xFF334155)
+    val primary = if (cyberTheme == CyberTheme.NORMAL_DEFAULT) Color(0xFF3B82F6) else cyberTheme.primaryAccent
     CyberColorScheme(
       primary = primary,
       secondary = cyberTheme.secondaryAccent,
       tertiary = cyberTheme.tertiaryAccent,
       background = bg,
-      backgroundDarker = Color(0xFF0E0F12),
+      backgroundDarker = Color(0xFF090D16),
       surface = surface,
       surfaceLight = surfaceLight,
       surfaceBorder = border,
-      glow = Color.Transparent,
-      textPrimary = Color(0xFFF5F2EB),
-      textSecondary = Color(0xFFB5AFA6),
-      textMuted = Color(0xFF7E7970),
-      neonCyan = Color(0xFF2DD4BF),
+      glow = cyberTheme.glowColor,
+      textPrimary = Color(0xFFF8FAFC),
+      textSecondary = Color(0xFF94A3B8),
+      textMuted = Color(0xFF64748B),
+      neonCyan = Color(0xFF38BDF8),
       dangerRed = Color(0xFFEF4444),
       successGreen = Color(0xFF22C55E),
       warningYellow = Color(0xFFF59E0B),
-      torPurple = Color(0xFFA78BFA),
+      torPurple = Color(0xFFC084FC),
       successContainer = Color(0xFF064E3B),
       dangerContainer = Color(0xFF450A0A),
       isLight = false,
@@ -202,9 +170,9 @@ fun RemmiTheme(
   } else {
     darkColorScheme(
       primary = cyberColorScheme.primary,
-      onPrimary = Color(0xFF151619),
+      onPrimary = Color(0xFF0F172A),
       secondary = cyberColorScheme.secondary,
-      onSecondary = Color(0xFF151619),
+      onSecondary = Color(0xFF0F172A),
       tertiary = cyberColorScheme.tertiary,
       background = cyberColorScheme.background,
       onBackground = cyberColorScheme.textPrimary,
@@ -218,22 +186,24 @@ fun RemmiTheme(
   }
 
   val view = LocalView.current
+  val bgArgb = cyberColorScheme.background.toArgb()
+  val surfaceArgb = cyberColorScheme.surface.toArgb()
+  val webCanvasArgb = if (isLight) Color.White.toArgb() else bgArgb
+
   if (!view.isInEditMode) {
-    SideEffect {
-      val bgArgb = cyberColorScheme.background.toArgb()
+    LaunchedEffect(bgArgb, surfaceArgb, isLight) {
       val window = (view.context as? Activity)?.window
       if (window != null) {
         window.statusBarColor = bgArgb
-        window.navigationBarColor = cyberColorScheme.surface.toArgb()
+        window.navigationBarColor = surfaceArgb
         window.decorView.setBackgroundColor(bgArgb)
-        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(bgArgb))
         val insetsController = WindowCompat.getInsetsController(window, view)
         insetsController.isAppearanceLightStatusBars = isLight
         insetsController.isAppearanceLightNavigationBars = isLight
       }
       try {
         com.remmi.browser.engine.GeckoEngineManager.getInstance(view.context)
-          .updateThemeBackgroundColor(bgArgb, !isLight)
+          .updateThemeBackgroundColor(webCanvasArgb, !isLight)
       } catch (_: Throwable) {}
     }
   }

@@ -222,15 +222,9 @@ data class BrowserSettings(
       AppearanceMode.SYSTEM -> !systemDark && cyberTheme.isLight
     }
     return if (isLight) {
-      when (cyberTheme) {
-        CyberTheme.CYBER_MATRIX -> "#EEF5F0"
-        CyberTheme.VERONICA -> "#F9F1F4"
-        CyberTheme.JARVIS -> "#F0F4FA"
-        CyberTheme.STARK_IND -> "#FAF5EA"
-        else -> "#F7F3EB"
-      }
+      "#FFFFFF"
     } else {
-      if (pureBlackOled) "#000000" else "#151619"
+      if (pureBlackOled) "#000000" else "#0F172A"
     }
   }
 

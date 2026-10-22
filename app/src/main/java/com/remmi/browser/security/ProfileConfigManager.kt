@@ -163,7 +163,7 @@ class ProfileConfigManager(private val context: Context) {
       } catch (_: Throwable) {
         null
       }
-      val bgHex = currentSettings?.resolveBackgroundHex() ?: "#F7F3EB"
+      val bgHex = currentSettings?.resolveBackgroundHex() ?: "#FFFFFF"
       val isDark = currentSettings?.resolveIsDarkTheme() ?: false
       appendLine("""user_pref("browser.display.background_color", "$bgHex");""")
       appendLine("""user_pref("browser.display.background_color.dark", "$bgHex");""")
@@ -291,7 +291,7 @@ class ProfileConfigManager(private val context: Context) {
       } catch (_: Throwable) {
         null
       }
-      val bgHex = currentSettings?.resolveBackgroundHex() ?: "#F7F3EB"
+      val bgHex = currentSettings?.resolveBackgroundHex() ?: "#FFFFFF"
       val isDark = currentSettings?.resolveIsDarkTheme() ?: false
       appendLine("""user_pref("browser.display.background_color", "$bgHex");""")
       appendLine("""user_pref("browser.display.background_color.dark", "$bgHex");""")

@@ -377,12 +377,13 @@ fun BrowserView(
   val swipeSchemeColor2 = remember { android.graphics.Color.parseColor("#00E5FF") }
   val swipeSchemeColor3 = remember { android.graphics.Color.parseColor("#7C4DFF") }
   val darkProgressBgColor = remember { android.graphics.Color.parseColor("#1E2430") }
-  val warmLightSurfaceColor = remember { android.graphics.Color.parseColor("#FAF5EE") }
+  val warmLightSurfaceColor = remember { android.graphics.Color.WHITE }
+  val canvasThemeColor = if (ThemeCyber.colors.isLight) ThemeCyber.colors.surface else ThemeCyber.colors.background
   val surfaceColor = android.graphics.Color.argb(
-    (ThemeCyber.colors.background.alpha * 255).toInt(),
-    (ThemeCyber.colors.background.red * 255).toInt(),
-    (ThemeCyber.colors.background.green * 255).toInt(),
-    (ThemeCyber.colors.background.blue * 255).toInt()
+    (canvasThemeColor.alpha * 255).toInt(),
+    (canvasThemeColor.red * 255).toInt(),
+    (canvasThemeColor.green * 255).toInt(),
+    (canvasThemeColor.blue * 255).toInt()
   )
   val primaryColorInt = android.graphics.Color.argb(
     (ThemeCyber.colors.primary.alpha * 255).toInt(),
@@ -396,13 +397,13 @@ fun BrowserView(
   Box(
     modifier = modifier
       .fillMaxSize()
-      .background(ThemeCyber.colors.background)
+      .background(canvasThemeColor)
   ) {
     AndroidView<WebSwipeRefreshLayout>(
       modifier = Modifier
         .fillMaxSize()
         .alpha(1f)
-        .background(ThemeCyber.colors.background)
+        .background(canvasThemeColor)
         .testTag("gecko_browser_view"),
       factory = { ctx ->
         val swipeLayout = WebSwipeRefreshLayout(ctx).apply {
@@ -428,9 +429,6 @@ fun BrowserView(
             tag = tab.id
             swipeLayout.addView(this)
           }
-          try {
-            coverUntilFirstPaint(surfaceColor)
-          } catch (_: Throwable) {}
           alpha = 1f
           setDynamicToolbarMaxHeight(0)
           geckoViewRef = this
@@ -470,15 +468,11 @@ fun BrowserView(
       },
       update = { swipeLayout ->
         swipeRefreshRef = swipeLayout
+        swipeLayout.setBackgroundColor(surfaceColor)
         val targetGeckoView = geckoEngine.getOrCreateGeckoView(swipeLayout.context, tab.id)
+        targetGeckoView.setBackgroundColor(surfaceColor)
         if (targetGeckoView.parent !== swipeLayout) {
           (targetGeckoView.parent as? ViewGroup)?.removeView(targetGeckoView)
-          targetGeckoView.setBackgroundColor(surfaceColor)
-          try {
-            if (geckoEngine.shouldReplaceHistoryForFirstLoad(tab.id)) {
-              targetGeckoView.coverUntilFirstPaint(surfaceColor)
-            }
-          } catch (_: Throwable) {}
           targetGeckoView.tag = tab.id
           targetGeckoView.setDynamicToolbarMaxHeight(0)
           swipeLayout.addView(targetGeckoView)
